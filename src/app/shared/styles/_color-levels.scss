@@ -1,0 +1,109 @@
+$gray-levels: (
+  0: 1,
+  10: 0.95,
+  20: 0.9,
+  30: 0.85,
+  40: 0.8,
+  50: 0.77,
+  60: 0.65,
+  70: 0.55,
+  80: 0.45,
+  90: 0.35,
+  100: 0.25,
+  110: 0.15,
+  120: 0,
+);
+
+$primary-levels: (
+  10: (
+    lightness: 0.95,
+    chroma: 0.039,
+  ),
+  20: (
+    lightness: 0.9,
+    chroma: 0.065,
+  ),
+  30: (
+    lightness: 0.85,
+    chroma: 0.092,
+  ),
+  40: (
+    lightness: 0.8,
+    chroma: 0.117,
+  ),
+  50: (
+    lightness: 0.75,
+    chroma: 0.162,
+  ),
+  60: (
+    lightness: 0.7,
+    chroma: 0.155,
+  ),
+  70: (
+    lightness: 0.65,
+    chroma: 0.147,
+  ),
+  80: (
+    lightness: 0.6,
+    chroma: 0.139,
+  ),
+  90: (
+    lightness: 0.55,
+    chroma: 0.132,
+  ),
+  100: (
+    lightness: 0.45,
+    chroma: 0.128,
+  ),
+  110: (
+    lightness: 0.38,
+    chroma: 0.12,
+  ),
+);
+
+$accent-levels: (
+  10: (
+    lightness: 0.95,
+    chroma: 0.04,
+  ),
+  20: (
+    lightness: 0.9,
+    chroma: 0.08,
+  ),
+  30: (
+    lightness: 0.85,
+    chroma: 0.12,
+  ),
+  40: (
+    lightness: 0.8,
+    chroma: 0.25,
+  ),
+  50: (
+    lightness: 0.75,
+    chroma: 0.24,
+  ),
+  60: (
+    lightness: 0.7,
+    chroma: 0.23,
+  ),
+  70: (
+    lightness: 0.65,
+    chroma: 0.22,
+  ),
+  80: (
+    lightness: 0.6,
+    chroma: 0.21,
+    ),
+    90: (
+      lightness: 0.55,
+      chroma: 0.20,
+    ),
+    100: (
+      lightness: 0.49,
+      chroma: 0.18,
+    ),
+    110: (
+      lightness: 0.4,
+      chroma: 0.18,
+    ),
+);

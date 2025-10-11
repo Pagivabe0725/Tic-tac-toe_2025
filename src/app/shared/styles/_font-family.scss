@@ -1,0 +1,34 @@
+@use "sass:map";
+@use "sass:list";
+$font-poppins: "https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap";
+$font-raleway: "https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700&display=swap";
+$font-montserrat: "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap";
+$font-quicksand: "https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap";
+$font-playfair-display: "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap";
+$font-inter: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap";
+
+$fonts: (
+  "Poppins": $font-poppins,
+  "Raleway": $font-raleway,
+  "Montserrat": $font-montserrat,
+  "Quicksand": $font-quicksand,
+  "Playfair Display": font-playfair-display,
+  "Inter": $font-inter,
+);
+
+@mixin special-font-family($incoming_font) {
+  $keys: map.keys($fonts);
+
+  @for $i from 1 through list.length($fonts) {
+    $actualKey: list.nth($keys, $i);
+    h#{$i} {
+      color: if(var(--theme-scheme) == "light", var(--p-10), var(--a-90));
+    }
+    @if ($incoming_font==list.nth($keys, $i)) {
+      @import url(map.get($fonts, $actualKey));
+      * {
+        font-family: #{list.nth($keys, $i)}, sans-serif;
+      }
+    }
+  }
+}

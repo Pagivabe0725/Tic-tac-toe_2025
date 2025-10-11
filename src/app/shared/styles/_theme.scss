@@ -1,0 +1,52 @@
+@use "./color-levels" as levels;
+@use "sass:map";
+@use "sass:list";
+
+@mixin create-theme($primary-color: blue, $accent-color: pink ,$scheme) {
+  --theme-primary: #{$primary-color};
+  --theme-accent: #{$accent-color};
+  --theme-scheme:$scheme;
+  color-scheme: $scheme;
+
+  @include _create-gray-scale(levels.$gray-levels);
+  @include _create-scale(levels.$primary-levels, "primary", var(--theme-primary));
+  @include _create-scale(levels.$accent-levels, "accent", var(--theme-accent));
+  @include _palette-entires(n, 'gray', levels.$gray-levels);
+  @include _palette-entires(p, primary, levels.$primary-levels);
+  @include _palette-entires(a, accent, levels.$accent-levels);
+}
+
+@mixin _create-gray-scale($levels) {
+  @each $key, $value in $levels {
+    --color-gray-#{$key}: oklch(#{$value} 0 0);
+  }
+}
+
+@mixin _create-scale($levels, $prefix, $color) {
+  @each $key, $value in $levels {
+    $lightness: map-get($value, "lightness");
+    $chroma: map-get($value, "chroma");
+    --color-#{$prefix}-#{$key}: oklch(
+      from #{$color} #{$lightness} #{$chroma} h
+    );
+  }
+}
+
+@mixin _palette-entires($prefix, $base, $levels) {
+  $keys: map.keys($levels);
+  @for $i from 1 through list.length($levels) {
+    $light-key: list.nth($keys, $i);
+    $dark-key: list.nth($keys, -$i);
+
+    $light-color: var(--color-#{$base}-#{$light-key});
+    $dark-color: var(--color-#{$base}-#{$dark-key});
+    --#{$prefix}-#{$light-key}: light-dark(#{$light-color}, #{$dark-color});
+
+    .#{$prefix}-#{$light-key} {
+      background-color: light-dark(#{$light-color}, #{$dark-color});
+      @if (list.nth($keys, $i) >=50) {
+        color: if(var(--theme-scheme)== "light", white, var(--p-10));
+      }
+    }
+  }
+}

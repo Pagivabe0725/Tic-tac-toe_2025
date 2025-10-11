@@ -1,0 +1,17 @@
+:host {
+  width: 100%;
+}
+
+:host > div {
+  width: 100%;
+  box-sizing: border-box;
+  height: 40px;
+  display: grid;
+  grid-template-columns: repeat(11, 1fr);
+  border: 1px solid black;
+}
+
+:host div {
+  margin: 10px 0;
+}
+

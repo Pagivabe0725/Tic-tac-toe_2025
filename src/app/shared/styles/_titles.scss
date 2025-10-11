@@ -1,0 +1,49 @@
+@use "sass:list";
+@use "sass:map";
+
+
+
+$sizes: (
+  (
+    "min": 22px,
+    "basic": 1.8vw,
+  ),
+  (
+    "min": 20px,
+    "basic": 1.6vw,
+  ),
+  (
+    "min": 18px,
+    "basic": 1.5vw,
+  ),
+  (
+    "min": 16px,
+    "basic": 1.4vw,
+  ),
+  (
+    "min": 14px,
+    "basic": 1.3vw,
+  ),
+  (
+    "min": 12px,
+    "basic": 1.2vw,
+  )
+);
+
+@mixin rows() {
+  @for $i from 1 through list.length($sizes) {
+    $element: list.nth($sizes, $i);
+    @debug $element;
+    $min: map-get(
+      $map: $element,
+      $key: "min",
+    );
+    $basic: map-get(
+      $map: $element,
+      $key: "basic",
+    );
+    h#{$i} {
+      font-size: max($min, $basic);
+    }
+  }
+}

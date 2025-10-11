@@ -1,0 +1,46 @@
+@mixin basic_button($sch) {
+  $scheme: #{$sch};
+
+  button {
+    $scheme: $sch;
+    $first-color: if($scheme == "light", var(--p-60), var(--p-20));
+    $second-color: if($scheme == "light", var(--a-60), var(--a-20));
+    padding: 1em 2em;
+    background: if($scheme == "light", var(--n-0), var(--n-20));
+    border: none;
+    color: var(if($scheme== "light", --p-110, --p-100));
+    position: relative;
+    font-weight: bold;
+    border-radius: 1000px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: none;
+    margin: 10px;
+    transition: all 0.2s ease-in-out;
+    &::after {
+      content: "";
+      background-image: linear-gradient(
+        to bottom right,
+        $first-color,
+        $second-color
+      );
+      position: absolute;
+      width: 105%;
+      height: 110%;
+      border-radius: inherit;
+      z-index: -1;
+    }
+
+    &:hover {
+      z-index: 0;
+      box-shadow: 1px 1px 10px $first-color, -1px -1px 10px $second-color;
+    }
+
+    &:active{
+      scale: 0.9;
+      font-size:bolder ;
+    }
+  }
+}

@@ -1,1 +1,24 @@
-/* You can add global styles to this file, and also import other style files */
+@use "./app/shared/styles/titles" as titles;
+@use "./app/shared/styles/font-family";
+@use "./app/shared/styles/theme" as theme;
+@use "./app/shared/styles/button" as btn;
+@use "./app/shared/styles/full-frame-animation" as frame-animation;
+
+$primary-color: pink;
+$accent-color: purple;
+$scheme: light;
+
+:root {
+  @include theme.create-theme($primary-color, $accent-color, $scheme);
+}
+
+@include titles.rows();
+@include font-family.special-font-family("Quicksand");
+@include btn.basic_button($scheme);
+@include frame-animation.create-animation-class($scheme);
+
+body {
+  margin: 0;
+  background-color: var(if($scheme== "light", --n-0, --n-0));
+  color: var(--n-120);
+}
