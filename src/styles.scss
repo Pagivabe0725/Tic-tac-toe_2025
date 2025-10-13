@@ -3,22 +3,61 @@
 @use "./app/shared/styles/theme" as theme;
 @use "./app/shared/styles/button" as btn;
 @use "./app/shared/styles/full-frame-animation" as frame-animation;
+@use "./app/shared/styles/color-levels" as levels;
 
-$primary-color: pink;
-$accent-color: purple;
-$scheme: light;
-
-:root {
-  @include theme.create-theme($primary-color, $accent-color, $scheme);
-}
+$primary-color: purple;
+$accent-color: pink;
+$scheme: dark light;
 
 @include titles.rows();
 @include font-family.special-font-family("Quicksand");
 @include btn.basic_button($scheme);
 @include frame-animation.create-animation-class($scheme);
+@include theme.create-color-system(
+  levels.$gray-levels,
+  levels.$primary-levels,
+  levels.$accent-levels
+);
+
+:root {
+  @include theme.create-theme($primary-color, $accent-color, $scheme);
+
+  --theme-background: light-dark(
+    color-mix(in oklch, var(--n-0) 95%, var(--theme-primary) 5%),
+    color-mix(in oklch, var(--n-0) 80%, var(--theme-primary) 25%)
+  );
+}
+
+html {
+  width: 100%;
+  height: 100%;
+}
 
 body {
   margin: 0;
-  background-color: var(if($scheme== "light", --n-0, --n-0));
+  padding: 1vh;
+  height: 100%;
+  box-sizing: border-box;
+  background: var(--theme-background);
   color: var(--n-120);
 }
+
+.own-header-material-icons {
+  padding: 10px;
+  display: flex;
+  cursor: pointer;
+  border: 2px outset var(--p-30);
+  color: var(--p-110);
+  border-radius: 1000px;
+  background-image: linear-gradient(var(--p-20), var(--a-10));
+  font-size: 1.6vw;
+  user-select: none;
+  transition: all ease-in-out 0.4s;
+  &:hover {
+    scale: 1.1;
+  }
+  &:active {
+    scale: 0.8;
+  }
+}
+

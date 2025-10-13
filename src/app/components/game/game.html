@@ -1,0 +1,35 @@
+<div id="own-game-container">
+  <div appGameDisplayPart class="own-game-side-div"
+    [class]="step()%2==0 ? 'own-animated-border' :'own-game-unchosen-side-div'">
+    <span ngProjectAs="first" class="own-animated-border">Player - 1(0)</span>
+    <span ngProjectAs="second">1</span>
+    <span ngProjectAs="third">1</span>
+  </div>
+  <div appGameField id="own-game-filed-container"
+    [style.gridTemplateColumns]="`repeat(${size()}, 1fr)`"
+    [style.gridTemplateRows]="`repeat(${size()}, 1fr)`"
+   >
+    
+    @if (gameField()) {
+      @for (subArray of gameField(); track $index) { 
+        @let $y = $index; 
+        @for (elementm of subArray; track $index) { 
+          @let $x = $index;
+          <div
+          appGameFieldCell
+          [markup]="gameField()![$y][$x]"
+          [xCoordinate]="$x"
+          [yCoordinate]="$y"
+          [size]="size()"
+          (setPosition)="setCell($event)"
+          ></div>
+        } 
+      }
+    }
+  </div>
+  <div appGameDisplayPart class="own-game-side-div"
+    [class]="step()%2==1 ? 'own-animated-border' :'own-game-unchosen-side-div'">
+    <span ngProjectAs="first">Player - 2(X)</span>
+    <span ngProjectAs="second">1</span>
+  </div>
+</div>

@@ -1,19 +1,13 @@
-@use "./color-levels" as levels;
+
 @use "sass:map";
 @use "sass:list";
 
 @mixin create-theme($primary-color: blue, $accent-color: pink ,$scheme) {
   --theme-primary: #{$primary-color};
   --theme-accent: #{$accent-color};
-  --theme-scheme:$scheme;
-  color-scheme: $scheme;
+  //--theme-scheme:#{if($scheme==light, light, dark)};
 
-  @include _create-gray-scale(levels.$gray-levels);
-  @include _create-scale(levels.$primary-levels, "primary", var(--theme-primary));
-  @include _create-scale(levels.$accent-levels, "accent", var(--theme-accent));
-  @include _palette-entires(n, 'gray', levels.$gray-levels);
-  @include _palette-entires(p, primary, levels.$primary-levels);
-  @include _palette-entires(a, accent, levels.$accent-levels);
+  color-scheme: $scheme;
 }
 
 @mixin _create-gray-scale($levels) {
@@ -49,4 +43,18 @@
       }
     }
   }
+}
+
+
+@mixin create-color-system($gray-levels,$primary-levels,$accent-levels){
+
+*{
+  @include _create-gray-scale($gray-levels);
+  @include _create-scale($primary-levels, "primary", var(--theme-primary));
+  @include _create-scale($accent-levels, "accent", var(--theme-accent));
+  @include _palette-entires(n, 'gray', $gray-levels);
+  @include _palette-entires(p, primary, $primary-levels);
+  @include _palette-entires(a, accent, $accent-levels);
+
+}
 }

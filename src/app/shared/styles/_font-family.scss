@@ -22,7 +22,12 @@ $fonts: (
   @for $i from 1 through list.length($fonts) {
     $actualKey: list.nth($keys, $i);
     h#{$i} {
-      color: if(var(--theme-scheme) == "light", var(--p-10), var(--a-90));
+      color: var(--p-100);
+
+      &::selection{
+        background-color: var(--a-10);
+
+      }
     }
     @if ($incoming_font==list.nth($keys, $i)) {
       @import url(map.get($fonts, $actualKey));

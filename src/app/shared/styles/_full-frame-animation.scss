@@ -9,14 +9,10 @@
     $first-color: if($scheme == "light", var(--p-60), var(--p-20));
     $second-color: if($scheme == "light", var(--a-60), var(--a-20));
     position: relative;
-    background-color: if($scheme == "light", var(--n-10), var(--n-20));
+    //background-color: if($scheme == "light", var(--n-10), var(--n-20));
+    background-color: var(--theme-background);
     border-radius: 10px;
-    width: 100px !important;
-    height: 100px !important;
-    margin-left: 100px !important;
-
     border: none;
-
     &::after,
     &::before {
       --angle: 0deg;
@@ -24,7 +20,9 @@
       background-image: conic-gradient(
         from var(--angle),
         var(--a-40),
-        var(--p-60)
+        var(--a-60),
+        var(--p-60),
+        var(--p-40)
       );
 
       position: absolute;
@@ -32,7 +30,7 @@
       height: 100%;
       z-index: -1;
       border-radius: inherit;
-      padding: 3px;
+      padding: 0.2rem;
       top: 50%;
       left: 50%;
       translate: -50% -50%;

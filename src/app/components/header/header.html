@@ -1,0 +1,16 @@
+<div id="own-first-container-div">
+  <ng-content></ng-content>
+</div>
+<div id="own-second-container-div">
+  <div id="own-header-action-div">
+   
+    @let isDark= mode ==='dark' ;
+    <span class="own-header-material-icons material-icons" (click)="mode= isDark? 'light' : 'dark' "
+      >{{isDark? 'sunny': 'brightness_2'}}</span
+    >
+    <span class="own-header-material-icons material-icons">sports_esports</span>
+    <i class="own-header-material-icons material-icons">save_as</i>
+    <span class="own-header-material-icons material-icons">settings</span>
+    <span class="own-header-material-icons material-icons">account_circle</span>
+  </div>
+</div>

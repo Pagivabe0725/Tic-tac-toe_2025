@@ -18,7 +18,7 @@
     align-items: center;
     box-shadow: none;
     margin: 10px;
-    transition: all 0.2s ease-in-out;
+    transition: all 0.1s ease-in-out;
     &::after {
       content: "";
       background-image: linear-gradient(
@@ -39,8 +39,8 @@
     }
 
     &:active{
-      scale: 0.9;
-      font-size:bolder ;
+      scale: 0.85;
+
     }
   }
 }
