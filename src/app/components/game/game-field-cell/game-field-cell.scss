@@ -24,15 +24,25 @@
   user-select: none;
   position: absolute;
   color: var(--theme-background);
-
 }
 
 .own-icon-format-div {
   width: 100%;
   height: 100%;
-
   position: absolute;
   display: flex;
   align-items: center;
   justify-content: center;
+  animation: display 0.21s ease-in;
+}
+
+@keyframes display {
+  from {
+    opacity: 0;
+    scale: 0.1;
+  }
+  to {
+    scale: 1;
+    opacity: 1;
+  }
 }

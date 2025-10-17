@@ -10,8 +10,8 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
-export class App implements OnInit {
+export class App {
  
 
-  ngOnInit(): void {}
+  
 }
