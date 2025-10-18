@@ -1,0 +1,16 @@
+<div id="own-dialog-background">
+  <div id="own-dialog-div">
+    <div id="own-title-div">
+      <span>{{title()}}</span>
+      <span class="material-icons" (click)="closeDialog()">close</span>
+    </div>
+    <div id="own-content-div">
+      <ng-content></ng-content>
+    </div>
+    <div id="own-action-div">
+      <button (click)="emitData(true)">yes</button>
+      <button (click)="emitData(false)">No</button>
+      <button (click)="emitData(undefined)">Ok</button>
+    </div>
+  </div>
+</div>

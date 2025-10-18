@@ -3,8 +3,8 @@
 
   button {
     $scheme: $sch;
-    $first-color: if($scheme == "light", var(--p-60), var(--p-20));
-    $second-color: if($scheme == "light", var(--a-60), var(--a-20));
+  /*   $first-color: if($scheme == "light", var(--p-60), var(--p-20));
+    $second-color: if($scheme == "light", var(--a-60), var(--a-20)); */
     padding: 1em 2em;
     background: if($scheme == "light", var(--n-0), var(--n-20));
     border: none;
@@ -23,8 +23,8 @@
       content: "";
       background-image: linear-gradient(
         to bottom right,
-        $first-color,
-        $second-color
+        var(--gradient-p-component),
+        var(--gradient-a-component)
       );
       position: absolute;
       width: 105%;
@@ -35,12 +35,11 @@
 
     &:hover {
       z-index: 0;
-      box-shadow: 1px 1px 10px $first-color, -1px -1px 10px $second-color;
+      box-shadow: 1px 1px 10px var(--gradient-p-component) -1px -1px 10px var(--gradient-a-component);
     }
 
-    &:active{
+    &:active {
       scale: 0.85;
-
     }
   }
 }

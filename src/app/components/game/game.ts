@@ -33,18 +33,17 @@ export class Game {
   /** Reference to the injected game logic service. */
   #gameLogic: GameLogic = inject(GameLogic);
 
-  /** Reactive signal storing the size of the game board */
-  protected size: WritableSignal<number> = signal(9);
+  /**
+   * Signal representing the current size of the game board.
+   * This is a reactive signal coming from the `gameLogic` service.
+   */
+  protected size: Signal<number> = this.#gameLogic.size;
 
   /**
-   * Computed signal that generates an empty game field based on the `size` signal.
-   * Each cell is represented by an empty string `''`.
+   * Computed signal generating an empty game board based on the `size` signal from the `gameLogic` service.
+   * Each cell in the board is represented by an empty string `''`.
    */
-  protected cells: Signal<string[][]> = computed(() => {
-    return Array(this.size())
-      .fill(null)
-      .map(() => Array(this.size()).fill(''));
-  });
+  protected cells: Signal<string[][]> = this.#gameLogic.cells;
 
   /** Signal tracking the number of moves made in the game. */
   protected step: WritableSignal<number> = signal(0);
@@ -84,7 +83,7 @@ export class Game {
     effect(() => {
       if (this.step() % 2 !== 0 && this.gameField()) {
         console.log('step:');
-       // this.enemyNextStep();
+        // this.enemyNextStep();
       }
     });
   }
@@ -97,34 +96,10 @@ export class Game {
    */
   setCell(coordinates: { xCoordinate: number; yCoordinate: number }): void {
     const copiedFields: string[][] = [...this.gameField()!];
-    copiedFields[coordinates.yCoordinate][coordinates.xCoordinate] =
-      this.actualMarkup();
+    copiedFields[coordinates.yCoordinate][coordinates.xCoordinate] = this.actualMarkup();
     this.gameField.set(copiedFields);
     this.step.update((previous) => previous + 1);
     this.#gameLogic.field = this.gameField();
   }
-/* 
-  async getAIStep(): Promise<{ xCoordinate: number; yCoordinate: number }> {
-    const result = (await this.#gameLogic.getEnemyNextStep()) as {
-      xCoordinate: number;
-      yCoordinate: number;
-    };
-    console.log(result);
-    return result;
-  }
-
-  async enemyNextStep() {
-    await new Promise<void>((resolve) => {
-      setTimeout(() => {
-        resolve();
-      }, 1000);
-    });
-
-    const copiedArray = [...this.gameField()!];
-    console.log(copiedArray);
-    const nextStep = await this.getAIStep();
-    copiedArray[nextStep.xCoordinate][nextStep.yCoordinate] = 'x';
-    this.gameField.set(copiedArray);
-    this.step.update((previous) => previous + 1);
-  } */
+ 
 }

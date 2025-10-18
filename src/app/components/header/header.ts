@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { Theme } from '../../services/theme';
+import { dialogContent, DialogHandler } from '../../services/dialog-handler';
 
 @Component({
   selector: 'header[appHeader]',
@@ -26,6 +27,11 @@ export class Header {
   #theme: Theme = inject(Theme);
 
   /**
+   * placeholder
+   */
+  #dialog: DialogHandler = inject(DialogHandler);
+
+  /**
    * Gets the current theme mode.
    *
    * @returns The current mode, either `'dark'` or `'light'`.
@@ -42,4 +48,19 @@ export class Header {
   set mode(newMode: 'dark' | 'light') {
     this.#theme.mode = newMode;
   }
+
+  /**
+   * placeholder
+   * @param content
+   */
+  protected async openDialogByContent(content: dialogContent) {
+    this.#dialog.openDialog(content).then((result) => {
+      if (result) {
+      }
+    });
+  }
+
+  protected executableFunction = () => {
+    console.log(Math.random());
+  };
 }

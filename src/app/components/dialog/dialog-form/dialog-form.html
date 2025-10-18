@@ -1,0 +1,80 @@
+<form #form="ngForm">
+  @switch (dialog.activeContent()) { 
+    @case ("game_setting") {
+      <fieldset>
+
+        <legend>Size:</legend>
+
+        <select name="size" [(ngModel)]="basicSize">
+          @for (size of chosableSizes; track $index) {
+            <option [value]="size">{{`${size}X${size}-${size}X${size}`}}</option>
+          }
+        </select>
+
+      </fieldset>
+
+      <fieldset>
+        <legend>Opponent:</legend>
+
+        <select name="opponent" [(ngModel)]="basicOpponent">
+          <option value="computer">Computer</option>
+          <option value="player">Player - 2</option>
+        </select>
+      </fieldset>
+
+      <fieldset>
+        <legend>Hardness:</legend>
+
+        <input
+          type="range"
+          min="1"
+          max="4"
+          name="hardness"
+          [(ngModel)]="hardness"
+        />
+
+      </fieldset>
+    }
+
+    @case ('save') {
+      <fieldset>
+        <legend>Name:</legend>
+        <input type="text" name="game_name" placeholder="Name" />
+      </fieldset>
+    }
+
+    @case ('setting') {
+
+      <fieldset>
+     
+        <legend>Primary color:</legend>
+        <input type="color" name="primary" [(ngModel)]="primaryColor">
+        
+      </fieldset>
+
+      <fieldset>
+     
+        <legend>Accent color:</legend>
+     <input type="color" name="accent" [(ngModel)]="accentColor">
+      </fieldset>
+    }
+    @case ('login') {
+
+      <fieldset>
+     
+        <legend>Email:</legend>
+        <input type="text" name="email" [(ngModel)]="email">
+        
+      </fieldset>
+
+      <fieldset>
+     
+        <legend>Password:</legend>
+        <input type="password" name="Password" [(ngModel)]="password">
+        
+      </fieldset>
+
+
+    }
+  }
+</form>

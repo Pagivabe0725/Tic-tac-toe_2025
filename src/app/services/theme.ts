@@ -111,6 +111,36 @@ export class Theme {
   }
 
   /**
+   * Signal representing the primary color of the theme.
+   */
+  get primaryColor(): string | undefined {
+    return this.#primaryColor();
+  }
+
+  /**
+   * Setter for the primary color.
+   * Updates the `primaryColor` signal with a new value.
+   */
+  set primaryColor(newColor: string | undefined) {
+    this.#primaryColor.set(newColor);
+  }
+
+  /**
+   * Signal representing the accent color of the theme.
+   */
+  get accentColor(): string | undefined {
+    return this.#accentColor();
+  }
+
+  /**
+   * Setter for the accent color.
+   * Updates the `accentColor` signal with a new value.
+   */
+  set accentColor(newColor: string | undefined) {
+    this.#accentColor.set(newColor);
+  }
+
+  /**
    * Creates a new {@link Theme} instance, initializing signals, event listeners,
    * and persistent theme data from both computed styles and local storage.
    *

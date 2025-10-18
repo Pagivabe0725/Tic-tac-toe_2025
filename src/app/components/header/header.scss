@@ -1,5 +1,9 @@
 :host {
-  background-image: linear-gradient(to right bottom, var(--p-20), var(--a-20));
+  background-image: linear-gradient(
+    to right bottom,
+    var(--gradient-p-component),
+    var(--gradient-a-component)
+  );
   height: 100%;
   width: 100%;
   display: grid;
@@ -33,6 +37,5 @@
     padding: 10px;
     display: flex;
     justify-content: space-between;
-
   }
 }

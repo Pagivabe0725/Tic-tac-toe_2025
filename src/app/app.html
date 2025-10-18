@@ -1,10 +1,16 @@
+@if (dialog.activeContent()) {
+
+<app-dialog>
+  <app-dialog-form></app-dialog-form>
+</app-dialog>
+
+}
+
 <div>
   <header appHeader>
     <h1>Let's play</h1>
   </header>
-
   <main>
     <router-outlet></router-outlet>
-    
   </main>
 </div>

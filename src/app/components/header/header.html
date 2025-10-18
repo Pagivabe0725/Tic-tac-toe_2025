@@ -8,9 +8,10 @@
     <span class="own-header-material-icons material-icons" (click)="mode= isDark? 'light' : 'dark' "
       >{{isDark? 'sunny': 'brightness_2'}}</span
     >
-    <span class="own-header-material-icons material-icons">sports_esports</span>
-    <i class="own-header-material-icons material-icons">save_as</i>
-    <span class="own-header-material-icons material-icons">settings</span>
-    <span class="own-header-material-icons material-icons">account_circle</span>
+  <span class="own-header-material-icons material-icons" (click)="openDialogByContent('game_setting')">sports_esports</span>
+<span class="own-header-material-icons material-icons" (click)="openDialogByContent('save' )">save_as</span>
+<span class="own-header-material-icons material-icons" (click)="openDialogByContent('setting')">settings</span>
+<span class="own-header-material-icons material-icons" (click)="openDialogByContent('login')">account_circle</span>
+
   </div>
 </div>
