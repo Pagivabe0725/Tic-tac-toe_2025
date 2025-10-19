@@ -4,21 +4,20 @@ import {
   EventEmitter,
   HostBinding,
   HostListener,
-  inject,
   Input,
   input,
   InputSignal,
   Output,
-  Renderer2,
   Signal,
   ViewEncapsulation,
 } from '@angular/core';
+import { CellCoordinate } from '../game';
 
 /**
  * Maps grid sizes to their corresponding icon and cover font sizes.
  * Used to dynamically scale cell content based on the game field size.
  */
-const sizeMap: Map<number, { icon: string; cover: string }> = new Map([
+const sizeMap = new Map<number, { icon: string; cover: string }>([
   [3, { icon: '10vw', cover: '8vw' }],
   [4, { icon: '8vw', cover: '6vw' }],
   [5, { icon: '6.5vw', cover: '4.5vw' }],
@@ -49,9 +48,6 @@ const sizeMap: Map<number, { icon: string; cover: string }> = new Map([
   encapsulation: ViewEncapsulation.None,
 })
 export class GameFieldCell {
-  /** Renderer2 instance for low-level DOM manipulations (currently unused). */
-  #render2 = inject(Renderer2);
-
   /**
    * The current markup symbol in the cell.
    * Possible values:
@@ -74,10 +70,10 @@ export class GameFieldCell {
    * Event emitter fired when a cell is clicked.
    * Emits an object containing both X and Y coordinates of the clicked cell.
    */
-  @Output() setPosition: EventEmitter<{
+  @Output() setPosition = new EventEmitter<{
     yCoordinate: number;
     xCoordinate: number;
-  }> = new EventEmitter();
+  }>();
 
   /**
    * Reactive computation of icon and cover font sizes
@@ -117,7 +113,7 @@ export class GameFieldCell {
       this.setPosition.emit({
         xCoordinate: this.xCoordinate,
         yCoordinate: this.yCoordinate,
-      });
+      } as CellCoordinate);
     }
   }
 }

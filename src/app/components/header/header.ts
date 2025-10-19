@@ -1,40 +1,42 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Theme } from '../../services/theme';
 import { dialogContent, DialogHandler } from '../../services/dialog-handler';
 
+/**
+ * @component Header
+ * @description
+ * Represents the application's main header section.
+ *
+ * This component manages high-level UI interactions related to:
+ * - Theme mode switching between light and dark themes (via {@link Theme}).
+ * - Opening dialog windows with contextual content (via {@link DialogHandler}).
+ *
+ * It serves as a controller for the visual header, delegating persistent state
+ * management to the injected global services.
+ */
 @Component({
   selector: 'header[appHeader]',
   imports: [],
   templateUrl: './header.html',
   styleUrl: './header.scss',
 })
-
-/**
- * @component Header
- *
- * Represents the application's main header section.
- * This component is responsible for handling theme mode switching
- * between light and dark themes via the injected {@link Theme} service.
- *
- * The component acts as a wrapper for the visual header part of the UI,
- * while delegating theme state management to the global Theme service.
- */
 export class Header {
   /**
    * Injected {@link Theme} service that manages the global theme state.
-   * Used for reading and updating the current UI mode ('dark' or 'light').
+   * Used for reading and updating the current UI mode (`'dark'` or `'light'`).
    */
-  #theme: Theme = inject(Theme);
+  #theme = inject(Theme);
 
   /**
-   * placeholder
+   * Injected {@link DialogHandler} service responsible for
+   * opening and managing application dialogs.
    */
-  #dialog: DialogHandler = inject(DialogHandler);
+  #dialog = inject(DialogHandler);
 
   /**
    * Gets the current theme mode.
    *
-   * @returns The current mode, either `'dark'` or `'light'`.
+   * @returns {'dark' | 'light'} The current mode.
    */
   get mode(): 'dark' | 'light' {
     return this.#theme.mode!;
@@ -43,24 +45,22 @@ export class Header {
   /**
    * Sets a new theme mode.
    *
-   * @param newMode - The desired theme mode ('dark' or 'light').
+   * @param newMode {'dark' | 'light'} - The desired theme mode.
    */
   set mode(newMode: 'dark' | 'light') {
     this.#theme.mode = newMode;
   }
 
   /**
-   * placeholder
-   * @param content
+   * Opens a dialog window with the specified content.
+   *
+   * @param content The type of dialog to open (see {@link dialogContent}).
+   * @returns A promise resolving with the dialog result, if any.
    */
-  protected async openDialogByContent(content: dialogContent) {
-    this.#dialog.openDialog(content).then((result) => {
-      if (result) {
-      }
-    });
+  protected async openDialogByContent(content: dialogContent): Promise<void> {
+    const result = await this.#dialog.openDialog(content);
+    if (result) {
+      console.log(result);
+    }
   }
-
-  protected executableFunction = () => {
-    console.log(Math.random());
-  };
 }

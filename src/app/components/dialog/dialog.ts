@@ -1,4 +1,4 @@
-import { Component, computed, contentChild, effect, inject, OnInit, Signal, viewChild } from '@angular/core';
+import { Component, computed, contentChild, effect, inject, Signal } from '@angular/core';
 import { dialogContent, DialogHandler } from '../../services/dialog-handler';
 import { NgForm } from '@angular/forms';
 

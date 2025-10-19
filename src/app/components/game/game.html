@@ -1,6 +1,6 @@
 <div id="own-game-container">
   <div appGameDisplayPart class="own-game-side-div"
-    [class]="step()%2==0 ? 'own-animated-border' :'own-game-unchosen-side-div'">
+    [class]="step()%2 ===0 ? 'own-animated-border' :'own-game-unchosen-side-div'">
     <span ngProjectAs="first" class="own-animated-border">Player - 1(0)</span>
     <span ngProjectAs="second">1</span>
     <span ngProjectAs="third">1</span>
@@ -28,7 +28,7 @@
     }
   </div>
   <div appGameDisplayPart class="own-game-side-div"
-    [class]="step()%2==1 ? 'own-animated-border' :'own-game-unchosen-side-div'">
+    [class]="step()%2 ===1 ? 'own-animated-border' :'own-game-unchosen-side-div'">
     <span ngProjectAs="first">Player - 2(X)</span>
     <span ngProjectAs="second">1</span>
   </div>

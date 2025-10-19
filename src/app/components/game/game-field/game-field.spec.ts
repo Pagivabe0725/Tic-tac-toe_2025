@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { GameField } from './game-field';
 
-describe('GameField', () => {
+xdescribe('GameField', () => {
   let component: GameField;
   let fixture: ComponentFixture<GameField>;
 

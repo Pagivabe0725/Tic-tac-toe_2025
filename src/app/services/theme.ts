@@ -12,7 +12,6 @@ xl	1280px	Extra nagy desktop
 import {
   DOCUMENT,
   effect,
-  HostListener,
   inject,
   Injectable,
   signal,
@@ -22,12 +21,14 @@ import {
 /**
  * A fixed list of available responsive breakpoints.
  */
-const BRAKE_POINTS = ['xs', 'sm', 'md', 'lg', 'xl', '2xl', undefined] as const;
+
+ 
+export const BRAKE_POINTS = ['xs', 'sm', 'md', 'lg', 'xl', '2xl', undefined] as const;
 
 /**
  * Type representing possible responsive breakpoint names.
  */
-type BrakePoint = (typeof BRAKE_POINTS)[number];
+export type BrakePoint = (typeof BRAKE_POINTS)[number];
 
 /**
  * @service Theme
@@ -267,6 +268,5 @@ export class Theme {
           : 'light')
     );
 
-    console.log(this.#mode());
   }
 }

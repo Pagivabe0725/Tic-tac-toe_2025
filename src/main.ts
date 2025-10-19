@@ -19,7 +19,7 @@ import { Theme } from './app/services/theme';
 bootstrapApplication(App, appConfig)
   /** Retrieve the Theme service instance from the root injector. */
   .then((app) => {
-    const theme = app.injector.get(Theme);
+   app.injector.get(Theme);
   })
   .catch((err) => {
     /** Logs any bootstrap errors to the console for debugging purposes. */

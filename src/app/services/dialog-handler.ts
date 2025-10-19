@@ -1,6 +1,10 @@
 import { Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { firstValueFrom, Subject, take } from 'rxjs';
 
+/**
+ * A fixed list of available dialog content identifiers.
+ * These represent the names of dialogs that can be opened through the service.
+ */
 export const DialogContents = [
   'game_setting',
   'save',
@@ -8,37 +12,66 @@ export const DialogContents = [
   'login',
   'registration',
   'info',
+  undefined,
 ] as const;
 
+/**
+ * Type representing all valid dialog content names.
+ */
 export type dialogContent = (typeof DialogContents)[number];
 
+/**
+ * @service DialogHandler
+ *
+ * Centralized service responsible for managing modal dialogs in the application.
+ *
+ * This service provides:
+ * - Reactive signal tracking the currently active dialog content
+ * - A Subject-based mechanism for passing data to and from dialogs
+ * - Methods for opening, closing, and emitting dialog results asynchronously
+ *
+ * Designed to integrate seamlessly with Angular Signals and RxJS.
+ */
 @Injectable({
   providedIn: 'root',
 })
 export class DialogHandler {
-  #activeContent: WritableSignal<dialogContent | undefined> = signal(undefined);
+  /** Reactive signal storing the currently active dialog content. */
+  #activeContent: WritableSignal<dialogContent> = signal(undefined);
 
   /**
-   * placeholder
+   * Internal Subject instance for passing values between
+   * dialog openers and listeners. Created per open dialog.
    */
   #dataSubject: Subject<any> | null = null;
 
   /**
-   * placeholder
+   * Returns a read-only signal representing the currently active dialog.
+   * If no dialog is open, the value is `undefined`.
    */
-  get activeContent(): Signal<dialogContent | undefined> {
+  get activeContent(): Signal<dialogContent > {
     return this.#activeContent.asReadonly();
   }
 
   /**
-   * placeholder
+   * Updates the currently active dialog content.
+   *
+   * @param content - The new dialog identifier, or `undefined` to clear it.
    */
-  set activeContent(content: dialogContent | undefined) {
+  set activeContent(content: dialogContent ) {
     this.#activeContent.set(content);
   }
 
   /**
-   * placeholder
+   * Opens a dialog and waits for a single emitted result.
+   *
+   * - Sets the active dialog content.
+   * - Initializes a new {@link Subject} for communication.
+   * - Returns a Promise that resolves when the dialog emits a value.
+   * - Automatically closes the dialog after resolving.
+   *
+   * @param content - The dialog content identifier to display.
+   * @returns A promise resolving to the value emitted by the dialog.
    */
   public async openDialog(content: dialogContent) {
     this.#activeContent.set(content);
@@ -53,7 +86,11 @@ export class DialogHandler {
   }
 
   /**
-   * placeholder
+   * Closes the currently active dialog.
+   *
+   * - Emits `undefined` to complete the data flow.
+   * - Completes and clears the {@link Subject}.
+   * - Resets the `activeContent` signal to `undefined`.
    */
   close = () => {
     this.#dataSubject?.next(undefined);
@@ -63,7 +100,12 @@ export class DialogHandler {
   };
 
   /**
-   * placeholder
+   * Emits a value to the currently open dialog.
+   *
+   * Used by dialog components to send data back
+   * to the logic that opened them.
+   *
+   * @param value - The value to send through the Subject.
    */
   dailogEmitter(value: any) {
     this.#dataSubject?.next(value);

@@ -13,6 +13,12 @@ import { GameFieldCell } from './game-field-cell/game-field-cell';
 import { GameLogic } from '../../services/game-logic';
 
 /**
+ * @interface
+ * Represents the coordinates of a unique cell
+ */
+export interface CellCoordinate { xCoordinate: number; yCoordinate: number }
+
+/**
  * @component Game
  *
  * Represents the main controller for the game board.
@@ -64,6 +70,7 @@ export class Game {
     signal(undefined);
 
   /**
+   * @constructor
    * Initializes the game component, setting up the initial field,
    * the player's mark, and reactive effects for updating the field
    * and triggering AI moves.
@@ -94,7 +101,7 @@ export class Game {
    *
    * @param coordinates - The x and y coordinates of the cell to update.
    */
-  setCell(coordinates: { xCoordinate: number; yCoordinate: number }): void {
+  setCell(coordinates: CellCoordinate ): void {
     const copiedFields: string[][] = [...this.gameField()!];
     copiedFields[coordinates.yCoordinate][coordinates.xCoordinate] = this.actualMarkup();
     this.gameField.set(copiedFields);
