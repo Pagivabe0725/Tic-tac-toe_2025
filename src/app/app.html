@@ -1,7 +1,7 @@
 @if (dialog.activeContent()) {
 
-<app-dialog>
-  <app-dialog-form></app-dialog-form>
+<app-dialog [form]="actualDialogForm">
+  <app-dialog-form (formEmitter)="actualDialogForm=$event"></app-dialog-form>
 </app-dialog>
 
 }

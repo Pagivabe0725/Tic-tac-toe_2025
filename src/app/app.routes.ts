@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { Game } from './components/game/game';
 
-export const routes: Routes = [
+export const ROUTES: Routes = [
   {
     path: '',
     redirectTo: 'tic-tac-toe',

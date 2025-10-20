@@ -88,6 +88,7 @@ form {
     color: var(--p-100);
     font-weight: bolder;
     font-size: max(15px, 1.4vw);
+    flex-direction: column;
 
     select {
       width: 90%;

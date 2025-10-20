@@ -5,7 +5,7 @@ import { firstValueFrom, Subject, take } from 'rxjs';
  * A fixed list of available dialog content identifiers.
  * These represent the names of dialogs that can be opened through the service.
  */
-export const DialogContents = [
+export const DIALOG_CONTENT = [
   'game_setting',
   'save',
   'setting',
@@ -18,7 +18,7 @@ export const DialogContents = [
 /**
  * Type representing all valid dialog content names.
  */
-export type dialogContent = (typeof DialogContents)[number];
+export type DialogContent = (typeof DIALOG_CONTENT)[number];
 
 /**
  * @service DialogHandler
@@ -37,7 +37,7 @@ export type dialogContent = (typeof DialogContents)[number];
 })
 export class DialogHandler {
   /** Reactive signal storing the currently active dialog content. */
-  #activeContent: WritableSignal<dialogContent> = signal(undefined);
+  #activeContent: WritableSignal<DialogContent> = signal(undefined);
 
   /**
    * Internal Subject instance for passing values between
@@ -49,7 +49,7 @@ export class DialogHandler {
    * Returns a read-only signal representing the currently active dialog.
    * If no dialog is open, the value is `undefined`.
    */
-  get activeContent(): Signal<dialogContent > {
+  get activeContent(): Signal<DialogContent > {
     return this.#activeContent.asReadonly();
   }
 
@@ -58,7 +58,7 @@ export class DialogHandler {
    *
    * @param content - The new dialog identifier, or `undefined` to clear it.
    */
-  set activeContent(content: dialogContent ) {
+  set activeContent(content: DialogContent ) {
     this.#activeContent.set(content);
   }
 
@@ -73,7 +73,7 @@ export class DialogHandler {
    * @param content - The dialog content identifier to display.
    * @returns A promise resolving to the value emitted by the dialog.
    */
-  public async openDialog(content: dialogContent) {
+  public async openDialog(content: DialogContent) {
     this.#activeContent.set(content);
     this.#dataSubject = new Subject<any>();
 

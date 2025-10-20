@@ -1,5 +1,5 @@
 import { bootstrapApplication } from '@angular/platform-browser';
-import { appConfig } from './app/app.config';
+import { APPCONFIG } from './app/app.config';
 import { App } from './app/app';
 import { Theme } from './app/services/theme';
 
@@ -16,7 +16,7 @@ import { Theme } from './app/services/theme';
  * The `Theme` service is retrieved right after bootstrapping to ensure that
  * global theme settings (e.g. dark/light mode) are available immediately.
  */
-bootstrapApplication(App, appConfig)
+bootstrapApplication(App, APPCONFIG)
   /** Retrieve the Theme service instance from the root injector. */
   .then((app) => {
    app.injector.get(Theme);

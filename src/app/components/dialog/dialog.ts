@@ -1,6 +1,6 @@
-import { Component, computed, contentChild, effect, inject, Signal } from '@angular/core';
-import { dialogContent, DialogHandler } from '../../services/dialog-handler';
-import { NgForm } from '@angular/forms';
+import { Component, computed, contentChild, effect, inject, input, InputSignal, Signal } from '@angular/core';
+import { DialogContent, DialogHandler } from '../../services/dialog-handler';
+import { AbstractControl, FormGroup, NgForm } from '@angular/forms';
 
 @Component({
   selector: 'app-dialog',
@@ -14,13 +14,13 @@ export class Dialog  {
    */
   #dialog: DialogHandler = inject(DialogHandler);
 
-  private form :Signal<NgForm | undefined> = contentChild('form', { read: NgForm });
+  public form : InputSignal<NgForm | undefined> = input.required()
 
   /**
    * placeholder
    */
   protected title = computed(() => {
-    switch (this.#dialog.activeContent() as dialogContent) {
+    switch (this.#dialog.activeContent() as DialogContent) {
       case 'game_setting':
         return 'Game Settings';
       case 'save':
@@ -42,9 +42,12 @@ export class Dialog  {
   constructor(){
     console.log(1)
     effect(()=>{
-      if(this.form()){
-        console.log(this.form())
-      }
+
+       if(this.form()){
+      console.log(this.form())
+       //this.getControls(this.form()!.form.controls)
+       }
+      
     })
   }
 
@@ -55,6 +58,26 @@ export class Dialog  {
     this.#dialog.close();
   }
 
+
+getControls(controls: { [key: string]: AbstractControl } | FormGroup) {
+  let keys: string[] = [];
+
+  if (controls instanceof FormGroup) {
+    keys = Object.keys(controls.getRawValue());
+  } else if (controls && typeof controls === 'object') {
+    keys = Object.keys(controls);
+    if (!keys.length) {
+      keys = Object.getOwnPropertyNames(controls);
+    }
+  }
+
+  console.log(keys);
+}
+
+  /**
+   * placeholder
+   * @param value 
+   */
   protected emitData(value: any) {
     this.#dialog.dailogEmitter(value);
   }

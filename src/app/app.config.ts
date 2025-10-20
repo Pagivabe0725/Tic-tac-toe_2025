@@ -5,7 +5,7 @@ import {
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
 
-import { routes } from './app.routes';
+import { ROUTES } from './app.routes';
 
 /**
  * @fileoverview
@@ -30,10 +30,10 @@ import { routes } from './app.routes';
  * - {@link provideZonelessChangeDetection} — activates zoneless change detection to reduce overhead.
  * - {@link provideRouter} — configures Angular’s router with the defined `routes`.
  */
-export const appConfig: ApplicationConfig = {
+export const APPCONFIG: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
-    provideRouter(routes),
+    provideRouter(ROUTES),
   ],
 };

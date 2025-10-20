@@ -1,5 +1,7 @@
+
+@if (getActualObject()) {
 <form #form="ngForm">
-  @switch (dialog.activeContent()) { 
+  <!-- @switch (dialog.activeContent()) { 
     @case ("game_setting") {
       <fieldset>
 
@@ -39,7 +41,7 @@
     @case ('save') {
       <fieldset>
         <legend>Name:</legend>
-        <input type="text" name="game_name" placeholder="Name" />
+        <input type="text" name="gameName" placeholder="Name"  [(ngModel)]="gameName" />
       </fieldset>
     }
 
@@ -76,5 +78,73 @@
 
 
     }
+    @case ('registration') {
+
+      <fieldset >
+     
+        <legend>Email:</legend>
+        <input type="text" name="email" [(ngModel)]="email">
+       
+      </fieldset>
+
+      <fieldset>
+     
+        <legend>Password:</legend>
+        <input type="password" name="Password" [(ngModel)]="password" >
+        
+      </fieldset>
+
+      <fieldset>
+     
+        <legend>Repassword:</legend>
+        <input type="password" name="rePassword" [(ngModel)]="rePassword">
+        
+      </fieldset>
+
+
+    }
+  } -->
+
+
+  @let key = getActualObject()! ;
+
+
+  @for (actualTemplate of templates.get(key) ; track $index) {
+    
+      <fieldset>
+
+          <legend>{{actualTemplate.title+':'}}</legend>
+
+          @if (!['select', 'range'].includes(actualTemplate.type)) {
+
+            <input [type]="actualTemplate.type" [name]="actualTemplate.field"  
+            [ngModel]="getterSetter(actualTemplate.model).get()" 
+            (ngModelChange)="getterSetter(actualTemplate.model).set($event)">
+
+          }
+
+          @else if (actualTemplate.type==='select') {
+            <select [name]="actualTemplate.field"
+            [ngModel]="getterSetter(actualTemplate.model).get()" 
+            (ngModelChange)="getterSetter(actualTemplate.model).set($event)">
+              @for (option of actualTemplate.options; track $index) {
+                <option [value]="option">{{option}}</option>
+              }
+            </select>
+          }
+          @else if (actualTemplate.type==='range') {
+           <input [type]="actualTemplate.type" [name]="actualTemplate.field"  
+            [min]="actualTemplate.min"
+            [max]="actualTemplate.max"
+            [ngModel]="getterSetter(actualTemplate.model).get()" 
+            (ngModelChange)="getterSetter(actualTemplate.model).set($event)">
+          }
+
+      </fieldset>
+
   }
+
 </form>
+
+
+}

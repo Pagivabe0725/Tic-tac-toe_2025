@@ -1,6 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject, signal, Signal } from '@angular/core';
 import { Theme } from '../../services/theme';
-import { dialogContent, DialogHandler } from '../../services/dialog-handler';
+import { DialogContent, DialogHandler } from '../../services/dialog-handler';
+import { Auth } from '../../services/auth';
 
 /**
  * @component Header
@@ -34,6 +35,12 @@ export class Header {
   #dialog = inject(DialogHandler);
 
   /**
+   * placeholder
+   */
+  #auth = inject(Auth);
+
+  readonly logged: Signal<boolean> = this.#auth.logged;
+  /**
    * Gets the current theme mode.
    *
    * @returns {'dark' | 'light'} The current mode.
@@ -57,7 +64,7 @@ export class Header {
    * @param content The type of dialog to open (see {@link dialogContent}).
    * @returns A promise resolving with the dialog result, if any.
    */
-  protected async openDialogByContent(content: dialogContent): Promise<void> {
+  protected async openDialogByContent(content: DialogContent): Promise<void> {
     const result = await this.#dialog.openDialog(content);
     if (result) {
       console.log(result);

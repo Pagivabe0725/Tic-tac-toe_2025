@@ -16,7 +16,17 @@ module.exports = tseslint.config(
     rules: {
       "@angular-eslint/directive-selector": "off",
       "@typescript-eslint/no-explicit-any": "off", // any type permitted
-      
+
+      "@typescript-eslint/naming-convention": [
+        "warn",
+        {
+          selector: "variable",
+          modifiers: ["const", "exported"],
+          format: ["UPPER_CASE"],
+          leadingUnderscore: "allow",
+        },
+    
+      ],
     },
   },
   {
@@ -27,8 +37,8 @@ module.exports = tseslint.config(
     ],
     rules: {
       "@angular-eslint/template/click-events-have-key-events": "off", // Temporarily off
-      "@angular-eslint/template/no-interactive-element-to-noninteractive-role": "off", // temporarily disable focus warning
-
+      "@angular-eslint/template/no-interactive-element-to-noninteractive-role":
+        "off", // temporarily disable focus warning
     },
   }
 );

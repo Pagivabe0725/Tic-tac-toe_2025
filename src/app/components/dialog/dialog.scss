@@ -69,3 +69,11 @@
   display: flex;
   overflow: hidden;
 }
+
+.own-error-span {
+  width: 85%;
+  font-weight: bold;
+  color: red;
+  transition: all ease-in 0.3s;
+  font-style: italic;
+}
