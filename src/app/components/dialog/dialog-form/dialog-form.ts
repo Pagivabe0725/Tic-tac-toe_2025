@@ -4,24 +4,44 @@ import {
   inject,
   output,
   OutputEmitterRef,
+  signal,
   Signal,
   viewChild,
+  WritableSignal,
 } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { DialogContent, DialogHandler } from '../../../services/dialog-handler';
 import { Theme } from '../../../services/theme';
+
+export type FormFieldModel =
+  | 'hardness'
+  | 'primaryColor'
+  | 'accentColor'
+  | 'gameName'
+  | 'email'
+  | 'password'
+  | 'rePassword'
+  | 'opponent'
+  | 'size';
+
+export type FormFieldValidator = {
+  errorMessage: string;
+  logic: (value: any) => boolean;
+};
 
 export type FormField = {
   field: string;
   title: string;
   type: 'select' | 'text' | 'email' | 'range' | 'color' | 'password';
   model: string;
-  options?: string[] | number[] ;
+  options?: string[] | number[];
   min?: number;
   max?: number;
+  validator?: FormFieldValidator; // <- új mező
 };
 
 export type FieldKey = Exclude<DialogContent, undefined>;
+
 export const FORM_FIELDS_MAP: Map<FieldKey, FormField[]> = new Map([
   [
     'game_setting',
@@ -31,7 +51,7 @@ export const FORM_FIELDS_MAP: Map<FieldKey, FormField[]> = new Map([
         title: 'Board Size',
         type: 'select',
         model: 'size',
-        options: [3,4,5,6,7,8,9],
+        options: [3, 4, 5, 6, 7, 8, 9],
       },
       {
         field: 'opponent',
@@ -160,79 +180,81 @@ export class DialogForm {
 
   protected templates = FORM_FIELDS_MAP;
 
-  #hardness = 1;
-  #primaryColor = this.theme.primaryColor;
-  #accentColor = this.theme.accentColor;
-  #gameName = '';
-  #email = '';
-  #password = '';
-  #rePassword = '';
-  #opponent = 'computer';
-  #size = 3;
-
+  #hardness: WritableSignal<number> = signal(1);
+  #primaryColor: WritableSignal<string> = signal(
+    this.theme.primaryColor ?? '#fff'
+  );
+  #accentColor: WritableSignal<string> = signal(
+    this.theme.accentColor ?? '#fff'
+  );
+  #gameName: WritableSignal<string> = signal('');
+  #email: WritableSignal<string> = signal('');
+  #password: WritableSignal<string> = signal('');
+  #rePassword: WritableSignal<string> = signal('');
+  #opponent: WritableSignal<string> = signal('computer');
+  #size: WritableSignal<number> = signal(3);
   get hardness() {
-    return this.#hardness;
+    return this.#hardness();
   }
   set hardness(value: number) {
-    this.#hardness = value;
+    this.#hardness.set(value);
   }
 
   get primaryColor() {
-    return this.#primaryColor ?? 'fff';
+    return this.#primaryColor();
   }
   set primaryColor(value: string) {
-    this.#primaryColor = value;
+    this.#primaryColor.set(value);
   }
 
   get accentColor() {
-    return this.#accentColor ?? 'fff';
+    return this.#accentColor();
   }
   set accentColor(value: string) {
-    this.#accentColor = value;
+    this.#accentColor.set(value);
   }
 
   get gameName() {
-    return this.#gameName;
+    return this.#gameName();
   }
   set gameName(value: string) {
-    this.#gameName = value;
+    this.#gameName.set(value);
   }
 
   get email() {
-    return this.#email;
+    return this.#email();
   }
   set email(value: string) {
-    this.#email = value;
+    this.#email.set(value);
   }
 
   get password() {
-    return this.#password;
+    return this.#password();
   }
   set password(value: string) {
-    this.#password = value;
+    this.#password.set(value);
   }
 
   get rePassword() {
-    return this.#rePassword;
+    return this.#rePassword();
   }
   set rePassword(value: string) {
-    this.#rePassword = value;
+    this.#rePassword.set(value);
   }
 
   get opponent() {
-    return this.#opponent;
+    return this.#opponent();
   }
   set opponent(value: string) {
-    this.#opponent = value;
+    this.#opponent.set(value);
   }
 
   get size() {
-    return this.#size;
+    return this.#size();
   }
   set size(value: number) {
-    this.#size = value;
+    this.#size.set(value);
   }
-
   protected form: Signal<NgForm | undefined> = viewChild('form', {
     read: NgForm,
   });
@@ -250,7 +272,7 @@ export class DialogForm {
     return actualContent ? (actualContent as FieldKey) : undefined;
   }
 
-  getterSetter(fieldName: string) {
+  getterSetter(fieldName: FormFieldModel) {
     return {
       get: () => (this as any)[fieldName],
       set: (value: any) => ((this as any)[fieldName] = value),

@@ -5,7 +5,8 @@ import {
 } from '@angular/core';
 import { Theme } from '../../services/theme';
 import {
-  DialogContents,
+  DIALOG_CONTENT,
+  DialogContent,
   DialogHandler,
 } from '../../services/dialog-handler';
 
@@ -100,7 +101,7 @@ describe('Header', () => {
     });
 
     it('should get and set activeContent correctly via DialogHandler', async () => {
-      for (const content1 of DialogContents) {
+      for (const content1 of DIALOG_CONTENT) {
         // Open dialog with specific content
         component['openDialogByContent'](content1);
 
