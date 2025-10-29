@@ -39,7 +39,7 @@ export class Header {
    */
   #auth = inject(Auth);
 
-  readonly logged: Signal<boolean> = this.#auth.logged;
+  readonly logged: Signal<boolean> = signal(this.#auth.csrf() !==undefined);
   /**
    * Gets the current theme mode.
    *

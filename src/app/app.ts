@@ -5,6 +5,7 @@ import { FormsModule, NgForm } from '@angular/forms';
 import { Dialog } from './components/dialog/dialog';
 import { DialogHandler } from './services/dialog-handler';
 import { DialogForm } from './components/dialog/dialog-form/dialog-form';
+import { Auth } from './services/auth';
 
 
 @Component({
@@ -14,7 +15,7 @@ import { DialogForm } from './components/dialog/dialog-form/dialog-form';
     Header,
     FormsModule,
     Dialog,
-    DialogForm
+    DialogForm,
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss',
@@ -22,4 +23,13 @@ import { DialogForm } from './components/dialog/dialog-form/dialog-form';
 export class App {
   protected dialog: DialogHandler = inject(DialogHandler);
   protected actualDialogForm: NgForm | undefined
+  private auth:Auth = inject(Auth)
+  
+
+  async ngOnInit():Promise<void>{
+
+  /*   const csrf = await this.auth.getCSRF()
+    console.log(csrf) */
+    
+  }
 }

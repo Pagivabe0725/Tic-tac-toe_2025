@@ -1,11 +1,13 @@
 import {
   ApplicationConfig,
+  importProvidersFrom,
   provideBrowserGlobalErrorListeners,
   provideZonelessChangeDetection,
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
 
 import { ROUTES } from './app.routes';
+import { HttpClientModule } from '@angular/common/http';
 
 /**
  * @fileoverview
@@ -35,5 +37,6 @@ export const APPCONFIG: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
     provideRouter(ROUTES),
+    importProvidersFrom(HttpClientModule)
   ],
 };

@@ -33,7 +33,7 @@ export type FormField = {
   field: string;
   title: string;
   type: 'select' | 'text' | 'email' | 'range' | 'color' | 'password';
-  model: string;
+  model: FormFieldModel;
   options?: string[] | number[];
   min?: number;
   max?: number;
