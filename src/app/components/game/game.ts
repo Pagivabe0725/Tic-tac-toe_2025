@@ -10,13 +10,9 @@ import {
 import { GameField } from './game-field/game-field';
 import { GameDisplayPart } from './game-display-part/game-display-part';
 import { GameFieldCell } from './game-field-cell/game-field-cell';
-import { GameLogic } from '../../services/game-logic';
+import { GameLogic } from '../../services/game-logic.service';
+import { CellCoordinate } from '../../utils/interfaces/celll-coordinate.interface';
 
-/**
- * @interface
- * Represents the coordinates of a unique cell
- */
-export interface CellCoordinate { xCoordinate: number; yCoordinate: number }
 
 /**
  * @component Game

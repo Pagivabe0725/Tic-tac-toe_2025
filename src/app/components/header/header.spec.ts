@@ -3,12 +3,12 @@ import { Header } from './header';
 import {
   provideZonelessChangeDetection,
 } from '@angular/core';
-import { Theme } from '../../services/theme';
+import { Theme } from '../../services/theme.service';
 import {
   DIALOG_CONTENT,
-  DialogContent,
   DialogHandler,
-} from '../../services/dialog-handler';
+} from '../../services/dialog-handler.service';
+import { HttpClientModule } from '@angular/common/http';
 
 /**
  * @fileoverview
@@ -32,7 +32,7 @@ describe('Header', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Header],
+      imports: [Header, HttpClientModule],
       providers: [provideZonelessChangeDetection(), Theme, DialogHandler],
     }).compileComponents();
 

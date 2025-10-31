@@ -1,7 +1,8 @@
 import { Component, computed, inject, signal, Signal } from '@angular/core';
-import { Theme } from '../../services/theme';
-import { DialogContent, DialogHandler } from '../../services/dialog-handler';
-import { Auth } from '../../services/auth';
+import { Theme } from '../../services/theme.service';
+import { DialogHandler } from '../../services/dialog-handler.service';
+import { Auth } from '../../services/auth.service';
+import { DialogContent } from '../../utils/types/dialog-content.type';
 
 /**
  * @component Header
@@ -39,7 +40,8 @@ export class Header {
    */
   #auth = inject(Auth);
 
-  readonly logged: Signal<boolean> = signal(this.#auth.csrf() !==undefined);
+
+  readonly logged: Signal<boolean> = signal(this.#auth.user() !==undefined);
   /**
    * Gets the current theme mode.
    *

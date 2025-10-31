@@ -8,9 +8,15 @@
       <ng-content></ng-content>
     </div>
     <div id="own-action-div">
-      <button (click)="emitData(true)">yes</button>
-      <button (click)="emitData(false)">No</button>
-      <button (click)="emitData(undefined)">Ok</button>
+      @if (dialogContent()  && ['login', 'registration',].includes(dialogContent()!)) {
+        <button>{{dialogContent()==='login' ? 'Login' : 'Registration'}}</button>
+        <button (click)="toggleAuthMode()">{{dialogContent()==='login' ? 'Registration' : 'Login'}}</button>
+        
+      }@else {
+        <button (click)="emitData(true)">yes</button>
+        <button (click)="emitData(false)">No</button>
+        <button (click)="emitData(undefined)">Ok</button>
+      }
     </div>
   </div>
 </div>

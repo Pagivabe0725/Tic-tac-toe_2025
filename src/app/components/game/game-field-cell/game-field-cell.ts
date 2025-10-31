@@ -11,7 +11,8 @@ import {
   Signal,
   ViewEncapsulation,
 } from '@angular/core';
-import { CellCoordinate } from '../game';
+import { CellCoordinate } from '../../../utils/interfaces/celll-coordinate.interface';
+
 
 /**
  * Maps grid sizes to their corresponding icon and cover font sizes.

@@ -10,135 +10,13 @@ import {
   WritableSignal,
 } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
-import { DialogContent, DialogHandler } from '../../../services/dialog-handler';
-import { Theme } from '../../../services/theme';
+import { DialogHandler } from '../../../services/dialog-handler.service';
+import { Theme } from '../../../services/theme.service';
+import { FORM_FIELDS_MAP } from '../../../utils/constants/dialog-form-pattern.constant';
+import { FieldKey, FormFieldModel } from '../../../utils/types/dialog-form-field-model.type';
 
-export type FormFieldModel =
-  | 'hardness'
-  | 'primaryColor'
-  | 'accentColor'
-  | 'gameName'
-  | 'email'
-  | 'password'
-  | 'rePassword'
-  | 'opponent'
-  | 'size';
 
-export type FormFieldValidator = {
-  errorMessage: string;
-  logic: (value: any) => boolean;
-};
 
-export type FormField = {
-  field: string;
-  title: string;
-  type: 'select' | 'text' | 'email' | 'range' | 'color' | 'password';
-  model: FormFieldModel;
-  options?: string[] | number[];
-  min?: number;
-  max?: number;
-  validator?: FormFieldValidator; // <- új mező
-};
-
-export type FieldKey = Exclude<DialogContent, undefined>;
-
-export const FORM_FIELDS_MAP: Map<FieldKey, FormField[]> = new Map([
-  [
-    'game_setting',
-    [
-      {
-        field: 'size',
-        title: 'Board Size',
-        type: 'select',
-        model: 'size',
-        options: [3, 4, 5, 6, 7, 8, 9],
-      },
-      {
-        field: 'opponent',
-        title: 'Opponent Type',
-        type: 'select',
-        model: 'opponent',
-        options: ['computer', 'player'],
-      },
-      {
-        field: 'hardness',
-        title: 'Difficulty',
-        type: 'range',
-        model: 'hardness',
-        min: 1,
-        max: 4,
-      },
-    ],
-  ],
-  [
-    'save',
-    [
-      {
-        field: 'gameName',
-        title: 'Game Name',
-        type: 'text',
-        model: 'gameName',
-      },
-    ],
-  ],
-  [
-    'setting',
-    [
-      {
-        field: 'primary',
-        title: 'Primary Color',
-        type: 'color',
-        model: 'primaryColor',
-      },
-      {
-        field: 'accent',
-        title: 'Accent Color',
-        type: 'color',
-        model: 'accentColor',
-      },
-    ],
-  ],
-  [
-    'login',
-    [
-      {
-        field: 'email',
-        title: 'Email Address',
-        type: 'text',
-        model: 'email',
-      },
-      {
-        field: 'Password',
-        title: 'Password',
-        type: 'password',
-        model: 'password',
-      },
-    ],
-  ],
-  [
-    'registration',
-    [
-      {
-        field: 'email',
-        title: 'Email Address',
-        type: 'text',
-        model: 'email',
-      },
-      {
-        field: 'Password',
-        title: 'Password',
-        type: 'password',
-        model: 'password',
-      },
-      {
-        field: 'rePassword',
-        title: 'Confirm Password',
-        type: 'password',
-        model: 'rePassword',
-      },
-    ],
-  ],
-]);
 
 @Component({
   selector: 'app-dialog-form',
@@ -193,66 +71,67 @@ export class DialogForm {
   #rePassword: WritableSignal<string> = signal('');
   #opponent: WritableSignal<string> = signal('computer');
   #size: WritableSignal<number> = signal(3);
-  get hardness() {
+
+  protected get hardness() {
     return this.#hardness();
   }
-  set hardness(value: number) {
+  protected set hardness(value: number) {
     this.#hardness.set(value);
   }
 
-  get primaryColor() {
+  protected get primaryColor() {
     return this.#primaryColor();
   }
-  set primaryColor(value: string) {
+  protected set primaryColor(value: string) {
     this.#primaryColor.set(value);
   }
 
-  get accentColor() {
+  protected get accentColor() {
     return this.#accentColor();
   }
-  set accentColor(value: string) {
+  protected set accentColor(value: string) {
     this.#accentColor.set(value);
   }
 
-  get gameName() {
+  protected get gameName() {
     return this.#gameName();
   }
-  set gameName(value: string) {
+  protected set gameName(value: string) {
     this.#gameName.set(value);
   }
 
-  get email() {
+  protected get email() {
     return this.#email();
   }
-  set email(value: string) {
+  protected set email(value: string) {
     this.#email.set(value);
   }
 
-  get password() {
+  protected get password() {
     return this.#password();
   }
-  set password(value: string) {
+  protected set password(value: string) {
     this.#password.set(value);
   }
 
-  get rePassword() {
+  protected get rePassword() {
     return this.#rePassword();
   }
-  set rePassword(value: string) {
+  protected set rePassword(value: string) {
     this.#rePassword.set(value);
   }
 
-  get opponent() {
+  protected get opponent() {
     return this.#opponent();
   }
-  set opponent(value: string) {
+  protected set opponent(value: string) {
     this.#opponent.set(value);
   }
 
-  get size() {
+  protected get size() {
     return this.#size();
   }
-  set size(value: number) {
+  protected set size(value: number) {
     this.#size.set(value);
   }
   protected form: Signal<NgForm | undefined> = viewChild('form', {
@@ -272,7 +151,7 @@ export class DialogForm {
     return actualContent ? (actualContent as FieldKey) : undefined;
   }
 
-  getterSetter(fieldName: FormFieldModel) {
+  protected getterSetter(fieldName: FormFieldModel) {
     return {
       get: () => (this as any)[fieldName],
       set: (value: any) => ((this as any)[fieldName] = value),

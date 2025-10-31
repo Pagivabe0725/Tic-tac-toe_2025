@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { DialogHandler } from './dialog-handler';
+import { DialogHandler } from '../dialog-handler.service';
 import { provideZonelessChangeDetection } from '@angular/core';
 
 /**

@@ -108,7 +108,6 @@
 
   @let key = getActualObject()! ;
 
-
   @for (actualTemplate of templates.get(key) ; track $index) {
     
       <fieldset>
@@ -121,7 +120,7 @@
             [ngModel]="getterSetter(actualTemplate.model).get()" 
             (ngModelChange)="getterSetter(actualTemplate.model).set($event)">
 
-          }
+          }      
 
           @else if (actualTemplate.type==='select') {
             <select [name]="actualTemplate.field"
@@ -132,6 +131,7 @@
               }
             </select>
           }
+
           @else if (actualTemplate.type==='range') {
            <input [type]="actualTemplate.type" [name]="actualTemplate.field"  
             [min]="actualTemplate.min"
@@ -140,7 +140,7 @@
             (ngModelChange)="getterSetter(actualTemplate.model).set($event)">
           }
 
-      </fieldset>
+        </fieldset>
 
   }
 

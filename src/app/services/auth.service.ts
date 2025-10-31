@@ -8,7 +8,7 @@ import {
   WritableSignal,
 } from '@angular/core';
 import { firstValueFrom, take } from 'rxjs';
-import { Functions } from './functions';
+import { Functions } from './functions.service';
 
 export const baseURL = 'http://localhost:3000';
 
@@ -27,7 +27,8 @@ export class Auth {
   #user: WritableSignal<User | undefined> = signal(undefined);
   #CSRF: WritableSignal<string | undefined> = signal(undefined);
 
-  first = true;
+  private isFirstCSRFLoad = true;
+  private isFirstLoginCheck = true;
 
   get user(): Signal<User | undefined> {
     return this.#user.asReadonly();
@@ -43,21 +44,16 @@ export class Auth {
 
   constructor() {
     effect(() => {
-      if (!this.csrf() && this.first) {
+      if (!this.csrf() && this.isFirstCSRFLoad) {
         this.setCSRF();
-        this.first = false;
+        this.isFirstCSRFLoad = false;
       }
+    });
 
-      if (this.csrf() !== undefined) {
-        /*    this.login('teszt@gmail.com', '123456').then((result) => {
-          console.log(result);
-        }); */
-
-        /* this.isUserAlreadyLoggedIn().then((r) => {
-          console.log(r);
-        }); */
-
-       this.signup('teszt3@gmail.com', 'valami', 'valami')
+    effect(() => {
+      if (this.csrf() && !this.user() && this.isFirstLoginCheck) {
+        this.setCurrentUserIfExist();
+        this.isFirstLoginCheck = false;
       }
     });
   }
@@ -110,7 +106,7 @@ export class Auth {
     }
   }
 
-  async isUserAlreadyLoggedIn(): Promise<any | undefined> {
+  async fetchCurrentSessionUser(): Promise<User | undefined> {
     try {
       const response = await firstValueFrom(
         this.#http
@@ -122,7 +118,7 @@ export class Auth {
           })
           .pipe(take(1))
       );
-      return this.#helper_functions.pick(response.user, [
+      return this.#helper_functions.pick<User>(response.user, [
         'userId',
         'email',
         'winNumber',
@@ -137,16 +133,12 @@ export class Auth {
     console.log('logout csrf:', this.csrf());
     await firstValueFrom(
       this.#http
-        .post(
-          `${baseURL}/users/logout`,
-          { alma: 1 },
-          {
-            withCredentials: true,
-            headers: {
-              'X-CSRF-Token': this.csrf()!,
-            },
-          }
-        )
+        .post(`${baseURL}/users/logout`, undefined, {
+          withCredentials: true,
+          headers: {
+            'X-CSRF-Token': this.csrf()!,
+          },
+        })
         .pipe(take(1))
     );
     this.#CSRF.set(undefined);
@@ -161,7 +153,7 @@ export class Auth {
     try {
       const response = await firstValueFrom(
         this.#http
-          .post<{userId:string}>(
+          .post<{ userId: string }>(
             `${baseURL}/users/signup`,
             {
               email: email,
@@ -178,9 +170,42 @@ export class Auth {
           .pipe(take(1))
       );
 
-      return response.userId
+      return response.userId;
     } catch (_) {
-      return undefined
+      return undefined;
     }
+  }
+
+  async setCurrentUserIfExist(): Promise<void> {
+    if (this.csrf()) {
+      this.user = await this.fetchCurrentSessionUser();
+      console.log(this.user());
+    }
+  }
+
+  async isUsedEmail(email: string): Promise<boolean> {
+    if (this.csrf()) {
+      try {
+        const respones = await firstValueFrom(
+          this.#http
+            .post<{ result: boolean }>(
+              `${baseURL}/users/is-used-email`,
+              { email: email },
+              {
+                withCredentials: true,
+                headers: {
+                  'X-CSRF-Token': this.csrf()!,
+                },
+              }
+            )
+            .pipe(take(1))
+        );
+
+        return respones.result;
+      } catch (_) {
+        return false;
+      }
+    }
+    return true;
   }
 }

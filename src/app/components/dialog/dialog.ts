@@ -1,6 +1,16 @@
-import { Component, computed, contentChild, effect, inject, input, InputSignal, Signal } from '@angular/core';
-import { DialogContent, DialogHandler } from '../../services/dialog-handler';
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  InputSignal,
+  Signal,
+} from '@angular/core';
+import { DialogHandler } from '../../services/dialog-handler.service';
 import { AbstractControl, FormGroup, NgForm } from '@angular/forms';
+import { Form } from '../../services/form.service';
+import { DialogContent } from '../../utils/types/dialog-content.type';
 
 @Component({
   selector: 'app-dialog',
@@ -8,13 +18,29 @@ import { AbstractControl, FormGroup, NgForm } from '@angular/forms';
   templateUrl: './dialog.html',
   styleUrl: './dialog.scss',
 })
-export class Dialog  {
+export class Dialog {
   /**
    * placeholder
    */
   #dialog: DialogHandler = inject(DialogHandler);
 
-  public form : InputSignal<NgForm | undefined> = input.required()
+
+  /**
+   * placeholder
+   */
+
+  #formHandler : Form = inject(Form)
+
+  /**
+   * placeholder
+   */
+  public form: InputSignal<NgForm | undefined> = input.required();
+
+  /**
+   * placeholder
+   */
+
+  protected dialogContent: Signal<DialogContent> = this.#dialog.activeContent;
 
   /**
    * placeholder
@@ -38,17 +64,14 @@ export class Dialog  {
     }
   });
 
-
-  constructor(){
-    console.log(1)
-    effect(()=>{
-
-       if(this.form()){
-      console.log(this.form())
-       //this.getControls(this.form()!.form.controls)
-       }
-      
-    })
+  constructor() {
+    console.log(1);
+    effect(() => {
+      if (this.form()) {
+        console.log(this.form());
+        //this.getControls(this.form()!.form.controls)
+      }
+    });
   }
 
   /**
@@ -58,27 +81,38 @@ export class Dialog  {
     this.#dialog.close();
   }
 
+  getControls(controls: { [key: string]: AbstractControl } | FormGroup) {
+    let keys: string[] = [];
 
-getControls(controls: { [key: string]: AbstractControl } | FormGroup) {
-  let keys: string[] = [];
-
-  if (controls instanceof FormGroup) {
-    keys = Object.keys(controls.getRawValue());
-  } else if (controls && typeof controls === 'object') {
-    keys = Object.keys(controls);
-    if (!keys.length) {
-      keys = Object.getOwnPropertyNames(controls);
+    if (controls instanceof FormGroup) {
+      keys = Object.keys(controls.getRawValue());
+    } else if (controls && typeof controls === 'object') {
+      keys = Object.keys(controls);
+      if (!keys.length) {
+        keys = Object.getOwnPropertyNames(controls);
+      }
     }
-  }
 
-  console.log(keys);
-}
+    console.log(keys);
+  }
 
   /**
    * placeholder
-   * @param value 
+   * @param value
    */
   protected emitData(value: any) {
     this.#dialog.dailogEmitter(value);
   }
+
+  /**
+   * placeholder
+   */
+
+  protected toggleAuthMode(): void {
+    this.#dialog.activeContent =
+      this.dialogContent() === 'login' ? 'registration' : 'login';
+  }
+
+  
+
 }

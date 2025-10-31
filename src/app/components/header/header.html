@@ -8,8 +8,12 @@
     <span class="own-header-material-icons material-icons" (click)="mode= isDark? 'light' : 'dark' "
       >{{isDark? 'sunny': 'brightness_2'}}</span
     >
-  <span class="own-header-material-icons material-icons" (click)="openDialogByContent('game_setting')">sports_esports</span>
+<span class="own-header-material-icons material-icons" (click)="openDialogByContent('game_setting')">sports_esports</span>
+
+@if (logged()) {
 <span class="own-header-material-icons material-icons" (click)="openDialogByContent('save' )">save_as</span>
+}
+
 <span class="own-header-material-icons material-icons" (click)="openDialogByContent('setting')">settings</span>
 <span class="own-header-material-icons material-icons" (click)="openDialogByContent(logged() ? 'login' : 'registration')">account_circle</span>
 

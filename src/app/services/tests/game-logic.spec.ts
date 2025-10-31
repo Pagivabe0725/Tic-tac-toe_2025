@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { GameLogic } from './game-logic';
+import { GameLogic } from '../game-logic.service';
 import { provideZonelessChangeDetection } from '@angular/core';
 
 /**

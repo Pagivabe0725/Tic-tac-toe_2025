@@ -1,7 +1,8 @@
-import { provideZonelessChangeDetection } from '@angular/core';
+import { importProvidersFrom, provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { App } from './app';
-import { DialogContents, DialogHandler } from './services/dialog-handler';
+import { DIALOG_CONTENT, DialogHandler } from './services/dialog-handler.service';
+import { HttpClientModule } from '@angular/common/http';
 
 describe('App', () => {
   let fixture: any;
@@ -10,7 +11,7 @@ describe('App', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [App],
+      imports: [App, HttpClientModule],
       providers: [
         provideZonelessChangeDetection(),
         { provide: DialogHandler, useFactory: () => new DialogHandler() },
@@ -56,7 +57,7 @@ describe('App', () => {
     });
 
     it('Should render the dialog for multiple active contents', () => {
-      for (const content of DialogContents) {
+      for (const content of DIALOG_CONTENT) {
           if (content===undefined) continue
         dialogHandler.activeContent = content;
         fixture.detectChanges();
@@ -77,7 +78,7 @@ describe('App', () => {
     });
 
     it('Should open and close the dialog for all active contents', () => {
-      for (const content of DialogContents) {
+      for (const content of DIALOG_CONTENT) {
         if (content===undefined) continue
         dialogHandler.activeContent = content;
         fixture.detectChanges();

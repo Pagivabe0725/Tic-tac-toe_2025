@@ -3,9 +3,9 @@ import { RouterOutlet } from '@angular/router';
 import { Header } from './components/header/header';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Dialog } from './components/dialog/dialog';
-import { DialogHandler } from './services/dialog-handler';
+import { DialogHandler } from './services/dialog-handler.service';
 import { DialogForm } from './components/dialog/dialog-form/dialog-form';
-import { Auth } from './services/auth';
+import { Auth } from './services/auth.service';
 
 
 @Component({

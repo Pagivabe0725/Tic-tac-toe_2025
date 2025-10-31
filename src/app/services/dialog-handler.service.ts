@@ -1,24 +1,6 @@
 import { Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { firstValueFrom, Subject, take } from 'rxjs';
-
-/**
- * A fixed list of available dialog content identifiers.
- * These represent the names of dialogs that can be opened through the service.
- */
-export const DIALOG_CONTENT = [
-  'game_setting',
-  'save',
-  'setting',
-  'login',
-  'registration',
-  'info',
-  undefined,
-] as const;
-
-/**
- * Type representing all valid dialog content names.
- */
-export type DialogContent = (typeof DIALOG_CONTENT)[number];
+import { DialogContent } from '../utils/types/dialog-content.type';
 
 /**
  * @service DialogHandler
@@ -49,7 +31,7 @@ export class DialogHandler {
    * Returns a read-only signal representing the currently active dialog.
    * If no dialog is open, the value is `undefined`.
    */
-  get activeContent(): Signal<DialogContent > {
+  get activeContent(): Signal<DialogContent> {
     return this.#activeContent.asReadonly();
   }
 
@@ -58,7 +40,7 @@ export class DialogHandler {
    *
    * @param content - The new dialog identifier, or `undefined` to clear it.
    */
-  set activeContent(content: DialogContent ) {
+  set activeContent(content: DialogContent) {
     this.#activeContent.set(content);
   }
 
