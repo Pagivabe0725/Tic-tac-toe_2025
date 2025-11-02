@@ -50,6 +50,7 @@ export const ERROR_MESSAGES = new Map([
   ['required', 'This field is required.'],
   ['invalidEmail', 'The provided email address is invalid.'],
   ['emailInUse', 'This email address is already in use.'],
+  ['emailDoesNotExist', 'This email is not exist'],
   ['passwordMismatch', 'The passwords do not match.'],
   ['shortPassword', 'The password must be at least 6 characters long.'],
   ['longPassword', 'The password cannot exceed 20 characters.'],

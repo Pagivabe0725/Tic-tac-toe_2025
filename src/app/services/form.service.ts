@@ -94,7 +94,7 @@ export class Form {
   ): void {
     const password = passwordControl.value;
     const confirm = confirmControl.value;
-
+    console.log('meghívva');
     if (password && confirm && password !== confirm) {
       this.addErrorToControl(confirmControl, 'passwordMismatch');
     }
@@ -103,10 +103,27 @@ export class Form {
   /**
    * Marks a control as invalid if the email is already used (checked via async call).
    */
-  async markAsUsedEmail(control: AbstractControl): Promise<void> {
+  async markAsEmailInUse(control: AbstractControl): Promise<void> {
     const value = control.value;
-    if (value && (await this.#auth.isUsedEmail(value))) {
+    if (this.#auth.csrf() && value && (await this.#auth.isUsedEmail(value))) {
       this.addErrorToControl(control, 'emailInUse');
+    }
+  }
+
+  /**
+   * Asynchronously validates whether the given email exists in the system.
+   *
+   * If a CSRF token is available and the email value is defined,
+   * the method checks the existence of the email through the Auth service.
+   * If the email **does not exist**, an `emailDoesNotExist` validation error
+   * is added to the specified form control.
+   *
+   * @param control - The form control whose value is to be validated.
+   */
+  async markAsEmailDoesNotExist(control: AbstractControl): Promise<void> {
+    const value = control.value;
+    if (this.#auth.csrf() && value && !(await this.#auth.isUsedEmail(value))) {
+      this.addErrorToControl(control, 'emailDoesNotExist');
     }
   }
 
@@ -141,15 +158,23 @@ export class Form {
   }
 
   /**
-   * Runs multiple validations sequentially on the same control.
+   * Runs multiple validations sequentially on the same control,
+   * but stops at the first validation that produces an error.
    *
    * @param control - The form control to validate.
    * @param errors - A list of validation keys to check.
    *
    * @example
    * ```ts
+   * // Only the first failing validation will be applied
    * await form.checkErrors(control, 'required', 'invalidEmail', 'emailInUse');
    * ```
+   *
+   * @remarks
+   * This method iterates through the provided error keys in order and
+   * applies the corresponding validation using `checkErrorByName`.
+   * If any validation adds an error to the control, the loop breaks immediately,
+   * preventing subsequent validations from running.
    */
   async checkErrors(
     control: AbstractControl,
@@ -157,6 +182,7 @@ export class Form {
   ): Promise<void> {
     for (const error of errors) {
       await this.checkErrorByName(control, error);
+      if (this.hasErrors(control)) break;
     }
   }
 
@@ -167,12 +193,36 @@ export class Form {
    * @param control - The form control to check.
    * @returns The first error message, or undefined if there are no errors.
    */
-   getPrimaryError(
-    control: AbstractControl
-  ): ErrorValues | undefined {
+  getPrimaryError(control: AbstractControl): ErrorValues | undefined {
     const errorKeys = control.errors ? Object.keys(control.errors) : [];
     return [...ERROR_MESSAGES.entries()].find(([key]) =>
       errorKeys.includes(key)
     )?.[1];
+  }
+
+  /**
+   * Checks whether the given control has any validation errors.
+   *
+   * @param control - The form control to check.
+   * @returns True if the control has one or more errors, false otherwise.
+   */
+  hasErrors(control: AbstractControl): boolean {
+    const errorKeys = control.errors ? Object.keys(control.errors) : [];
+    return errorKeys.length > 0;
+  }
+
+  /**
+   * Clears all validation errors from the given control.
+   *
+   * @param control - The form control to reset errors for.
+   *
+   * @example
+   * ```ts
+   * // Remove all errors from the email control
+   * form.clearErrors(emailControl);
+   * ```
+   */
+  clearErrors(control: AbstractControl): void {
+    control.setErrors(null);
   }
 }

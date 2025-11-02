@@ -1,150 +1,57 @@
 
 @if (getActualObject()) {
-<form #form="ngForm">
-  <!-- @switch (dialog.activeContent()) { 
-    @case ("game_setting") {
-      <fieldset>
+  <form #form="ngForm">
+    @let key = getActualObject()! ;
 
-        <legend>Size:</legend>
-
-        <select name="size" [(ngModel)]="basicSize">
-          @for (size of chosableSizes; track $index) {
-            <option [value]="size">{{`${size}X${size}-${size}X${size}`}}</option>
-          }
-        </select>
-
-      </fieldset>
-
-      <fieldset>
-        <legend>Opponent:</legend>
-
-        <select name="opponent" [(ngModel)]="basicOpponent">
-          <option value="computer">Computer</option>
-          <option value="player">Player - 2</option>
-        </select>
-      </fieldset>
-
-      <fieldset>
-        <legend>Hardness:</legend>
-
-        <input
-          type="range"
-          min="1"
-          max="4"
-          name="hardness"
-          [(ngModel)]="hardness"
-        />
-
-      </fieldset>
-    }
-
-    @case ('save') {
-      <fieldset>
-        <legend>Name:</legend>
-        <input type="text" name="gameName" placeholder="Name"  [(ngModel)]="gameName" />
-      </fieldset>
-    }
-
-    @case ('setting') {
-
-      <fieldset>
-     
-        <legend>Primary color:</legend>
-        <input type="color" name="primary" [(ngModel)]="primaryColor">
-        
-      </fieldset>
-
-      <fieldset>
-     
-        <legend>Accent color:</legend>
-     <input type="color" name="accent" [(ngModel)]="accentColor">
-      </fieldset>
-    }
-    @case ('login') {
-
-      <fieldset>
-     
-        <legend>Email:</legend>
-        <input type="text" name="email" [(ngModel)]="email">
-        
-      </fieldset>
-
-      <fieldset>
-     
-        <legend>Password:</legend>
-        <input type="password" name="Password" [(ngModel)]="password">
-        
-      </fieldset>
-
-
-    }
-    @case ('registration') {
-
-      <fieldset >
-     
-        <legend>Email:</legend>
-        <input type="text" name="email" [(ngModel)]="email">
+    @for (actualTemplate of templates.get(key) ; track $index) {
+      
+        @let control = form.form.get(actualTemplate.field) ;
        
-      </fieldset>
+        <fieldset [class]="control && formHandler.hasErrors(control) ? 'own-error-fieldset' : ''">
 
-      <fieldset>
-     
-        <legend>Password:</legend>
-        <input type="password" name="Password" [(ngModel)]="password" >
-        
-      </fieldset>
+            <legend>{{actualTemplate.title+':'}}</legend>
 
-      <fieldset>
-     
-        <legend>Repassword:</legend>
-        <input type="password" name="rePassword" [(ngModel)]="rePassword">
-        
-      </fieldset>
 
+            @if (!['select', 'range'].includes(actualTemplate.type)) {
+
+               @let error = control && formHandler.getPrimaryError(control);
+              <input [type]="actualTemplate.type" [name]="actualTemplate.field"  
+              [ngModel]="getterSetter(actualTemplate.model).get()()" 
+              (ngModelChange)="getterSetter(actualTemplate.model).set($event)"
+              (blur)="setErrors(actualTemplate.field)">
+
+              @if (error) {
+                <span class="own-error-span" >{{error}}</span>
+              }
+              
+            }      
+
+            @else if (actualTemplate.type==='select') {
+
+              <select [name]="actualTemplate.field"
+              [ngModel]="getterSetter(actualTemplate.model).get()()" 
+              (ngModelChange)="getterSetter(actualTemplate.model).set($event)">
+                @for (option of actualTemplate.options; track $index) {
+                  <option [value]="option">{{option}}</option>
+                }
+              </select>
+
+            }
+
+            @else if (actualTemplate.type==='range') {
+
+              <input [type]="actualTemplate.type" [name]="actualTemplate.field"  
+              [min]="actualTemplate.min"
+              [max]="actualTemplate.max"
+              [ngModel]="getterSetter(actualTemplate.model).get()()" 
+              (ngModelChange)="getterSetter(actualTemplate.model).set($event)">
+
+            }
+
+          </fieldset>
 
     }
-  } -->
 
-
-  @let key = getActualObject()! ;
-
-  @for (actualTemplate of templates.get(key) ; track $index) {
-    
-      <fieldset>
-
-          <legend>{{actualTemplate.title+':'}}</legend>
-
-          @if (!['select', 'range'].includes(actualTemplate.type)) {
-
-            <input [type]="actualTemplate.type" [name]="actualTemplate.field"  
-            [ngModel]="getterSetter(actualTemplate.model).get()" 
-            (ngModelChange)="getterSetter(actualTemplate.model).set($event)">
-
-          }      
-
-          @else if (actualTemplate.type==='select') {
-            <select [name]="actualTemplate.field"
-            [ngModel]="getterSetter(actualTemplate.model).get()" 
-            (ngModelChange)="getterSetter(actualTemplate.model).set($event)">
-              @for (option of actualTemplate.options; track $index) {
-                <option [value]="option">{{option}}</option>
-              }
-            </select>
-          }
-
-          @else if (actualTemplate.type==='range') {
-           <input [type]="actualTemplate.type" [name]="actualTemplate.field"  
-            [min]="actualTemplate.min"
-            [max]="actualTemplate.max"
-            [ngModel]="getterSetter(actualTemplate.model).get()" 
-            (ngModelChange)="getterSetter(actualTemplate.model).set($event)">
-          }
-
-        </fieldset>
-
-  }
-
-</form>
-
+  </form>
 
 }

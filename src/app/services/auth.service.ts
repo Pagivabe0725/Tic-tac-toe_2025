@@ -10,38 +10,86 @@ import {
 import { firstValueFrom, take } from 'rxjs';
 import { Functions } from './functions.service';
 
+/**
+ * Base URL of the backend API.
+ */
 export const baseURL = 'http://localhost:3000';
 
+/**
+ * Represents the structure of a user entity received from the backend.
+ */
 export interface User {
   userId: number;
   email: string;
   winNumber: number;
   loseNumber: number;
 }
+
+/**
+ * Service handling authentication-related logic,
+ * including login, logout, signup, session validation,
+ * and CSRF token management.
+ */
 @Injectable({
   providedIn: 'root',
 })
 export class Auth {
+  /**
+   * Injected helper service providing utility functions.
+   */
   #helper_functions: Functions = inject(Functions);
+
+  /**
+   * Injected Angular HttpClient used for API communication.
+   */
   #http: HttpClient = inject(HttpClient);
+
+  /**
+   * Writable signal representing the currently logged-in user.
+   */
   #user: WritableSignal<User | undefined> = signal(undefined);
+
+  /**
+   * Writable signal storing the current CSRF token.
+   */
   #CSRF: WritableSignal<string | undefined> = signal(undefined);
 
+  /**
+   * Flag to ensure CSRF token is loaded only once on service initialization.
+   */
   private isFirstCSRFLoad = true;
+
+  /**
+   * Flag to ensure user session check runs only once after CSRF token is obtained.
+   */
   private isFirstLoginCheck = true;
 
+  /**
+   * Readonly signal providing access to the current user value.
+   */
   get user(): Signal<User | undefined> {
     return this.#user.asReadonly();
   }
 
+  /**
+   * Setter for updating the current user signal value.
+   * @param newValue - New user object or undefined to clear the user.
+   */
   set user(newValue: User | undefined) {
     this.#user.set(newValue);
   }
 
+  /**
+   * Readonly signal providing access to the current CSRF token.
+   */
   get csrf(): Signal<string | undefined> {
     return this.#CSRF.asReadonly();
   }
 
+  /**
+   * Initializes the authentication service.
+   * Automatically retrieves the CSRF token and checks for existing user sessions.
+   */
   constructor() {
     effect(() => {
       if (!this.csrf() && this.isFirstCSRFLoad) {
@@ -58,6 +106,10 @@ export class Auth {
     });
   }
 
+  /**
+   * Fetches a new CSRF token from the backend API.
+   * @returns A Promise resolving to the CSRF token string or undefined if the request fails.
+   */
   async getCSRF(): Promise<string | undefined> {
     try {
       const response = await firstValueFrom(
@@ -73,12 +125,21 @@ export class Auth {
     }
   }
 
+  /**
+   * Retrieves and stores a new CSRF token internally in the service state.
+   */
   async setCSRF() {
     const csrf = await this.getCSRF();
     console.log(csrf);
     this.#CSRF.set(csrf);
   }
 
+  /**
+   * Logs in a user using their email and password credentials.
+   * @param email - The user’s email address.
+   * @param password - The user’s password.
+   * @returns A Promise resolving to the authenticated User object or undefined if login fails.
+   */
   async login(email: string, password: string): Promise<User | undefined> {
     try {
       const response = await firstValueFrom(
@@ -106,6 +167,10 @@ export class Auth {
     }
   }
 
+  /**
+   * Fetches the currently authenticated user from an existing session (if any).
+   * @returns A Promise resolving to the User object or undefined if no session exists.
+   */
   async fetchCurrentSessionUser(): Promise<User | undefined> {
     try {
       const response = await firstValueFrom(
@@ -129,6 +194,9 @@ export class Auth {
     }
   }
 
+  /**
+   * Logs out the currently authenticated user and clears stored session data.
+   */
   async logout(): Promise<void> {
     console.log('logout csrf:', this.csrf());
     await firstValueFrom(
@@ -145,6 +213,13 @@ export class Auth {
     this.user = undefined;
   }
 
+  /**
+   * Registers a new user account in the backend.
+   * @param email - The user’s email address.
+   * @param password - The chosen password.
+   * @param rePassword - The password confirmation.
+   * @returns A Promise resolving to the new user’s ID string or undefined if registration fails.
+   */
   async signup(
     email: string,
     password: string,
@@ -176,6 +251,9 @@ export class Auth {
     }
   }
 
+  /**
+   * Checks if an existing session is active and sets the current user accordingly.
+   */
   async setCurrentUserIfExist(): Promise<void> {
     if (this.csrf()) {
       this.user = await this.fetchCurrentSessionUser();
@@ -183,6 +261,11 @@ export class Auth {
     }
   }
 
+  /**
+   * Determines whether a given email address is already registered.
+   * @param email - The email address to check.
+   * @returns A Promise resolving to `true` if the email is already used, otherwise `false`.
+   */
   async isUsedEmail(email: string): Promise<boolean> {
     if (this.csrf()) {
       try {

@@ -5,14 +5,15 @@
       <span class="material-icons" (click)="closeDialog()">close</span>
     </div>
     <div id="own-content-div">
-      <ng-content></ng-content>
+      <ng-content [something]="1"></ng-content>
     </div>
     <div id="own-action-div">
       @if (dialogContent()  && ['login', 'registration',].includes(dialogContent()!)) {
         <button>{{dialogContent()==='login' ? 'Login' : 'Registration'}}</button>
         <button (click)="toggleAuthMode()">{{dialogContent()==='login' ? 'Registration' : 'Login'}}</button>
-        
-      }@else {
+      
+      }
+      @else {
         <button (click)="emitData(true)">yes</button>
         <button (click)="emitData(false)">No</button>
         <button (click)="emitData(undefined)">Ok</button>

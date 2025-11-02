@@ -22,10 +22,8 @@ import { Auth } from './services/auth.service';
 })
 export class App {
   protected dialog: DialogHandler = inject(DialogHandler);
-  protected actualDialogForm: NgForm | undefined
   private auth:Auth = inject(Auth)
   
-
   async ngOnInit():Promise<void>{
 
   /*   const csrf = await this.auth.getCSRF()

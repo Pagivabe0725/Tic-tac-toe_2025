@@ -1,17 +1,24 @@
 import {
   Component,
   computed,
-  effect,
   inject,
-  input,
-  InputSignal,
   Signal,
 } from '@angular/core';
 import { DialogHandler } from '../../services/dialog-handler.service';
 import { AbstractControl, FormGroup, NgForm } from '@angular/forms';
-import { Form } from '../../services/form.service';
 import { DialogContent } from '../../utils/types/dialog-content.type';
 
+/**
+ * Represents a reusable dialog component that handles different modal contents
+ * such as login, registration, game settings, and others.
+ *
+ * @remarks
+ * The component dynamically adapts its content and title
+ * based on the active dialog type provided by `DialogHandler`.
+ *
+ * It also integrates the `Form` service for handling form validation logic
+ * and error management for each dialog-specific form.
+ */
 @Component({
   selector: 'app-dialog',
   imports: [],
@@ -20,30 +27,19 @@ import { DialogContent } from '../../utils/types/dialog-content.type';
 })
 export class Dialog {
   /**
-   * placeholder
+   * Service responsible for managing dialog visibility, state, and active content.
    */
   #dialog: DialogHandler = inject(DialogHandler);
 
-
   /**
-   * placeholder
+   * Represents the currently active dialog content type.
+   * This determines which form fields and layout are rendered.
    */
-
-  #formHandler : Form = inject(Form)
-
-  /**
-   * placeholder
-   */
-  public form: InputSignal<NgForm | undefined> = input.required();
-
-  /**
-   * placeholder
-   */
-
   protected dialogContent: Signal<DialogContent> = this.#dialog.activeContent;
 
   /**
-   * placeholder
+   * Dynamically computes the dialog title based on the current dialog content.
+   * For example, if the content is `'login'`, the title will be `"Login"`.
    */
   protected title = computed(() => {
     switch (this.#dialog.activeContent() as DialogContent) {
@@ -64,24 +60,25 @@ export class Dialog {
     }
   });
 
-  constructor() {
-    console.log(1);
-    effect(() => {
-      if (this.form()) {
-        console.log(this.form());
-        //this.getControls(this.form()!.form.controls)
-      }
-    });
-  }
-
   /**
-   * placeholder
+   * Closes the currently active dialog using the `DialogHandler` service.
    */
-  protected closeDialog() {
+  protected closeDialog(): void {
     this.#dialog.close();
   }
 
-  getControls(controls: { [key: string]: AbstractControl } | FormGroup) {
+  /**
+   * Extracts and logs all control keys from a given form or control object.
+   *
+   * @param controls - A `FormGroup` or an object containing form controls.
+   *
+   * @remarks
+   * This utility helps inspect dynamic or nested form structures,
+   * ensuring that all control keys can be accessed programmatically.
+   */
+  protected getControls(
+    controls: { [key: string]: AbstractControl } | FormGroup
+  ): void {
     let keys: string[] = [];
 
     if (controls instanceof FormGroup) {
@@ -92,27 +89,29 @@ export class Dialog {
         keys = Object.getOwnPropertyNames(controls);
       }
     }
-
-    console.log(keys);
   }
 
   /**
-   * placeholder
-   * @param value
+   * Emits a data payload from the dialog to the parent or a listening service.
+   *
+   * @param value - The value or object to emit.
+   *
+   * @remarks
+   * Typically used when a dialog form is submitted, allowing the
+   * `DialogHandler` to propagate the data to other parts of the application.
    */
-  protected emitData(value: any) {
+  protected emitData(value: any): void {
     this.#dialog.dailogEmitter(value);
   }
 
   /**
-   * placeholder
+   * Toggles between the "Login" and "Registration" dialog modes.
+   *
+   * @remarks
+   * Used when the user clicks a link like “Create an account” or “Back to login”.
    */
-
   protected toggleAuthMode(): void {
     this.#dialog.activeContent =
       this.dialogContent() === 'login' ? 'registration' : 'login';
   }
-
-  
-
 }

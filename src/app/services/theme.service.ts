@@ -1,11 +1,10 @@
-/*
-
-xs	0px	Extra kicsi (mobil)
-sm	640px	Kis képernyő (mobil)
-md	768px	Közepes képernyő (tablet)
-lg	1024px	Nagy képernyő (desktop)
-xl	1280px	Extra nagy desktop
-2xl	1536px	Nagyon nagy monitor
+/*  
+xs   0px     Extra small (mobile)  
+sm   640px   Small screen (mobile)  
+md   768px   Medium screen (tablet)  
+lg   1024px  Large screen (desktop)  
+xl   1280px  Extra large desktop  
+2xl  1536px  Very large monitor  
 
 */
 
