@@ -1,5 +1,9 @@
+import { DialogForm } from "../../components/dialog/dialog-form/dialog-form";
 import { DialogContent } from "./dialog-content.type";
 import { ErrorKeys } from "./error-messages.type";
+
+
+
 
 /**
  * Represents all possible model identifiers for dialog form fields.
@@ -30,19 +34,20 @@ export type FormFieldModel =
  * Each key must correspond to a method in the Form service
  * (e.g., 'invalidEmail' → markAsInvalidEmail).
  */
-export type FormField = {
+export interface FormField {
   field: string;
   title: string;
   type: 'select' | 'text' | 'email' | 'range' | 'color' | 'password';
   model: FormFieldModel;
   options?: string[] | number[];
+  baseValue?:string | number;
   min?: number;
   max?: number;
   errorKeys?: ErrorKeys[];
-};
+}
 
 /**
  * Represents the valid keys for dialog form sections.
  * Excludes undefined to ensure type safety when accessing FORM_FIELDS_MAP.
  */
-export type FieldKey = Exclude<DialogContent, undefined>;
+export type FieldKey = NonNullable<DialogContent>;

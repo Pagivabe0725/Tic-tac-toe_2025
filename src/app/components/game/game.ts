@@ -13,7 +13,6 @@ import { GameFieldCell } from './game-field-cell/game-field-cell';
 import { GameLogic } from '../../services/game-logic.service';
 import { CellCoordinate } from '../../utils/interfaces/celll-coordinate.interface';
 
-
 /**
  * @component Game
  *
@@ -50,6 +49,8 @@ export class Game {
   /** Signal tracking the number of moves made in the game. */
   protected step: WritableSignal<number> = signal(0);
 
+  private previousStep: WritableSignal<number> = signal(0);
+
   /**
    * Computed signal that determines the current player's mark ('o' or 'x').
    * The player alternates based on the `step` count.
@@ -64,6 +65,8 @@ export class Game {
    */
   protected gameField: WritableSignal<string[][] | undefined> =
     signal(undefined);
+
+  protected clickPermission: WritableSignal<boolean> = signal(true);
 
   /**
    * @constructor
@@ -85,10 +88,39 @@ export class Game {
     // Automatically trigger the enemy move on odd steps.
     effect(() => {
       if (this.step() % 2 !== 0 && this.gameField()) {
-        console.log('step:');
-        // this.enemyNextStep();
+        console.log('step:' + this.step());
+
+        this.aiMove();
       }
     });
+  }
+
+  async aiMove() {
+    const startTime = performance.now();
+    const result = await this.#gameLogic.ai();
+    const endTime = performance.now();
+
+    const elapsed = endTime - startTime;
+    const minDuration = 1000;
+    const remaining = minDuration - elapsed;
+
+    if (result?.lastMove) {
+      const cellCoordinates = {
+        xCoordinate: result.lastMove.row,
+        yCoordinate: result.lastMove.column,
+      };
+
+      if (remaining > 0) {
+        console.log('váratva');
+        await new Promise((resolve) => setTimeout(resolve, remaining));
+      } else {
+        console.error('nincs váratva');
+      }
+
+      console.log(remaining);
+
+      this.setCell(cellCoordinates);
+    }
   }
 
   /**
@@ -97,12 +129,12 @@ export class Game {
    *
    * @param coordinates - The x and y coordinates of the cell to update.
    */
-  setCell(coordinates: CellCoordinate ): void {
+  setCell(coordinates: CellCoordinate): void {
     const copiedFields: string[][] = [...this.gameField()!];
-    copiedFields[coordinates.yCoordinate][coordinates.xCoordinate] = this.actualMarkup();
+    copiedFields[coordinates.xCoordinate][coordinates.yCoordinate] =
+      this.actualMarkup();
     this.gameField.set(copiedFields);
     this.step.update((previous) => previous + 1);
     this.#gameLogic.field = this.gameField();
   }
- 
 }

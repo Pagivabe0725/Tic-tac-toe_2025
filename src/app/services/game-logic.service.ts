@@ -1,11 +1,17 @@
+import { HttpClient } from '@angular/common/http';
 import {
   computed,
   effect,
+  inject,
   Injectable,
   Signal,
   signal,
   WritableSignal,
 } from '@angular/core';
+import { game } from '../utils/interfaces/game.interface';
+import { baseURL } from '../utils/constants/base-URL.constant';
+import { Auth } from './auth.service';
+import { firstValueFrom, take } from 'rxjs';
 
 //const baseURL = 'http://localhost:3000/tic';
 /**
@@ -22,6 +28,31 @@ import {
   providedIn: 'root',
 })
 export class GameLogic {
+  /**
+   *placeholder
+   */
+  #http: HttpClient = inject(HttpClient);
+
+  /**
+   * placeholder
+   */
+  #lastMove: game['lastMove'] = undefined;
+
+  /**
+   * placeholder
+   */
+  #auth: Auth = inject(Auth);
+
+  /**
+   * The difficulty level of the game.
+   */
+  #hardness: game['hardness'] = 'very-easy';
+
+  /**
+   * The opponent type, either computer or player.
+   */
+  #opponent: 'computer' | 'player' = 'player';
+
   /** Stores the current game board as a 2D string array (internal field) */
   #field?: string[][] = [];
 
@@ -36,9 +67,10 @@ export class GameLogic {
    * Each cell is represented by an empty string `''`.
    */
   #cells: Signal<string[][]> = computed(() => {
-    return Array(this.#size())
-      .fill(null)
-      .map(() => Array(this.#size()).fill(''));
+    const size = this.size(); 
+    return Array.from({ length: size }, () =>
+      Array.from({ length: size }, () => '')
+    );
   });
 
   /**
@@ -47,6 +79,8 @@ export class GameLogic {
    */
   protected gameField: WritableSignal<string[][] | undefined> =
     signal(undefined);
+
+  gameRespones: game | undefined;
 
   /**
    * Gets the current game board.
@@ -94,12 +128,13 @@ export class GameLogic {
   }
 
   /**
-   * Updates the size of the game board.
+   * Updates the size of the game board and persists it to localStorage.
    *
-   * @param newSize - New board size (e.g., 3 for 3x3).
+   * @param newSize - The new board size (e.g., 3 for 3x3).
    */
   set size(newSize: number) {
     this.#size.set(newSize);
+    localStorage.setItem('game_size', String(newSize));
   }
 
   /**
@@ -113,18 +148,120 @@ export class GameLogic {
   }
 
   /**
+   * Gets the current game difficulty.
+   */
+  get hardness(): game['hardness'] {
+    return this.#hardness;
+  }
+
+  /**
+   * Sets the game difficulty and persists the value to localStorage.
+   *
+   * @param value - The new difficulty level (e.g., 'easy', 'medium', 'hard').
+   */
+  set hardness(value: game['hardness']) {
+    this.#hardness = value;
+    localStorage.setItem('game_hardness', value);
+  }
+
+  /**
+   * Gets the current opponent type.
+   */
+  get opponent(): 'computer' | 'player' {
+    return this.#opponent;
+  }
+
+  /**
+   * Sets the opponent type (either 'computer' or 'player') and saves it to localStorage.
+   *
+   * @param value - The new opponent type.
+   */
+  set opponent(value: 'computer' | 'player') {
+    this.#opponent = value;
+    localStorage.setItem('game_opponent', value);
+  }
+
+  /**
    * Initializes a new GameLogic instance.
    *
    * Responsibilities:
+   * - Restores saved settings (board size, difficulty, and opponent) from localStorage.
    * - Keeps the `gameField` signal in sync with the computed `cells`.
-   * - Sets up a reactive effect to update `gameField` whenever `cells` changes.
+   * - Ensures that the reactive state reflects persisted user preferences immediately on load.
    */
   constructor() {
-    // Keep the gameField signal in sync with the computed cells.
+    /**
+     * Restore persisted settings from localStorage if they exist.
+     * Ensures that user preferences (size, hardness, opponent)
+     * are consistent across sessions.
+     */
+    const storedSize = localStorage.getItem('game_size');
+    const storedHardness = localStorage.getItem('game_hardness') as
+      | game['hardness']
+      | null;
+    const storedOpponent = localStorage.getItem('game_opponent') as
+      | 'computer'
+      | 'player'
+      | null;
+
+    // Restore saved board size if valid
+    if (storedSize) {
+      const parsedSize = Number(storedSize);
+      if (!isNaN(parsedSize)) {
+        this.#size.set(parsedSize);
+      }
+    }
+
+    // Restore saved difficulty level
+    if (storedHardness) {
+      this.#hardness = storedHardness;
+    }
+
+    // Restore saved opponent type
+    if (storedOpponent) {
+      this.#opponent = storedOpponent;
+    }
+
+    /**
+     * Reactive effect:
+     * Keeps the `gameField` signal automatically synchronized
+     * with the computed `cells` whenever the board size changes.
+     */
     effect(() => {
       if (this.#cells()) {
-        this.gameField?.set(this.#cells());
+        console.log(this.size());
+        console.log('cells: ', this.#cells());
+        const newCells = this.#cells();
+        this.gameField.set(newCells.map((row) => [...row]));
       }
     });
+  }
+
+  async ai() {
+    try {
+      const respones = await firstValueFrom(
+        this.#http
+          .post<game>(
+            `${baseURL}/game/ai-move`,
+            {
+              board: this.gameField(),
+              markup: 'x',
+              hardness: 'hard',
+              lastMove: this.#lastMove,
+            },
+            {
+              withCredentials: true,
+              headers: {
+                'X-CSRF-Token': this.#auth.csrf()!,
+              },
+            }
+          )
+          .pipe(take(1))
+      );
+      this.#lastMove = respones.lastMove;
+      return respones;
+    } catch (_) {
+      return undefined;
+    }
   }
 }

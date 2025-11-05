@@ -1,27 +1,27 @@
-import {
-  Component,
-  computed,
-  inject,
-  Signal,
-} from '@angular/core';
+import { Component, computed, inject, Signal } from '@angular/core';
 import { DialogHandler } from '../../services/dialog-handler.service';
-import { AbstractControl, FormGroup, NgForm } from '@angular/forms';
+import { AbstractControl, FormGroup } from '@angular/forms';
 import { DialogContent } from '../../utils/types/dialog-content.type';
+import { DialogForm } from './dialog-form/dialog-form';
+import { Functions } from '../../services/functions.service';
+import { FormTemplate } from '../../services/form-template.service';
+import { DIALOG_CONTENT } from '../../utils/constants/dialog-content.constant';
+import { FieldKey } from '../../utils/types/dialog-form-field-model.type';
+import { GameLogic } from '../../services/game-logic.service';
 
 /**
- * Represents a reusable dialog component that handles different modal contents
- * such as login, registration, game settings, and others.
+ * Represents a reusable dialog component that manages modal windows
+ * for various application contexts such as authentication, settings,
+ * and game configuration.
  *
  * @remarks
- * The component dynamically adapts its content and title
- * based on the active dialog type provided by `DialogHandler`.
- *
- * It also integrates the `Form` service for handling form validation logic
- * and error management for each dialog-specific form.
+ * - The dialog dynamically updates its title and content based on the
+ *   current active state managed by `DialogHandler`.
+ * - It serves as a container and event bridge for the `DialogForm` component.
  */
 @Component({
   selector: 'app-dialog',
-  imports: [],
+  imports: [DialogForm],
   templateUrl: './dialog.html',
   styleUrl: './dialog.scss',
 })
@@ -32,14 +32,42 @@ export class Dialog {
   #dialog: DialogHandler = inject(DialogHandler);
 
   /**
-   * Represents the currently active dialog content type.
-   * This determines which form fields and layout are rendered.
+   * placeholder
+   */
+
+  #game: GameLogic = inject(GameLogic);
+
+  /**
+   * Utility service providing helper functions for data manipulation and conversions.
+   */
+  private helperFunctions: Functions = inject(Functions);
+
+  /**
+   * placeholder
+   */
+  #formTemplate: FormTemplate = inject(FormTemplate);
+
+  /**
+   * Signal representing the currently active dialog content type.
+   * Determines which form configuration and UI layout are rendered.
    */
   protected dialogContent: Signal<DialogContent> = this.#dialog.activeContent;
 
   /**
-   * Dynamically computes the dialog title based on the current dialog content.
-   * For example, if the content is `'login'`, the title will be `"Login"`.
+   * Flag controlling whether a form request should be emitted.
+   * When `true`, the form submission process is triggered.
+   */
+  protected requestEmitter = false;
+
+  /**
+   * Flag controlling whether a rejection/reset action should be emitted.
+   * Typically used when the user declines changes or cancels an operation.
+   */
+  protected rejectEmitter = false;
+
+  /**
+   * Computed property dynamically generating the dialog’s title
+   * based on the current active content type.
    */
   protected title = computed(() => {
     switch (this.#dialog.activeContent() as DialogContent) {
@@ -61,23 +89,22 @@ export class Dialog {
   });
 
   /**
-   * Closes the currently active dialog using the `DialogHandler` service.
+   * Closes the active dialog window by calling the `DialogHandler` service.
    */
   protected closeDialog(): void {
-    this.#dialog.close();
+    this.rejectEmitter = true;
   }
 
   /**
    * Extracts and logs all control keys from a given form or control object.
    *
-   * @param controls - A `FormGroup` or an object containing form controls.
+   * @param controls - A `FormGroup` instance or a plain object containing form controls.
    *
    * @remarks
-   * This utility helps inspect dynamic or nested form structures,
-   * ensuring that all control keys can be accessed programmatically.
+   * Useful for debugging or introspection of dynamically generated forms.
    */
   protected getControls(
-    controls: { [key: string]: AbstractControl } | FormGroup
+    controls: Record<string, AbstractControl> | FormGroup
   ): void {
     let keys: string[] = [];
 
@@ -92,26 +119,53 @@ export class Dialog {
   }
 
   /**
-   * Emits a data payload from the dialog to the parent or a listening service.
+   * Emits a payload (data or state) from the dialog to the parent component or service.
    *
-   * @param value - The value or object to emit.
-   *
-   * @remarks
-   * Typically used when a dialog form is submitted, allowing the
-   * `DialogHandler` to propagate the data to other parts of the application.
+   * @param value - Any value to emit, commonly form data or action results.
    */
   protected emitData(value: any): void {
     this.#dialog.dailogEmitter(value);
   }
 
   /**
-   * Toggles between the "Login" and "Registration" dialog modes.
+   * Handles form submission results received from the child `DialogForm` component.
+   *
+   * @param result - The emitted form data object.
    *
    * @remarks
-   * Used when the user clicks a link like “Create an account” or “Back to login”.
+   * After logging or processing the result, the `requestEmitter`
+   * flag is reset to prevent redundant emissions.
+   */
+  clickEvent(result: object): void {
+    const type = this.getCurrentFieldType()!;
+    const game = result as typeof type;
+    this.setGameRules(game);
+    this.requestEmitter = false;
+  }
+
+  /**
+   * Switches between login and registration dialogs.
+   *
+   * @remarks
+   * Triggered by a “Create an account” or “Back to login” link click.
    */
   protected toggleAuthMode(): void {
     this.#dialog.activeContent =
       this.dialogContent() === 'login' ? 'registration' : 'login';
+  }
+
+  protected getCurrentFieldType() {
+    return this.helperFunctions.specificFieldTypeByName(
+      this.dialogContent()!,
+      this.#formTemplate.formFieldMap.get(this.dialogContent()!)!
+    );
+  }
+
+  protected setGameRules(rules: any): void {
+    console.log(rules)
+    for (const [key, value] of Object.entries(rules)) {
+
+      (this.#game as any)[key] = value;
+    }
   }
 }

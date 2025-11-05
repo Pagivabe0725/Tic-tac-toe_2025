@@ -9,11 +9,7 @@ import {
 } from '@angular/core';
 import { firstValueFrom, take } from 'rxjs';
 import { Functions } from './functions.service';
-
-/**
- * Base URL of the backend API.
- */
-export const baseURL = 'http://localhost:3000';
+import { baseURL } from '../utils/constants/base-URL.constant';
 
 /**
  * Represents the structure of a user entity received from the backend.

@@ -5,7 +5,12 @@
       <span class="material-icons" (click)="closeDialog()">close</span>
     </div>
     <div id="own-content-div">
-      <ng-content [something]="1"></ng-content>
+      <app-dialog-form 
+      [formRequest]="requestEmitter"
+      [rejectChanges]="rejectEmitter"
+      (formResponse)="clickEvent($event)"
+      (resetResultEmitter)="emitData(false)">
+    </app-dialog-form>
     </div>
     <div id="own-action-div">
       @if (dialogContent()  && ['login', 'registration',].includes(dialogContent()!)) {
@@ -14,8 +19,8 @@
       
       }
       @else {
-        <button (click)="emitData(true)">yes</button>
-        <button (click)="emitData(false)">No</button>
+        <button (click)="requestEmitter=true">yes</button>
+        <button (click)="rejectEmitter=true">No</button>
         <button (click)="emitData(undefined)">Ok</button>
       }
     </div>

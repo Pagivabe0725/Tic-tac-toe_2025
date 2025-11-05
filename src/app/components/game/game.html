@@ -12,15 +12,16 @@
     
     @if (gameField()) {
       @for (subArray of gameField(); track $index) { 
-        @let $y = $index; 
+        @let $x = $index; 
         @for (elementm of subArray; track $index) { 
-          @let $x = $index;
+          @let $y = $index;
           <div
           appGameFieldCell
-          [markup]="gameField()![$y][$x]"
+          [markup]="gameField()![$x][$y]"
           [xCoordinate]="$x"
           [yCoordinate]="$y"
           [size]="size()"
+          [clickPermission]="clickPermission()"
           (setPosition)="setCell($event)"
           ></div>
         } 

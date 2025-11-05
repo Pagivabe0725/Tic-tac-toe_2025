@@ -66,6 +66,11 @@ export class GameFieldCell {
 
   /** The total game board size (e.g., 3×3, 9×9). Used to scale cell visuals. */
   size: InputSignal<number> = input.required();
+  
+  /**
+   * placeholder
+   */
+  clickPermission: InputSignal<boolean> = input.required();
 
   /**
    * Event emitter fired when a cell is clicked.
@@ -90,7 +95,7 @@ export class GameFieldCell {
    */
   @HostBinding('style.cursor')
   get cursor() {
-    return this.markup() ? 'default' : 'pointer';
+    return this.markup() || !this.clickPermission() ? 'default' : 'pointer';
   }
 
   /**
@@ -99,7 +104,7 @@ export class GameFieldCell {
    */
   @HostBinding('class')
   get scale() {
-    return this.markup() ? '' : 'own-cell-hover';
+    return this.markup() || !this.clickPermission() ? '' : 'own-cell-hover';
   }
 
   /**
@@ -110,7 +115,7 @@ export class GameFieldCell {
    */
   @HostListener('click')
   fill(): void {
-    if (!this.markup()) {
+    if (!this.markup() && this.clickPermission()) {
       this.setPosition.emit({
         xCoordinate: this.xCoordinate,
         yCoordinate: this.yCoordinate,

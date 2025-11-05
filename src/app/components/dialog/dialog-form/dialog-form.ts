@@ -2,25 +2,32 @@ import {
   Component,
   effect,
   inject,
+  input,
+  InputSignal,
+  output,
+  OutputEmitterRef,
   signal,
   Signal,
   viewChild,
   WritableSignal,
 } from '@angular/core';
-import { AbstractControl, FormsModule, NgForm } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { DialogHandler } from '../../../services/dialog-handler.service';
 import { Theme } from '../../../services/theme.service';
-import { FORM_FIELDS_MAP } from '../../../utils/constants/dialog-form-pattern.constant';
 import {
   FieldKey,
-  FormField,
   FormFieldModel,
 } from '../../../utils/types/dialog-form-field-model.type';
 import { Form } from '../../../services/form.service';
+import { FormTemplate } from '../../../services/form-template.service';
+import { Functions } from '../../../services/functions.service';
 
 /**
- * Component representing a dynamic dialog form that adapts
- * its structure based on the currently active dialog content.
+ * Component representing a fully reactive dialog form.
+ *
+ * This form dynamically adjusts its fields, validation, and appearance
+ * based on the active dialog content and user interaction.
+ * It integrates Angular signals for fine-grained reactivity without subscriptions.
  */
 @Component({
   selector: 'app-dialog-form',
@@ -57,270 +64,227 @@ import { Form } from '../../../services/form.service';
   ],
 })
 export class DialogForm {
-  /**
-   * Service for managing the dialog state, content, and emission.
-   */
+  /** Service managing dialog visibility, state, and active content. */
   protected dialog: DialogHandler = inject(DialogHandler);
 
-  /**
-   * Service responsible for storing and applying theme colors.
-   */
+  /** Service responsible for managing and persisting theme colors. */
   protected theme: Theme = inject(Theme);
 
-  /**
-   * Map containing predefined form field configurations
-   * for each dialog content type.
-   */
-  protected templates = FORM_FIELDS_MAP;
-
-  /**
-   * placeholder
-   */
-
+  /** Service handling form validation and error registration. */
   protected formHandler: Form = inject(Form);
 
-  /**
-   * Signal storing the current hardness level.
-   */
+  /** Service providing predefined form field templates per dialog type. */
+  #formTemplate: FormTemplate = inject(FormTemplate);
+
+  /** Utility service with generic helper functions. */
+  #helperFunctions: Functions = inject(Functions);
+
+  /** Mapping of available form field templates by dialog key. */
+  protected templates = this.#formTemplate.formFieldMap;
+
+  /** Input signal requesting form data submission. */
+  formRequest: InputSignal<boolean> = input.required();
+
+  /** Output emitter sending the validated form result to the parent. */
+  formResponse: OutputEmitterRef<object> = output();
+
+  /** Input signal that triggers a rejection/reset of unsaved changes. */
+  rejectChanges: InputSignal<boolean> = input.required();
+
+  /** Output emitter that signals when a reset operation has been successfully completed. */
+  resetResultEmitter: OutputEmitterRef<void> = output();
+
+  /** Reactive signal representing the current difficulty level (1–4). */
   #hardness: WritableSignal<number> = signal(1);
 
-  /**
-   * Signal storing the current primary color from the theme or default value.
-   */
+  /** Reactive signal for the current primary color. */
   #primaryColor: WritableSignal<string> = signal(
     this.theme.primaryColor ?? '#fff'
   );
 
-  /**
-   * Signal storing the current accent color from the theme or default value.
-   */
+  /** Stores the previous primary color for easy restoration. */
+  private previousPrimaryColor = this.#primaryColor();
+
+  /** Reactive signal for the current accent color. */
   #accentColor: WritableSignal<string> = signal(
     this.theme.accentColor ?? '#fff'
   );
 
-  /**
-   * Signal storing the current game name entered by the user.
-   */
+  /** Stores the previous accent color for easy restoration. */
+  private previousAccentColor = this.#accentColor();
+
+  /** Reactive signal for the current game name. */
   #gameName: WritableSignal<string> = signal('');
 
-  /**
-   * Signal storing the email address input by the user.
-   */
+  /** Reactive signal for the user’s email address. */
   #email: WritableSignal<string> = signal('');
 
-  /**
-   * Signal storing the user’s password input.
-   */
+  /** Reactive signal for the user's entered password. */
   #password: WritableSignal<string> = signal('');
 
-  /**
-   * Signal storing the repeated password value for confirmation.
-   */
+  /** Reactive signal for the repeated password confirmation. */
   #rePassword: WritableSignal<string> = signal('');
 
-  /**
-   * Signal storing the current opponent selection (e.g., computer or player).
-   */
+  /** Reactive signal representing the selected opponent. */
   #opponent: WritableSignal<string> = signal('computer');
 
-  /**
-   * Signal storing the selected game board size.
-   */
+  /** Reactive signal representing the selected game board size. */
   #size: WritableSignal<number> = signal(3);
 
-  /**
-   * Getter for the hardness signal.
-   */
+  /** Getter and setter for hardness level. */
   protected get hardness(): WritableSignal<number> {
     return this.#hardness;
   }
-
-  /**
-   * Setter for updating the hardness signal value.
-   * @param value - New numeric hardness value.
-   */
   protected set hardness(value: number) {
     this.#hardness.set(value);
   }
 
-  /**
-   * Getter for the primary color signal.
-   */
+  /** Getter and setter for primary color. */
   protected get primaryColor(): WritableSignal<string> {
     return this.#primaryColor;
   }
-
-  /**
-   * Setter for updating the primary color signal.
-   * @param value - New hexadecimal color value.
-   */
   protected set primaryColor(value: string) {
     this.#primaryColor.set(value);
   }
 
-  /**
-   * Getter for the accent color signal.
-   */
+  /** Getter and setter for accent color. */
   protected get accentColor(): WritableSignal<string> {
     return this.#accentColor;
   }
-
-  /**
-   * Setter for updating the accent color signal.
-   * @param value - New hexadecimal color value.
-   */
   protected set accentColor(value: string) {
     this.#accentColor.set(value);
   }
 
-  /**
-   * Getter for the game name signal.
-   */
+  /** Getter and setter for game name. */
   protected get gameName(): WritableSignal<string> {
     return this.#gameName;
   }
-
-  /**
-   * Setter for updating the game name signal.
-   * @param value - New string representing the game name.
-   */
   protected set gameName(value: string) {
     this.#gameName.set(value);
   }
 
-  /**
-   * Getter for the email signal.
-   */
+  /** Getter and setter for email. */
   protected get email(): WritableSignal<string> {
     return this.#email;
   }
-
-  /**
-   * Setter for updating the email signal.
-   * @param value - New email string value.
-   */
   protected set email(value: string) {
     this.#email.set(value);
   }
 
-  /**
-   * Getter for the password signal.
-   */
+  /** Getter and setter for password. */
   protected get password(): WritableSignal<string> {
     return this.#password;
   }
-
-  /**
-   * Setter for updating the password signal.
-   * @param value - New password string value.
-   */
   protected set password(value: string) {
     this.#password.set(value);
   }
 
-  /**
-   * Getter for the rePassword signal.
-   */
+  /** Getter and setter for repeated password. */
   protected get rePassword(): WritableSignal<string> {
     return this.#rePassword;
   }
-
-  /**
-   * Setter for updating the rePassword signal.
-   * @param value - New password confirmation string value.
-   */
   protected set rePassword(value: string) {
     this.#rePassword.set(value);
   }
 
-  /**
-   * Getter for the opponent signal.
-   */
+  /** Getter and setter for opponent. */
   protected get opponent(): WritableSignal<string> {
     return this.#opponent;
   }
-
-  /**
-   * Setter for updating the opponent signal.
-   * @param value - New string representing the selected opponent.
-   */
   protected set opponent(value: string) {
     this.#opponent.set(value);
   }
 
-  /**
-   * Getter for the size signal.
-   */
+  /** Getter and setter for game board size. */
   protected get size(): WritableSignal<number> {
     return this.#size;
   }
-
-  /**
-   * Setter for updating the size signal.
-   * @param value - New numeric size value.
-   */
   protected set size(value: number) {
     this.#size.set(value);
   }
 
-  /**
-   * Signal referencing the current NgForm instance within the template.
-   */
+  /** References the form element from the template. */
   protected form: Signal<NgForm | undefined> = viewChild('form', {
     read: NgForm,
   });
 
   /**
-   * Initializes the component and sets up reactive effects to manage form state and validation.
-   *
-   * - The first effect monitors changes in the active dialog content.  
-   *   When the content switches, it resets all signal-based values and clears validation errors.
-   *
-   * - The second effect watches the `password` and `rePassword` signals.  
-   *   If both are defined and their values differ, it retrieves the corresponding form controls
-   *   and calls `formHandler.markAsPasswordMismatch()` to register a mismatch error.
+   * Initializes the component and sets up reactive effects for:
+   * - syncing theme colors,
+   * - validating password match,
+   * - resetting fields when dialog content changes,
+   * - restoring colors on reject,
+   * - and sending form data when requested.
    */
   constructor() {
-    let previousContent = this.dialog.activeContent();
+    let _previousContent = this.dialog.activeContent();
+
+    // Initialize base field values when form opens
+    if (this.getActualObject()) {
+      for (const field of this.templates.get(this.getActualObject()!)!) {
+        if (field.baseValue) {
+          this.getterSetter(field.model).set(field.baseValue);
+        }
+      }
+    }
+
+    // Handle form submission request
     effect(() => {
-      if (this.dialog.activeContent() !== previousContent) {
-        this.resetSignals();
-        this.clearFormErrors()
-        previousContent = this.dialog.activeContent();
+      if (this.formRequest()) {
+        this.sendFormResult();
       }
     });
 
+    // Revert unsaved changes if rejection triggered
+    effect(() => {
+      if (this.rejectChanges()) {
+        this.resetProperties();
+      }
+    });
+
+    // Sync color signals with global theme
+    effect(() => {
+      if (this.primaryColor()) this.theme.primaryColor = this.primaryColor();
+      if (this.accentColor()) this.theme.accentColor = this.accentColor();
+    });
+
+    // Reset form when dialog content changes
+    effect(() => {
+      if (this.dialog.activeContent() !== _previousContent) {
+        this.resetSignals();
+        this.clearFormErrors();
+        _previousContent = this.dialog.activeContent();
+      }
+    });
+
+    // Validate password confirmation in real-time
     effect(() => {
       const password = this.password();
       const rePassword = this.rePassword();
 
       if (password && rePassword && password !== rePassword) {
-        const passwordControl = this.form()!.form.get('password') ?? undefined;
-        const confirmControl = this.form()!.form.get('rePassword') ?? undefined;
+        const passwordControl = this.form()!.form.get('password');
+        const confirmControl = this.form()!.form.get('rePassword');
 
-        if (passwordControl && confirmControl)
+        if (passwordControl && confirmControl) {
           this.formHandler.markAsPasswordMismatch(
             passwordControl,
             confirmControl
           );
+        }
       }
     });
   }
 
-  /**
-   * Returns the currently active dialog key used to determine which form to render.
-   * @returns The active FieldKey or undefined if no dialog is active.
-   */
+  /** Returns the current active dialog key used to determine form structure. */
   protected getActualObject(): FieldKey | undefined {
     const actualContent = this.dialog.activeContent();
     return actualContent ? (actualContent as FieldKey) : undefined;
   }
 
   /**
-   * Provides getter and setter accessors for dynamically manipulating
-   * field values using their model names.
-   * @param fieldName - Name of the form field model.
-   * @returns An object containing get() and set(value) functions.
+   * Dynamically generates getter and setter accessors for form signals.
+   * Useful for programmatically reading or updating signal-based fields.
    */
   protected getterSetter(fieldName: FormFieldModel) {
     return {
@@ -329,16 +293,19 @@ export class DialogForm {
     };
   }
 
+  /**
+   * Applies error checking for a given form control,
+   * using the corresponding template-defined validation keys.
+   */
   protected setErrors(controlName: string): void {
-    const actualContol: AbstractControl | undefined =
-      this.form()?.form.get(controlName) ?? undefined;
-    const fieldTemplate: FormField[] | undefined =
-      FORM_FIELDS_MAP.get(this.dialog.activeContent()!) ?? undefined;
+    const actualContol = this.form()?.form.get(controlName);
+    const fieldTemplate = this.templates.get(this.dialog.activeContent()!);
+
     if (actualContol && fieldTemplate) {
       const templateOfActualField = fieldTemplate.find(
         (field) => field.field === controlName
       );
-      if (templateOfActualField && templateOfActualField.errorKeys) {
+      if (templateOfActualField?.errorKeys) {
         this.formHandler.checkErrors(
           actualContol,
           ...templateOfActualField.errorKeys
@@ -348,10 +315,8 @@ export class DialogForm {
   }
 
   /**
-   * Resets all signal-based form data to their default values
-   * using the component's setters to ensure consistency.
-   *
-   * This is typically used when closing or resetting a dialog form.
+   * Resets all signal-based values to their defaults.
+   * Typically triggered when the form is closed or switched.
    */
   protected resetSignals(): void {
     this.hardness = 1;
@@ -365,14 +330,13 @@ export class DialogForm {
     this.size = 3;
   }
 
-    /**
-   * Clears validation errors from all existing form controls.
-   * Iterates through each known field in the active form template
-   * and resets its validation and visual state.
+  /**
+   * Clears all validation errors in the current form.
+   * Restores each field’s pristine and untouched state.
    */
   protected clearFormErrors(): void {
     const currentForm = this.form()?.form;
-    const activeTemplate = FORM_FIELDS_MAP.get(this.dialog.activeContent()!);
+    const activeTemplate = this.templates.get(this.dialog.activeContent()!);
 
     if (currentForm && activeTemplate) {
       for (const field of activeTemplate) {
@@ -390,7 +354,57 @@ export class DialogForm {
     }
   }
 
+  /**
+   * Emits a structured, type-safe form result when validation passes.
+   * Uses the helper service to infer expected field types dynamically.
+   */
+  protected sendFormResult(): void {
+    if (this.form()?.valid) {
+      const type = this.#helperFunctions.specificFieldTypeByName(
+        this.getActualObject()!,
+        this.#formTemplate.formFieldMap.get(this.getActualObject()!)!
+      );
 
-  
-  
+      const result: typeof type = {};
+
+      for (const key of Object.keys(type)) {
+        result[key] = this.getterSetter(key as FormFieldModel).get()();
+      }
+
+      this.formResponse.emit(result);
+    }
+  }
+
+  /**
+   * Restores previous values for all properties prefixed with "previous".
+   *
+   * Example:
+   * - previousPrimaryColor → primaryColor
+   * - previousAccentColor → accentColor
+   *
+   * Throws an error if a matching target property does not exist.
+   */
+  protected resetProperties(): void {
+    const previousObject: Record<string, any> = {};
+
+    for (const [key, value] of Object.entries(this as any)) {
+      if (key.includes('previous') && !key.includes('_')) {
+        previousObject[key] = value;
+      }
+    }
+
+    for (const [key, value] of Object.entries(previousObject)) {
+      const currentKey = key.replace(/^previous/, '');
+      const formattedKey =
+        currentKey.charAt(0).toLowerCase() + currentKey.slice(1);
+      if (formattedKey in (this as any)) {
+        (this as any)[formattedKey] = value;
+      } else {
+        throw new Error(
+          `resetProperties(): property "${formattedKey}" does not exist on DialogForm`
+        );
+      }
+    }
+    this.resetResultEmitter.emit();
+  }
 }
