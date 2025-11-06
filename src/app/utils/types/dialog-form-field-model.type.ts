@@ -44,6 +44,7 @@ export interface FormField {
   min?: number;
   max?: number;
   errorKeys?: ErrorKeys[];
+  valueType: 'string' | 'number'
 }
 
 /**

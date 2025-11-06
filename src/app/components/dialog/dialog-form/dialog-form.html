@@ -17,7 +17,7 @@
                @let error = control && formHandler.getPrimaryError(control);
               <input [type]="actualTemplate.type" [name]="actualTemplate.field"  
               [ngModel]="getterSetter(actualTemplate.model).get()()" 
-              (ngModelChange)="getterSetter(actualTemplate.model).set($event)"
+              (ngModelChange)="getterSetter(actualTemplate.model).set(helperFunctions.convertType($event, actualTemplate.valueType))"
               (blur)="setErrors(actualTemplate.field)">
 
               @if (error) {
@@ -30,7 +30,7 @@
 
               <select [name]="actualTemplate.field"
               [ngModel]="getterSetter(actualTemplate.model).get()()" 
-              (ngModelChange)="getterSetter(actualTemplate.model).set($event)">
+              (ngModelChange)="getterSetter(actualTemplate.model).set(helperFunctions.convertType($event, actualTemplate.valueType))">
                 @for (option of actualTemplate.options; track $index) {
                   <option [value]="option">{{option}}</option>
                 }
@@ -44,7 +44,7 @@
               [min]="actualTemplate.min"
               [max]="actualTemplate.max"
               [ngModel]="getterSetter(actualTemplate.model).get()()" 
-              (ngModelChange)="getterSetter(actualTemplate.model).set($event)">
+              (ngModelChange)="getterSetter(actualTemplate.model).set(helperFunctions.convertType($event, actualTemplate.valueType))">
 
             }
 

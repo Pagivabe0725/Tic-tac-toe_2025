@@ -8,32 +8,32 @@ import { FormTemplate } from './form-template.service';
 
 /**
  * A utility service that provides reusable helper functions
- * for data transformation and common logic used across the application.
+ * for data transformation, mapping, type conversion and common logic
+ * used across the application.
  *
  * @remarks
  * This service is marked as `providedIn: 'root'`, meaning it is a singleton
- * available throughout the entire Angular application.
+ * and shared across the entire Angular app.
  */
 @Injectable({
   providedIn: 'root',
 })
 export class Functions {
   /**
-   * Creates a new object by extracting a subset of properties from another object.
+   * Creates a new object by selecting a specific set of keys from the source object.
    *
-   * This is useful when you need to safely copy or select only specific keys
-   * from a larger object (for example, when creating lightweight DTOs or sending
-   * sanitized data to a backend).
+   * This is useful when constructing DTOs, filtering out sensitive fields,
+   * or extracting only the relevant subset of data from a larger structure.
    *
-   * @typeParam T - The type of the target object that defines the expected structure.
-   * @param object - The source object to pick keys from.
-   * @param keys - An array of property keys to include in the new object.
-   * @returns A new object containing only the specified keys from the source.
+   * @typeParam T - The target type that defines the resulting object structure.
+   * @param object - The input object to extract values from.
+   * @param keys - The list of property keys to include in the output.
+   * @returns A new object containing only the requested keys.
    *
    * @example
    * ```ts
-   * const user = { id: 1, name: 'Alice', password: 'secret' };
-   * const publicData = this.functions.pick<{ id: number; name: string }>(user, ['id', 'name']);
+   * const full = { id: 1, name: 'Alice', password: 'secret' };
+   * const safe = functions.pick<{ id: number; name: string }>(full, ['id', 'name']);
    * // → { id: 1, name: 'Alice' }
    * ```
    */
@@ -46,15 +46,19 @@ export class Functions {
   }
 
   /**
-   * Converts a numeric difficulty value (1–4) back into its corresponding string.
+   * Converts a numeric difficulty value (1–4) into its corresponding
+   * difficulty string literal.
    *
+   * This is the inverse of `getDifficultyValue()`.
+   *
+   * Mapping:
    * - `1` → `'very-easy'`
    * - `2` → `'easy'`
    * - `3` → `'medium'`
    * - `4` → `'hard'`
    *
-   * @param value - Numeric difficulty (1–4)
-   * @returns Difficulty level string
+   * @param value - The numeric difficulty level.
+   * @returns The corresponding `game['hardness']` string.
    */
   numberToDifficulty(value: number): game['hardness'] {
     switch (value) {
@@ -72,36 +76,115 @@ export class Functions {
   }
 
   /**
-   * Creates a type-safe object where each key corresponds to the `model`
-   * field of the given form fields, and the values are initialized as `undefined`.
+   * Creates a strongly-typed form model object from the provided form field
+   * definitions, using each field's `model` key as a property name.
    *
-   * This is useful for generating empty, strongly-typed form data objects.
+   * - If `baseValue` is defined, it is used as the initial value.
+   * - Otherwise, the property is initialized as `undefined`.
    *
-   * @typeParam T - The resulting object type.
-   * @param fieldKey - The logical key identifying the form section.
-   * @param formFields - The array of `FormField` definitions for that section.
-   * @returns A typed object with each model key set to `undefined`.
+   * This is primarily used to generate:
+   * - typed default form models,
+   * - empty objects for reactive form sections,
+   * - type-safe object shapes for emitted result values.
+   *
+   * @typeParam T - The expected object shape whose keys match the form field `model` values.
+   * @param fieldKey - A logical identifier for the current field group.
+   * @param formFields - The form field metadata definitions.
+   * @returns An object typed as `T` with initialized keys.
    *
    * @example
    * ```ts
-   * const emptyLoginModel = this.specificFieldTypeByName('login', [
-   *   { model: 'email', type: 'text', ... },
-   *   { model: 'password', type: 'password', ... },
+   * const model = specificFieldTypeByName('settings', [
+   *   { model: 'size', type: 'select', baseValue: 3 },
+   *   { model: 'hardness', type: 'select' }
    * ]);
-   * // Result type:
-   * // { email?: string | number | string[] | number[]; password?: string | number | string[] | number[] }
+   *
+   * // → { size: 3, hardness: undefined }
    * ```
    */
-  specificFieldTypeByName<
-    T extends Record<string, string | number | string[] | number[]>
-  >(fieldKey: FieldKey, formFields: FormField[]): T {
+  specificFieldTypeByName<T extends Record<string, string | number>>(
+    fieldKey: FieldKey,
+    formFields: FormField[]
+  ): T {
     const result: Partial<T> = {};
 
     for (const field of formFields) {
-      // Initialize each field model key as undefined
-      result[field.model as keyof T] = undefined as unknown as T[keyof T];
+      if ('baseValue' in field) {
+        result[field.model as keyof T] = field.baseValue as any;
+      } else {
+        result[field.model as keyof T] = undefined as unknown as T[keyof T];
+      }
     }
 
     return result as T;
+  }
+
+  /**
+   * Converts a raw input value (usually from a form) into a strongly-typed
+   * and consistent representation based on the given target type.
+   *
+   * Supports:
+   * - `'string'`
+   * - `'number'`
+   * - `'boolean'`
+   * - `'string[]'`
+   * - `'number[]'`
+   *
+   * This function ensures that select inputs, range inputs, and text inputs
+   * all produce the correct type at the point of form submission.
+   *
+   * @param value - The raw value (string/number/boolean/array/unknown).
+   * @param targetType - The desired output type.
+   * @returns The converted value, or the original value if conversion fails.
+   *
+   * @example
+   * ```ts
+   * convertType("3", "number");   // → 3
+   * convertType("true", "boolean"); // → true
+   * convertType("5", "number[]"); // → [5]
+   * convertType(7, "string");     // → "7"
+   * ```
+   */
+  convertType(
+    value: unknown,
+    targetType: 'string' | 'number' | 'boolean' | 'string[]' | 'number[]'
+  ): unknown {
+    if (value == null) return value;
+    if (typeof value === targetType) return value;
+
+    switch (targetType) {
+      case 'string':
+        return String(value);
+
+      case 'number':
+        const num = Number(value);
+        return isNaN(num) ? value : num;
+
+      case 'boolean':
+        if (typeof value === 'boolean') return value;
+        if (typeof value === 'string') {
+          return value.toLowerCase() === 'true';
+        }
+        return Boolean(value);
+
+      case 'string[]':
+        if (Array.isArray(value)) {
+          return value.map((v) => String(v));
+        }
+        return [String(value)];
+
+      case 'number[]':
+        if (Array.isArray(value)) {
+          return value.map((v) => {
+            const n = Number(v);
+            return isNaN(n) ? v : n;
+          });
+        }
+        const nVal = Number(value);
+        return isNaN(nVal) ? [value] : [nVal];
+
+      default:
+        return value;
+    }
   }
 }

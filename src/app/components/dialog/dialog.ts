@@ -160,8 +160,9 @@ export class Dialog {
       this.#formTemplate.formFieldMap.get(this.dialogContent()!)!
     );
   }
-
-  protected setGameRules(rules: any): void {
+  
+  protected setGameRules(rules:any): void {
+    
     console.log(rules);
     for (const [key, value] of Object.entries(rules)) {
       try {

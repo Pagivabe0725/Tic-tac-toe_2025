@@ -77,7 +77,7 @@ export class DialogForm {
   #formTemplate: FormTemplate = inject(FormTemplate);
 
   /** Utility service with generic helper functions. */
-  #helperFunctions: Functions = inject(Functions);
+  protected helperFunctions: Functions = inject(Functions);
 
   /** Mapping of available form field templates by dialog key. */
   protected templates = this.#formTemplate.formFieldMap;
@@ -223,7 +223,7 @@ export class DialogForm {
     if (this.getActualObject()) {
       for (const field of this.templates.get(this.getActualObject()!)!) {
         if (field.baseValue) {
-          console.log('base:' , field.baseValue)
+          console.log('base:', field.baseValue);
           this.getterSetter(field.model).set(field.baseValue);
         }
       }
@@ -361,7 +361,7 @@ export class DialogForm {
    */
   protected sendFormResult(): void {
     if (this.form()?.valid) {
-      const type = this.#helperFunctions.specificFieldTypeByName(
+      const type = this.helperFunctions.specificFieldTypeByName(
         this.getActualObject()!,
         this.#formTemplate.formFieldMap.get(this.getActualObject()!)!
       );
@@ -399,7 +399,7 @@ export class DialogForm {
       const formattedKey =
         currentKey.charAt(0).toLowerCase() + currentKey.slice(1);
       if (formattedKey in (this as any)) {
-        (this as any)[formattedKey] = value;
+        (this as any)[formattedKey];
       } else {
         throw new Error(
           `resetProperties(): property "${formattedKey}" does not exist on DialogForm`
@@ -408,4 +408,6 @@ export class DialogForm {
     }
     this.resetResultEmitter.emit();
   }
+
+
 }

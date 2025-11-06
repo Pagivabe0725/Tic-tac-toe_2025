@@ -12,21 +12,8 @@ import {
   ViewEncapsulation,
 } from '@angular/core';
 import { CellCoordinate } from '../../../utils/interfaces/celll-coordinate.interface';
+import { sizeMap } from '../../../utils/constants/icon-size.constant';
 
-
-/**
- * Maps grid sizes to their corresponding icon and cover font sizes.
- * Used to dynamically scale cell content based on the game field size.
- */
-const sizeMap = new Map<number, { icon: string; cover: string }>([
-  [3, { icon: '10vw', cover: '8vw' }],
-  [4, { icon: '8vw', cover: '6vw' }],
-  [5, { icon: '6.5vw', cover: '4.5vw' }],
-  [6, { icon: '4.5vw', cover: '2.5vw' }],
-  [7, { icon: '3.5vw', cover: '2.5vw' }],
-  [8, { icon: '2.5 vw', cover: '1.5vw' }],
-  [9, { icon: '2vw', cover: '1.5vw' }],
-]);
 
 /**
  * @component GameFieldCell
@@ -85,9 +72,11 @@ export class GameFieldCell {
    * Reactive computation of icon and cover font sizes
    * based on the current board size.
    */
-  protected fontSize: Signal<{ icon: string; cover: string }> = computed(() => {
-    return sizeMap.get(this.size()) ?? { icon: '1vw', cover: '0.8vw' };
-  });
+protected fontSize: Signal<{ icon: string; cover: string }> = computed(() => {
+  const currentSize = this.size();
+  return sizeMap.get(currentSize) ?? { icon: '2vw', cover: '1.5vw' };
+});
+
 
   /**
    * Dynamically controls the cursor style depending on cell state.
@@ -122,4 +111,6 @@ export class GameFieldCell {
       } as CellCoordinate);
     }
   }
+
+
 }

@@ -11,47 +11,31 @@ import { Functions } from './functions.service';
   providedIn: 'root',
 })
 export class FormTemplate {
-  /** Injected authentication service */
+  /** Authentication service, injected for user info */
   #auth: Auth = inject(Auth);
 
-  /** Injected game component instance */
+  /** GameLogic service, injected for reactive game state */
   #game: GameLogic = inject(GameLogic);
 
+  /** Helper functions service */
   #helper: Functions = inject(Functions);
 
   /**
-   * A centralized map defining all available dialog form configurations.
+   * Reactive map of form field configurations.
    *
-   * Each `FieldKey` corresponds to a specific dialog section
-   * (e.g., `"game_setting"`, `"save"`, `"setting"`, `"login"`, `"registration"`),
-   * and each section holds an array of `FormField` objects describing
-   * the fields to be rendered in that form.
+   * This `computed` signal always returns the latest state of `GameLogic` signals,
+   * ensuring that fields like board size, opponent type, and difficulty level
+   * are always up-to-date when the form is rendered.
    *
-   * Each `FormField` defines:
-   * - `field`: Unique identifier of the input
-   * - `title`: Display label for the field
-   * - `type`: Input type (e.g., `"text"`, `"password"`, `"select"`, `"range"`, `"color"`)
-   * - `model`: Name of the bound model property in the component or service
-   * - `options` (optional): Allowed values for `select` fields
-   * - `min` / `max` (optional): Numeric limits for `range` fields
-   * - `errorKeys` (optional): Validation identifiers mapped to the form validation system
-   *
-   * @remarks
-   * - This map serves as a **single source of truth** for all dialog-based forms.
-   * - It allows for fully dynamic form generation using metadata instead of hardcoding inputs.
-   * - Each key and model is type-safe, thanks to the `FieldKey` and `FormField` types.
+   * Each `FieldKey` represents a specific form section, e.g., 'game_setting', 'login'.
+   * Each `FormField` describes an individual input, its type, model binding,
+   * options (for selects), min/max (for ranges), and optionally errorKeys.
    *
    * @example
    * ```ts
-   * const fields = formTemplate.formFieldMap.get('login');
-   * for (const field of fields ?? []) {
-   *   console.log(field.title, field.type, field.model);
-   * }
+   * const fields = formTemplate.formFieldMap.get('game_setting');
+   * console.log(fields[0].baseValue); // always returns the latest size
    * ```
-   */
-
-  /**
-   * Computed map: mindig a legfrissebb GameLogic értékeket adja vissza
    */
   #formFieldMap: Signal<Map<FieldKey, FormField[]>> = computed(() => {
     return new Map<FieldKey, FormField[]>([
@@ -64,7 +48,8 @@ export class FormTemplate {
             type: 'select',
             model: 'size',
             options: [3, 4, 5, 6, 7, 8, 9],
-            baseValue: this.#game.size(), 
+            baseValue: this.#game.size(),
+            valueType: 'number',
           },
           {
             field: 'opponent',
@@ -72,7 +57,8 @@ export class FormTemplate {
             type: 'select',
             model: 'opponent',
             options: this.#auth.user() ? ['computer', 'player'] : ['player'],
-            baseValue: this.#auth.user() ? this.#game.opponent() : 'player', 
+            baseValue: this.#auth.user() ? this.#game.opponent() : 'player',
+            valueType: 'string',
           },
           {
             field: 'hardness',
@@ -81,7 +67,8 @@ export class FormTemplate {
             model: 'hardness',
             min: 1,
             max: 4,
-            baseValue:  this.#game.hardness(),
+            baseValue: this.#game.hardness(),
+            valueType: 'number',
           },
         ],
       ],
@@ -94,6 +81,7 @@ export class FormTemplate {
             type: 'text',
             model: 'gameName',
             errorKeys: ['required'],
+            valueType: 'string',
           },
         ],
       ],
@@ -105,12 +93,14 @@ export class FormTemplate {
             title: 'Primary Color',
             type: 'color',
             model: 'primaryColor',
+            valueType: 'string',
           },
           {
             field: 'accent',
             title: 'Accent Color',
             type: 'color',
             model: 'accentColor',
+            valueType: 'string',
           },
         ],
       ],
@@ -123,6 +113,7 @@ export class FormTemplate {
             type: 'text',
             model: 'email',
             errorKeys: ['required', 'invalidEmail', 'emailDoesNotExist'],
+            valueType: 'string',
           },
           {
             field: 'password',
@@ -130,6 +121,7 @@ export class FormTemplate {
             type: 'password',
             model: 'password',
             errorKeys: ['required', 'shortPassword', 'longPassword'],
+            valueType: 'string',
           },
         ],
       ],
@@ -142,6 +134,7 @@ export class FormTemplate {
             type: 'text',
             model: 'email',
             errorKeys: ['required', 'invalidEmail', 'emailInUse'],
+            valueType: 'string',
           },
           {
             field: 'password',
@@ -149,6 +142,7 @@ export class FormTemplate {
             type: 'password',
             model: 'password',
             errorKeys: ['required', 'shortPassword', 'longPassword'],
+            valueType: 'string',
           },
           {
             field: 'rePassword',
@@ -156,24 +150,20 @@ export class FormTemplate {
             type: 'password',
             model: 'rePassword',
             errorKeys: ['required', 'shortPassword', 'longPassword'],
+            valueType: 'string',
           },
         ],
       ],
     ]);
   });
 
-
   /**
-   * Returns the map of form field configurations used by dialogs.
+   * Returns a fresh copy of the form field map.
    *
-   * @returns A `Map<FieldKey, FormField[]>` containing all form field definitions.
+   * The returned map always reflects the current state of `GameLogic` signals,
+   * so reactive values like `size`, `opponent`, and `hardness` are always up-to-date.
    */
   get formFieldMap(): Map<FieldKey, FormField[]> {
-    return new Map(this.#formFieldMap())
+    return new Map(this.#formFieldMap());
   }
-
 }
-
-
-
-
