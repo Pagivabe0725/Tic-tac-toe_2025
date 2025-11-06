@@ -162,10 +162,14 @@ export class Dialog {
   }
 
   protected setGameRules(rules: any): void {
-    console.log(rules)
+    console.log(rules);
     for (const [key, value] of Object.entries(rules)) {
-
-      (this.#game as any)[key] = value;
+      try {
+        (this.#game as any)[key] = value;
+      } catch (error) {
+        console.error(error)
+      }
     }
+    this.emitData(true)
   }
 }

@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { computed, inject, Injectable, Signal } from '@angular/core';
 import {
   FieldKey,
   FormField,
@@ -49,111 +49,119 @@ export class FormTemplate {
    * }
    * ```
    */
-  #formFieldMap = new Map<FieldKey, FormField[]>([
-    [
-      'game_setting',
+
+  /**
+   * Computed map: mindig a legfrissebb GameLogic értékeket adja vissza
+   */
+  #formFieldMap: Signal<Map<FieldKey, FormField[]>> = computed(() => {
+    return new Map<FieldKey, FormField[]>([
       [
-        {
-          field: 'size',
-          title: 'Board Size',
-          type: 'select',
-          model: 'size',
-          options: [3, 4, 5, 6, 7, 8, 9],
-        },
-        {
-          field: 'opponent',
-          title: 'Opponent Type',
-          type: 'select',
-          model: 'opponent',
-          options: this.#auth.user() ? ['computer', 'player'] : ['computer'],
-          baseValue: 'computer',
-        },
-        {
-          field: 'hardness',
-          title: 'Difficulty',
-          type: 'range',
-          model: 'hardness',
-          min: 1,
-          max: 4,
-          baseValue: this.#helper.getDifficultyValue(this.#game.hardness),
-        },
+        'game_setting',
+        [
+          {
+            field: 'size',
+            title: 'Board Size',
+            type: 'select',
+            model: 'size',
+            options: [3, 4, 5, 6, 7, 8, 9],
+            baseValue: this.#game.size(), 
+          },
+          {
+            field: 'opponent',
+            title: 'Opponent Type',
+            type: 'select',
+            model: 'opponent',
+            options: this.#auth.user() ? ['computer', 'player'] : ['player'],
+            baseValue: this.#auth.user() ? this.#game.opponent() : 'player', 
+          },
+          {
+            field: 'hardness',
+            title: 'Difficulty',
+            type: 'range',
+            model: 'hardness',
+            min: 1,
+            max: 4,
+            baseValue:  this.#game.hardness(),
+          },
+        ],
       ],
-    ],
-    [
-      'save',
       [
-        {
-          field: 'gameName',
-          title: 'Game Name',
-          type: 'text',
-          model: 'gameName',
-          errorKeys: ['required'],
-        },
+        'save',
+        [
+          {
+            field: 'gameName',
+            title: 'Game Name',
+            type: 'text',
+            model: 'gameName',
+            errorKeys: ['required'],
+          },
+        ],
       ],
-    ],
-    [
-      'setting',
       [
-        {
-          field: 'primary',
-          title: 'Primary Color',
-          type: 'color',
-          model: 'primaryColor',
-        },
-        {
-          field: 'accent',
-          title: 'Accent Color',
-          type: 'color',
-          model: 'accentColor',
-        },
+        'setting',
+        [
+          {
+            field: 'primary',
+            title: 'Primary Color',
+            type: 'color',
+            model: 'primaryColor',
+          },
+          {
+            field: 'accent',
+            title: 'Accent Color',
+            type: 'color',
+            model: 'accentColor',
+          },
+        ],
       ],
-    ],
-    [
-      'login',
       [
-        {
-          field: 'email',
-          title: 'Email Address',
-          type: 'text',
-          model: 'email',
-          errorKeys: ['required', 'invalidEmail', 'emailDoesNotExist'],
-        },
-        {
-          field: 'Password',
-          title: 'Password',
-          type: 'password',
-          model: 'password',
-          errorKeys: ['required', 'shortPassword', 'longPassword'],
-        },
+        'login',
+        [
+          {
+            field: 'email',
+            title: 'Email Address',
+            type: 'text',
+            model: 'email',
+            errorKeys: ['required', 'invalidEmail', 'emailDoesNotExist'],
+          },
+          {
+            field: 'password',
+            title: 'Password',
+            type: 'password',
+            model: 'password',
+            errorKeys: ['required', 'shortPassword', 'longPassword'],
+          },
+        ],
       ],
-    ],
-    [
-      'registration',
       [
-        {
-          field: 'email',
-          title: 'Email Address',
-          type: 'text',
-          model: 'email',
-          errorKeys: ['required', 'invalidEmail', 'emailInUse'],
-        },
-        {
-          field: 'password',
-          title: 'Password',
-          type: 'password',
-          model: 'password',
-          errorKeys: ['required', 'shortPassword', 'longPassword'],
-        },
-        {
-          field: 'rePassword',
-          title: 'Confirm Password',
-          type: 'password',
-          model: 'rePassword',
-          errorKeys: ['required', 'shortPassword', 'longPassword'],
-        },
+        'registration',
+        [
+          {
+            field: 'email',
+            title: 'Email Address',
+            type: 'text',
+            model: 'email',
+            errorKeys: ['required', 'invalidEmail', 'emailInUse'],
+          },
+          {
+            field: 'password',
+            title: 'Password',
+            type: 'password',
+            model: 'password',
+            errorKeys: ['required', 'shortPassword', 'longPassword'],
+          },
+          {
+            field: 'rePassword',
+            title: 'Confirm Password',
+            type: 'password',
+            model: 'rePassword',
+            errorKeys: ['required', 'shortPassword', 'longPassword'],
+          },
+        ],
       ],
-    ],
-  ] as const);
+    ]);
+  });
+
 
   /**
    * Returns the map of form field configurations used by dialogs.
@@ -161,6 +169,11 @@ export class FormTemplate {
    * @returns A `Map<FieldKey, FormField[]>` containing all form field definitions.
    */
   get formFieldMap(): Map<FieldKey, FormField[]> {
-    return this.#formFieldMap;
+    return new Map(this.#formFieldMap())
   }
+
 }
+
+
+
+

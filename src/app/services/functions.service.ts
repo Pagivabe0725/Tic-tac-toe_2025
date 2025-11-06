@@ -46,37 +46,28 @@ export class Functions {
   }
 
   /**
-   * Converts a difficulty level string into a numeric value between 1 and 4.
+   * Converts a numeric difficulty value (1–4) back into its corresponding string.
    *
-   * Used to translate the textual difficulty (`'very-easy'`, `'easy'`, `'medium'`, `'hard'`)
-   * into a numeric scale that can be used for calculations or AI logic.
+   * - `1` → `'very-easy'`
+   * - `2` → `'easy'`
+   * - `3` → `'medium'`
+   * - `4` → `'hard'`
    *
-   * - `'very-easy'` → `1`
-   * - `'easy'` → `2`
-   * - `'medium'` → `3`
-   * - `'hard'` → `4`
-   *
-   * @param difficulty - The difficulty level as defined in the `game` interface.
-   * @returns A numeric value between 1 and 4.
-   *
-   * @example
-   * ```ts
-   * const value = this.functions.getDifficultyValue('medium');
-   * // → 3
-   * ```
+   * @param value - Numeric difficulty (1–4)
+   * @returns Difficulty level string
    */
-  getDifficultyValue(difficulty: game['hardness']): number {
-    switch (difficulty) {
-      case 'very-easy':
-        return 1;
-      case 'easy':
-        return 2;
-      case 'medium':
-        return 3;
-      case 'hard':
-        return 4;
+  numberToDifficulty(value: number): game['hardness'] {
+    switch (value) {
+      case 1:
+        return 'very-easy';
+      case 2:
+        return 'easy';
+      case 3:
+        return 'medium';
+      case 4:
+        return 'hard';
       default:
-        return 1; // Default fallback for unexpected input
+        return 'very-easy'; // fallback
     }
   }
 

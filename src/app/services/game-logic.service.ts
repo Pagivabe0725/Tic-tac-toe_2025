@@ -12,6 +12,7 @@ import { game } from '../utils/interfaces/game.interface';
 import { baseURL } from '../utils/constants/base-URL.constant';
 import { Auth } from './auth.service';
 import { firstValueFrom, take } from 'rxjs';
+import { Functions } from './functions.service';
 
 //const baseURL = 'http://localhost:3000/tic';
 /**
@@ -41,17 +42,24 @@ export class GameLogic {
   /**
    * placeholder
    */
+
+  #helperFunctions: Functions = inject(Functions);
+
+  /**
+   * placeholder
+   */
   #auth: Auth = inject(Auth);
 
   /**
    * The difficulty level of the game.
    */
-  #hardness: game['hardness'] = 'very-easy';
+  #hardness: WritableSignal<number> = signal(1);
+
 
   /**
    * The opponent type, either computer or player.
    */
-  #opponent: 'computer' | 'player' = 'player';
+  #opponent: WritableSignal<'computer' | 'player'> = signal('player');
 
   /** Stores the current game board as a 2D string array (internal field) */
   #field?: string[][] = [];
@@ -67,7 +75,7 @@ export class GameLogic {
    * Each cell is represented by an empty string `''`.
    */
   #cells: Signal<string[][]> = computed(() => {
-    const size = this.size(); 
+    const size = this.size();
     return Array.from({ length: size }, () =>
       Array.from({ length: size }, () => '')
     );
@@ -150,7 +158,7 @@ export class GameLogic {
   /**
    * Gets the current game difficulty.
    */
-  get hardness(): game['hardness'] {
+  get hardness(): Signal<number> {
     return this.#hardness;
   }
 
@@ -159,15 +167,15 @@ export class GameLogic {
    *
    * @param value - The new difficulty level (e.g., 'easy', 'medium', 'hard').
    */
-  set hardness(value: game['hardness']) {
-    this.#hardness = value;
-    localStorage.setItem('game_hardness', value);
+  set hardness(value: number) {
+    this.#hardness.set(value);
+    localStorage.setItem('game_hardness', value.toString());
   }
 
   /**
    * Gets the current opponent type.
    */
-  get opponent(): 'computer' | 'player' {
+  get opponent(): Signal<'computer' | 'player'> {
     return this.#opponent;
   }
 
@@ -177,9 +185,10 @@ export class GameLogic {
    * @param value - The new opponent type.
    */
   set opponent(value: 'computer' | 'player') {
-    this.#opponent = value;
+    this.#opponent.set(value);
     localStorage.setItem('game_opponent', value);
   }
+
 
   /**
    * Initializes a new GameLogic instance.
@@ -214,12 +223,12 @@ export class GameLogic {
 
     // Restore saved difficulty level
     if (storedHardness) {
-      this.#hardness = storedHardness;
+      this.hardness = parseInt(storedHardness);
     }
 
     // Restore saved opponent type
     if (storedOpponent) {
-      this.#opponent = storedOpponent;
+      this.#opponent.set(storedOpponent);
     }
 
     /**
@@ -246,7 +255,7 @@ export class GameLogic {
             {
               board: this.gameField(),
               markup: 'x',
-              hardness: 'hard',
+              hardness: this.#helperFunctions.numberToDifficulty(this.hardness()),
               lastMove: this.#lastMove,
             },
             {

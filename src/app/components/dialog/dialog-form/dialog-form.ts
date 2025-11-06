@@ -223,6 +223,7 @@ export class DialogForm {
     if (this.getActualObject()) {
       for (const field of this.templates.get(this.getActualObject()!)!) {
         if (field.baseValue) {
+          console.log('base:' , field.baseValue)
           this.getterSetter(field.model).set(field.baseValue);
         }
       }
