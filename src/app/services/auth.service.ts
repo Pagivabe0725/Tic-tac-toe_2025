@@ -194,7 +194,6 @@ export class Auth {
    * Logs out the currently authenticated user and clears stored session data.
    */
   async logout(): Promise<void> {
-    console.log('logout csrf:', this.csrf());
     await firstValueFrom(
       this.#http
         .post(`${baseURL}/users/logout`, undefined, {
@@ -205,7 +204,7 @@ export class Auth {
         })
         .pipe(take(1))
     );
-    this.#CSRF.set(undefined);
+    //this.#CSRF.set(undefined);
     this.user = undefined;
   }
 
@@ -227,7 +226,7 @@ export class Auth {
           .post<{ userId: string }>(
             `${baseURL}/users/signup`,
             {
-              email: email,
+              email: email, 
               password: password,
               confirmPassword: rePassword,
             },
@@ -241,6 +240,7 @@ export class Auth {
           .pipe(take(1))
       );
 
+      console.log('USER_ID:',response.userId)
       return response.userId;
     } catch (_) {
       return undefined;

@@ -28,6 +28,18 @@ export class DialogHandler {
   #dataSubject: Subject<any> | null = null;
 
   /**
+   * placeholder
+   */
+  #title?: string;
+
+  /**
+   * placeholdert
+   */
+  #message?: string;
+
+  #choosable?: boolean;
+
+  /**
    * Returns a read-only signal representing the currently active dialog.
    * If no dialog is open, the value is `undefined`.
    */
@@ -44,6 +56,20 @@ export class DialogHandler {
     this.#activeContent.set(content);
   }
 
+  /** Title getter */
+  public get title(): string | undefined {
+    return this.#title;
+  }
+
+  /** Content getter */
+  public get message(): string | undefined {
+    return this.#message;
+  }
+
+  public get choosable(): undefined | boolean {
+    return this.#choosable;
+  }
+
   /**
    * Opens a dialog and waits for a single emitted result.
    *
@@ -55,7 +81,7 @@ export class DialogHandler {
    * @param content - The dialog content identifier to display.
    * @returns A promise resolving to the value emitted by the dialog.
    */
-  public async openDialog(content: DialogContent) {
+  public async openDialog(content: DialogContent): Promise<boolean> {
     this.#activeContent.set(content);
     this.#dataSubject = new Subject<any>();
 
@@ -64,6 +90,28 @@ export class DialogHandler {
     );
 
     this.close();
+    return result;
+  }
+
+  public async openCustomDialog(
+    content: 'message' | 'error',
+    message: string,
+    title: string,
+    choosable: boolean
+  ): Promise<boolean> {
+    this.#activeContent.set(content);
+    this.#dataSubject = new Subject<any>();
+
+    this.#message = message;
+    this.#choosable = choosable;
+    this.#title = title;
+
+    const result = await firstValueFrom(
+      this.#dataSubject.asObservable().pipe(take(1))
+    );
+
+    this.close();
+    console.log(result);
     return result;
   }
 
@@ -91,5 +139,8 @@ export class DialogHandler {
    */
   dailogEmitter(value: any) {
     this.#dataSubject?.next(value);
+    this.#message = undefined;
+    this.#choosable = undefined;
+    this.#title = undefined;
   }
 }

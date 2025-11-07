@@ -7,18 +7,19 @@
       
         @let control = form.form.get(actualTemplate.field) ;
        
-        <fieldset [class]="control && formHandler.hasErrors(control) ? 'own-error-fieldset' : ''">
+        <fieldset [class]="control && formErrorHandler.hasErrors(control) ? 'own-error-fieldset' : ''">
 
             <legend>{{actualTemplate.title+':'}}</legend>
 
 
             @if (!['select', 'range'].includes(actualTemplate.type)) {
 
-               @let error = control && formHandler.getPrimaryError(control);
+               @let error = control && formErrorHandler.getPrimaryError(control);
               <input [type]="actualTemplate.type" [name]="actualTemplate.field"  
               [ngModel]="getterSetter(actualTemplate.model).get()()" 
               (ngModelChange)="getterSetter(actualTemplate.model).set(helperFunctions.convertType($event, actualTemplate.valueType))"
-              (blur)="setErrors(actualTemplate.field)">
+              (blur)="setErrorsOnOneField(actualTemplate.field)"
+              (focus)="control ? formErrorHandler.clearErrors(control!): ''">
 
               @if (error) {
                 <span class="own-error-span" >{{error}}</span>

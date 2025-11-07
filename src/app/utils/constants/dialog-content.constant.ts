@@ -8,6 +8,7 @@ export const DIALOG_CONTENT = [
   'setting',
   'login',
   'registration',
-  'info',
+  'message',
+  'error',
   undefined,
 ] as const;

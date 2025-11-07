@@ -5,19 +5,25 @@ import { DialogContent } from '../../utils/types/dialog-content.type';
 import { DialogForm } from './dialog-form/dialog-form';
 import { Functions } from '../../services/functions.service';
 import { FormTemplate } from '../../services/form-template.service';
-import { DIALOG_CONTENT } from '../../utils/constants/dialog-content.constant';
-import { FieldKey } from '../../utils/types/dialog-form-field-model.type';
 import { GameLogic } from '../../services/game-logic.service';
+import { Auth } from '../../services/auth.service';
 
 /**
- * Represents a reusable dialog component that manages modal windows
- * for various application contexts such as authentication, settings,
- * and game configuration.
+ * Main dialog container component.
  *
- * @remarks
- * - The dialog dynamically updates its title and content based on the
- *   current active state managed by `DialogHandler`.
- * - It serves as a container and event bridge for the `DialogForm` component.
+ * This component renders and controls modal dialogs for:
+ * – authentication (login / registration)
+ * – game settings
+ * – visual settings
+ * – saving games
+ * – informational sections
+ *
+ * It coordinates with:
+ * – DialogHandler → manages dialog state
+ * – DialogForm → handles dynamic form rendering
+ * – FormTemplate → provides form metadata configuration
+ * – Auth → login / registration handling
+ * – GameLogic → updating game settings
  */
 @Component({
   selector: 'app-dialog',
@@ -26,48 +32,28 @@ import { GameLogic } from '../../services/game-logic.service';
   styleUrl: './dialog.scss',
 })
 export class Dialog {
-  /**
-   * Service responsible for managing dialog visibility, state, and active content.
-   */
+  /** DialogHandler controls visibility and active content type. */
   #dialog: DialogHandler = inject(DialogHandler);
 
-  /**
-   * placeholder
-   */
-
+  /** GameLogic updates gameplay settings. */
   #game: GameLogic = inject(GameLogic);
 
-  /**
-   * Utility service providing helper functions for data manipulation and conversions.
-   */
-  private helperFunctions: Functions = inject(Functions);
+  /** Authentication API for login and registration. */
+  #auth: Auth = inject(Auth);
 
   /**
-   * placeholder
-   */
-  #formTemplate: FormTemplate = inject(FormTemplate);
-
-  /**
-   * Signal representing the currently active dialog content type.
-   * Determines which form configuration and UI layout are rendered.
+   * Currently active dialog content (e.g., 'login', 'registration', 'game_setting').
+   * Used to decide which form and which handler logic should run.
    */
   protected dialogContent: Signal<DialogContent> = this.#dialog.activeContent;
 
-  /**
-   * Flag controlling whether a form request should be emitted.
-   * When `true`, the form submission process is triggered.
-   */
-  protected requestEmitter = false;
-
-  /**
-   * Flag controlling whether a rejection/reset action should be emitted.
-   * Typically used when the user declines changes or cancels an operation.
-   */
+  /** Emits a reset/reject intention to the DialogForm child component. */
   protected rejectEmitter = false;
 
+  protected callback?:Function
+
   /**
-   * Computed property dynamically generating the dialog’s title
-   * based on the current active content type.
+   * Dynamically computed dialog title based on active dialog content.
    */
   protected title = computed(() => {
     switch (this.#dialog.activeContent() as DialogContent) {
@@ -81,27 +67,31 @@ export class Dialog {
         return 'Login';
       case 'registration':
         return 'Registration';
-      case 'info':
-        return 'Information';
+      case 'message':
+        return this.#dialog.title;
+      case 'error':
+        return this.#dialog.title;
       default:
         return 'Title';
     }
   });
 
-  /**
-   * Closes the active dialog window by calling the `DialogHandler` service.
-   */
+  protected message = this.#dialog.message;
+
+  /** Closes the dialog by notifying DialogHandler. */
   protected closeDialog(): void {
-    this.rejectEmitter = true;
+    if (!['error', 'message', undefined].includes(this.dialogContent()))
+      this.rejectEmitter = true;
+    else if (
+      this.dialogContent() &&
+      ['error', 'message'].includes(this.dialogContent()!)
+    )
+      this.emitData(false);
   }
 
   /**
-   * Extracts and logs all control keys from a given form or control object.
-   *
-   * @param controls - A `FormGroup` instance or a plain object containing form controls.
-   *
-   * @remarks
-   * Useful for debugging or introspection of dynamically generated forms.
+   * Utility method for introspecting the controls of a FormGroup or object.
+   * Useful for debugging dynamically generated forms.
    */
   protected getControls(
     controls: Record<string, AbstractControl> | FormGroup
@@ -119,58 +109,119 @@ export class Dialog {
   }
 
   /**
-   * Emits a payload (data or state) from the dialog to the parent component or service.
-   *
-   * @param value - Any value to emit, commonly form data or action results.
+   * Emits data from the dialog outward through DialogHandler.
    */
   protected emitData(value: any): void {
     this.#dialog.dailogEmitter(value);
   }
 
-  /**
-   * Handles form submission results received from the child `DialogForm` component.
-   *
-   * @param result - The emitted form data object.
-   *
-   * @remarks
-   * After logging or processing the result, the `requestEmitter`
-   * flag is reset to prevent redundant emissions.
-   */
-  clickEvent(result: object): void {
-    const type = this.getCurrentFieldType()!;
-    const game = result as typeof type;
-    this.setGameRules(game);
-    this.requestEmitter = false;
-  }
+
 
   /**
-   * Switches between login and registration dialogs.
-   *
-   * @remarks
-   * Triggered by a “Create an account” or “Back to login” link click.
+   * Toggles between login <-> registration dialogs.
    */
   protected toggleAuthMode(): void {
     this.#dialog.activeContent =
       this.dialogContent() === 'login' ? 'registration' : 'login';
   }
 
-  protected getCurrentFieldType() {
-    return this.helperFunctions.specificFieldTypeByName(
-      this.dialogContent()!,
-      this.#formTemplate.formFieldMap.get(this.dialogContent()!)!
-    );
-  }
-  
-  protected setGameRules(rules:any): void {
-    
-    console.log(rules);
+  /**
+   * Applies game setting changes (board size, opponent, difficulty).
+   * Object keys must match GameLogic service property names.
+   */
+  protected setGameRules(rules: Record<string, any>): boolean {
     for (const [key, value] of Object.entries(rules)) {
       try {
         (this.#game as any)[key] = value;
       } catch (error) {
-        console.error(error)
+        console.error(error);
+        return false;
       }
     }
-    this.emitData(true)
+    return true;
+  }
+
+  /**
+   * Handles registration form submission.
+   *
+   * @returns `true` if registration succeeded, `false` otherwise.
+   * NOTE:
+   * - Signup returns userId (string) on success.
+   * - undefined if backend rejects.
+   */
+  protected async registration(datas: any): Promise<boolean> {
+    const { email, password, rePassword } = datas;
+
+    if (email && password && rePassword) {
+      const succsess = await this.#auth.signup(email, password, rePassword);
+      if (succsess) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Handles login form submission.
+   *
+   * - Auth service returns user data on success, or undefined on failure.
+   */
+  protected async login(datas: any): Promise<boolean> {
+    const { email, password } = datas;
+    let succsess;
+    if (email && password) {
+      succsess = await this.#auth.login(email, password);
+    } else return false;
+
+    console.log('succsess:', succsess)
+    if (succsess) {
+      this.#auth.user = succsess;
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Selects the appropriate handler function based on active dialog type.
+   *
+   * NOTE: We bind `this` explicitly so that internal private fields (#auth, #game)
+   * remain accessible inside the handler methods.
+   */
+  choseHandlerFunction(): Function | undefined {
+    switch (this.#dialog.activeContent()) {
+      case 'login':
+        return this.login.bind(this);
+      case 'registration':
+        return this.registration.bind(this);
+      case 'setting':
+        return (datas:any)=>{this.#dialog.dailogEmitter(true)}
+      case 'game_setting':
+        return this.setGameRules.bind(this);
+      default:
+        return undefined;
+    }
+  }
+
+  acceptButton() {
+    if (![undefined, 'error', 'message'].includes(this.dialogContent())) {
+      this.callback=this.choseHandlerFunction()
+    } else if (
+      this.dialogContent() &&
+      ['error', 'message'].includes(this.dialogContent()!)
+    ) {
+      this.emitData(true);
+    }
+  }
+
+  rejectButton() {
+    if (![undefined, 'error', 'message'].includes(this.dialogContent())) {
+      this.rejectEmitter = true;
+    } else if (
+      this.dialogContent() &&
+      ['error', 'message'].includes(this.dialogContent()!)
+    ) {
+      this.emitData(false);
+    }
   }
 }

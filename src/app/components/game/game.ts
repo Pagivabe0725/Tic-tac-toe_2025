@@ -87,10 +87,10 @@ export class Game {
 
     // Automatically trigger the enemy move on odd steps.
     effect(() => {
-      if (this.step() % 2 !== 0 && this.gameField()) {
+      if (this.step() % 2 !== 0 && this.gameField() && this.#gameLogic.opponent()==='computer') {
         console.log('step:' + this.step());
 
-        this.aiMove();
+        //this.aiMove();
       }
     });
   }

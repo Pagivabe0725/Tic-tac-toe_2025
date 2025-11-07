@@ -1,28 +1,51 @@
 <div id="own-dialog-background">
+
   <div id="own-dialog-div">
+
     <div id="own-title-div">
+
       <span>{{title()}}</span>
       <span class="material-icons" (click)="closeDialog()">close</span>
+
     </div>
+
     <div id="own-content-div">
-      <app-dialog-form 
-      [formRequest]="requestEmitter"
-      [rejectChanges]="rejectEmitter"
-      (formResponse)="clickEvent($event)"
-      (resetResultEmitter)="emitData(false)">
-    </app-dialog-form>
+      @if (dialogContent () && !['message', 'error'].includes(dialogContent()!)) {
+
+        <app-dialog-form 
+          [rejectChanges]="rejectEmitter"
+          [callback]="callback"
+          (disableCallback)="callback=undefined">
+        </app-dialog-form>
+
+      }
+      @else {
+
+        {{message}}
+
+      }
+
     </div>
+
     <div id="own-action-div">
+
       @if (dialogContent()  && ['login', 'registration',].includes(dialogContent()!)) {
-        <button>{{dialogContent()==='login' ? 'Login' : 'Registration'}}</button>
+
+        <button (click)="acceptButton()">{{dialogContent()==='login' ? 'Login' : 'Registration'}}</button>
         <button (click)="toggleAuthMode()">{{dialogContent()==='login' ? 'Registration' : 'Login'}}</button>
       
       }
+
       @else {
-        <button (click)="requestEmitter=true">yes</button>
-        <button (click)="rejectEmitter=true">No</button>
+
+        <button (click)="acceptButton()">yes</button>
+        <button (click)="rejectButton()">No</button>
         <button (click)="emitData(undefined)">Ok</button>
+
       }
+
     </div>
+
   </div>
+  
 </div>

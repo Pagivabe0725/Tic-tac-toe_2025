@@ -1,4 +1,5 @@
 import {
+  AfterViewInit,
   Component,
   effect,
   inject,
@@ -11,14 +12,14 @@ import {
   viewChild,
   WritableSignal,
 } from '@angular/core';
-import { FormsModule, NgForm } from '@angular/forms';
+import { AbstractControl, FormsModule, NgForm } from '@angular/forms';
 import { DialogHandler } from '../../../services/dialog-handler.service';
 import { Theme } from '../../../services/theme.service';
 import {
   FieldKey,
   FormFieldModel,
 } from '../../../utils/types/dialog-form-field-model.type';
-import { Form } from '../../../services/form.service';
+import { FormError } from '../../../services/form-error.service';
 import { FormTemplate } from '../../../services/form-template.service';
 import { Functions } from '../../../services/functions.service';
 
@@ -71,7 +72,7 @@ export class DialogForm {
   protected theme: Theme = inject(Theme);
 
   /** Service handling form validation and error registration. */
-  protected formHandler: Form = inject(Form);
+  protected formErrorHandler: FormError = inject(FormError);
 
   /** Service providing predefined form field templates per dialog type. */
   #formTemplate: FormTemplate = inject(FormTemplate);
@@ -82,8 +83,6 @@ export class DialogForm {
   /** Mapping of available form field templates by dialog key. */
   protected templates = this.#formTemplate.formFieldMap;
 
-  /** Input signal requesting form data submission. */
-  formRequest: InputSignal<boolean> = input.required();
 
   /** Output emitter sending the validated form result to the parent. */
   formResponse: OutputEmitterRef<object> = output();
@@ -91,8 +90,15 @@ export class DialogForm {
   /** Input signal that triggers a rejection/reset of unsaved changes. */
   rejectChanges: InputSignal<boolean> = input.required();
 
-  /** Output emitter that signals when a reset operation has been successfully completed. */
-  resetResultEmitter: OutputEmitterRef<void> = output();
+  /**
+   * placeholder
+   */
+  callback: InputSignal<Function | undefined> = input.required();
+
+  /**
+   * placeholder
+   */
+  disableCallback: OutputEmitterRef<void> = output()
 
   /** Reactive signal representing the current difficulty level (1–4). */
   #hardness: WritableSignal<number> = signal(1);
@@ -204,7 +210,7 @@ export class DialogForm {
   }
 
   /** References the form element from the template. */
-  protected form: Signal<NgForm | undefined> = viewChild('form', {
+  protected ngForm: Signal<NgForm | undefined> = viewChild('form', {
     read: NgForm,
   });
 
@@ -229,12 +235,23 @@ export class DialogForm {
       }
     }
 
-    // Handle form submission request
+    /*
     effect(() => {
-      if (this.formRequest()) {
-        this.sendFormResult();
+      if (this.ngForm()) {
+        this.#controls = [];
+        for (const formField of this.#formTemplate.formFieldMap.get(
+          this.dialog.activeContent()!
+        )!) {
+          const contol = this.ngForm()!.form.get(formField.field);
+          if (contol) this.#controls.push(contol);
+        }
+         console.log(this.ngForm())
+      console.log('Controls')
+      console.log(this.#controls)
       }
+     
     });
+    */
 
     // Revert unsaved changes if rejection triggered
     effect(() => {
@@ -264,17 +281,45 @@ export class DialogForm {
       const rePassword = this.rePassword();
 
       if (password && rePassword && password !== rePassword) {
-        const passwordControl = this.form()!.form.get('password');
-        const confirmControl = this.form()!.form.get('rePassword');
+        const passwordControl = this.ngForm()!.form.get('password');
+        const confirmControl = this.ngForm()!.form.get('rePassword');
 
         if (passwordControl && confirmControl) {
-          this.formHandler.markAsPasswordMismatch(
+          this.formErrorHandler.markAsPasswordMismatch(
             passwordControl,
             confirmControl
           );
         }
       }
     });
+
+    effect(() => {
+      if (this.callback()) {
+        this.checkForm();
+        if (!this.ngForm()?.valid) {
+          return;
+        }
+
+        this.handleCallback();
+      }
+    });
+  }
+
+  async handleCallback() {
+    const formResult = this.getFormResult();
+    if (!formResult) {
+      return;
+    }
+    const result = await this.callback()!(formResult);
+    console.log('form result: ', result);
+    if (result) {
+      this.dialog.dailogEmitter(true);
+    } else {
+      this.disableCallback.emit()
+      for (const [control, value] of Object.entries(this.ngForm()!.controls)) {
+        value.setErrors({ executeError: true });
+      }
+    }
   }
 
   /** Returns the current active dialog key used to determine form structure. */
@@ -298,8 +343,9 @@ export class DialogForm {
    * Applies error checking for a given form control,
    * using the corresponding template-defined validation keys.
    */
-  protected setErrors(controlName: string): void {
-    const actualContol = this.form()?.form.get(controlName);
+
+  protected setErrorsOnOneField(controlName: string): void {
+    const actualContol = this.ngForm()?.form.get(controlName);
     const fieldTemplate = this.templates.get(this.dialog.activeContent()!);
 
     if (actualContol && fieldTemplate) {
@@ -307,11 +353,35 @@ export class DialogForm {
         (field) => field.field === controlName
       );
       if (templateOfActualField?.errorKeys) {
-        this.formHandler.checkErrors(
+        this.formErrorHandler.checkErrors(
           actualContol,
           ...templateOfActualField.errorKeys
         );
       }
+    }
+  }
+
+  checkForm(): void {
+    try {
+      if (!this.ngForm()) throw new Error('ngForm is undefined');
+      if ([undefined, 'error', 'message'].includes(this.dialog.activeContent()))
+        throw new Error(
+          `The content "${this.dialog.activeContent()}" should not be associated with a form-dialog template.`
+        );
+
+      for (const fieldTemplate of this.#formTemplate.formFieldMap.get(
+        this.dialog.activeContent()!
+      )!) {
+        const control = this.ngForm()?.form.get(fieldTemplate.field);
+        if (control && fieldTemplate.errorKeys) {
+          this.formErrorHandler.checkErrors(
+            control,
+            ...fieldTemplate.errorKeys!
+          );
+        }
+      }
+    } catch (error) {
+      console.log(error);
     }
   }
 
@@ -336,15 +406,15 @@ export class DialogForm {
    * Restores each field’s pristine and untouched state.
    */
   protected clearFormErrors(): void {
-    const currentForm = this.form()?.form;
+    const currentForm = this.ngForm()?.form;
     const activeTemplate = this.templates.get(this.dialog.activeContent()!);
 
     if (currentForm && activeTemplate) {
       for (const field of activeTemplate) {
         const control = currentForm.get(field.field);
         if (control) {
-          if ('clearErrors' in this.formHandler) {
-            (this.formHandler as any).clearErrors(control);
+          if ('clearErrors' in this.formErrorHandler) {
+            (this.formErrorHandler as any).clearErrors(control);
           } else {
             control.setErrors(null);
             control.markAsPristine();
@@ -359,8 +429,8 @@ export class DialogForm {
    * Emits a structured, type-safe form result when validation passes.
    * Uses the helper service to infer expected field types dynamically.
    */
-  protected sendFormResult(): void {
-    if (this.form()?.valid) {
+  protected getFormResult(): Record<string, string | number> | undefined {
+    if (this.ngForm()?.valid) {
       const type = this.helperFunctions.specificFieldTypeByName(
         this.getActualObject()!,
         this.#formTemplate.formFieldMap.get(this.getActualObject()!)!
@@ -372,8 +442,10 @@ export class DialogForm {
         result[key] = this.getterSetter(key as FormFieldModel).get()();
       }
 
-      this.formResponse.emit(result);
+      return result;
     }
+
+    return undefined;
   }
 
   /**
@@ -399,15 +471,13 @@ export class DialogForm {
       const formattedKey =
         currentKey.charAt(0).toLowerCase() + currentKey.slice(1);
       if (formattedKey in (this as any)) {
-        (this as any)[formattedKey];
+        (this as any)[formattedKey] = value;
       } else {
         throw new Error(
           `resetProperties(): property "${formattedKey}" does not exist on DialogForm`
         );
       }
     }
-    this.resetResultEmitter.emit();
+    this.dialog.dailogEmitter(false);
   }
-
-
 }

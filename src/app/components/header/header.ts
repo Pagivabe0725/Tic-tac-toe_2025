@@ -40,8 +40,9 @@ export class Header {
    */
   #auth = inject(Auth);
 
-
-  readonly logged: Signal<boolean> = signal(this.#auth.user() !==undefined);
+  readonly logged: Signal<boolean> = computed(() => {
+    return this.#auth.user() !== undefined;
+  });
   /**
    * Gets the current theme mode.
    *
@@ -68,8 +69,24 @@ export class Header {
    */
   protected async openDialogByContent(content: DialogContent): Promise<void> {
     const result = await this.#dialog.openDialog(content);
+
+    console.log(result);
+  }
+
+  /**
+   * placeholder
+   */
+
+  async logout() {
+    const result = await this.#dialog.openCustomDialog(
+      'message',
+      'Do you logut sure?',
+      'logout',
+      true
+    );
+
     if (result) {
-      console.log(result);
+      await this.#auth.logout();
     }
   }
 }

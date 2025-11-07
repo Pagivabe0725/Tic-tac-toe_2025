@@ -27,7 +27,7 @@ import { ERROR_MESSAGES } from '../utils/interfaces/error-message.interface';
 @Injectable({
   providedIn: 'root',
 })
-export class Form {
+export class FormError {
   #auth: Auth = inject(Auth);
 
   /**

@@ -1,10 +1,11 @@
 import { TestBed } from '@angular/core/testing';
 
-import { Form } from '../form.service';
+
 import { provideZonelessChangeDetection } from '@angular/core';
+import { FormError } from '../form-error.service';
 
 describe('Form', () => {
-  let service: Form;
+  let service: FormError;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -12,7 +13,7 @@ describe('Form', () => {
         provideZonelessChangeDetection()
       ]
     });
-    service = TestBed.inject(Form);
+    service = TestBed.inject(FormError);
   });
 
   it('should be created', () => {
