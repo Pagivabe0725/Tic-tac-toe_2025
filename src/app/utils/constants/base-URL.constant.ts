@@ -1,4 +1,4 @@
 /**
  * Base URL of the backend API.
  */
-export const baseURL = 'http://localhost:3000';
+export const BASE_URL = 'http://localhost:3000';

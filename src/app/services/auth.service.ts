@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { firstValueFrom, take } from 'rxjs';
 import { Functions } from './functions.service';
-import { baseURL } from '../utils/constants/base-URL.constant';
+import { BASE_URL } from '../utils/constants/base-URL.constant';
 
 /**
  * Represents the structure of a user entity received from the backend.
@@ -110,7 +110,7 @@ export class Auth {
     try {
       const response = await firstValueFrom(
         this.#http
-          .get<{ csrfToken: string }>(`${baseURL}/csrf-token`, {
+          .get<{ csrfToken: string }>(`${BASE_URL}/csrf-token`, {
             withCredentials: true,
           })
           .pipe(take(1))
@@ -141,13 +141,13 @@ export class Auth {
       const response = await firstValueFrom(
         this.#http
           .post<{ user: object }>(
-            `${baseURL}/users/login`,
+            `${BASE_URL}/users/login`,
             { email, password },
             {
               withCredentials: true,
-              headers: {
+             /*  headers: {
                 'X-CSRF-Token': this.csrf()!,
-              },
+              }, */
             }
           )
           .pipe(take(1))
@@ -171,7 +171,7 @@ export class Auth {
     try {
       const response = await firstValueFrom(
         this.#http
-          .post<{ user: User }>(`${baseURL}/users/check-session`, undefined, {
+          .post<{ user: User }>(`${BASE_URL}/users/check-session`, undefined, {
             withCredentials: true,
             headers: {
               'X-CSRF-Token': this.csrf()!,
@@ -196,7 +196,7 @@ export class Auth {
   async logout(): Promise<void> {
     await firstValueFrom(
       this.#http
-        .post(`${baseURL}/users/logout`, undefined, {
+        .post(`${BASE_URL}/users/logout`, undefined, {
           withCredentials: true,
           headers: {
             'X-CSRF-Token': this.csrf()!,
@@ -224,7 +224,7 @@ export class Auth {
       const response = await firstValueFrom(
         this.#http
           .post<{ userId: string }>(
-            `${baseURL}/users/signup`,
+            `${BASE_URL}/users/signup`,
             {
               email: email, 
               password: password,
@@ -268,7 +268,7 @@ export class Auth {
         const respones = await firstValueFrom(
           this.#http
             .post<{ result: boolean }>(
-              `${baseURL}/users/is-used-email`,
+              `${BASE_URL}/users/is-used-email`,
               { email: email },
               {
                 withCredentials: true,

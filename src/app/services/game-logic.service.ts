@@ -9,12 +9,12 @@ import {
   WritableSignal,
 } from '@angular/core';
 import { game } from '../utils/interfaces/game.interface';
-import { baseURL } from '../utils/constants/base-URL.constant';
+import { BASE_URL } from '../utils/constants/base-URL.constant';
 import { Auth } from './auth.service';
 import { firstValueFrom, take } from 'rxjs';
 import { Functions } from './functions.service';
 
-//const baseURL = 'http://localhost:3000/tic';
+//const BASE_URL = 'http://localhost:3000/tic';
 /**
  * @service GameLogic
  *
@@ -251,7 +251,7 @@ export class GameLogic {
       const respones = await firstValueFrom(
         this.#http
           .post<game>(
-            `${baseURL}/game/ai-move`,
+            `${BASE_URL}/game/ai-move`,
             {
               board: this.gameField(),
               markup: 'x',
