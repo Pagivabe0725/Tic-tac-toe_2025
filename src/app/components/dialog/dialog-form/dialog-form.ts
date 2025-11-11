@@ -65,79 +65,81 @@ import { Functions } from '../../../services/functions.service';
   ],
 })
 export class DialogForm {
-  /** Service managing dialog visibility, state, and active content. */
+  /**
+   * {@link DialogHandler} manages dialog visibility, active content type, and dialog state.
+   */
   protected dialog: DialogHandler = inject(DialogHandler);
 
-  /** Service responsible for managing and persisting theme colors. */
+  /**
+   * {@link Theme} manages theme colors and applies them to the UI.
+   */
   protected theme: Theme = inject(Theme);
 
-  /** Service handling form validation and error registration. */
+  /**
+   * {@link FormError} handles form validation, error registration, and marking invalid fields.
+   */
   protected formErrorHandler: FormError = inject(FormError);
 
-  /** Service providing predefined form field templates per dialog type. */
+  /**
+   * {@link FormTemplate} provides predefined form field templates for each dialog type.
+   */
   #formTemplate: FormTemplate = inject(FormTemplate);
 
-  /** Utility service with generic helper functions. */
+  /**
+   * {@link Functions} utility service with helper functions for field manipulation and type inference.
+   */
   protected helperFunctions: Functions = inject(Functions);
 
-  /** Mapping of available form field templates by dialog key. */
+  /** Map storing form field templates indexed by the dialog key. */
   protected templates = this.#formTemplate.formFieldMap;
 
-
-  /** Output emitter sending the validated form result to the parent. */
-  formResponse: OutputEmitterRef<object> = output();
-
-  /** Input signal that triggers a rejection/reset of unsaved changes. */
+  /** Input signal triggering a rejection/reset of unsaved changes in the form. */
   rejectChanges: InputSignal<boolean> = input.required();
 
-  /**
-   * placeholder
-   */
+  /** Input signal holding an optional callback function to execute on form submission. */
   callback: InputSignal<Function | undefined> = input.required();
 
-  /**
-   * placeholder
-   */
-  disableCallback: OutputEmitterRef<void> = output()
+  /** Output emitter triggered when the callback execution fails or is disabled. */
+  disableCallback: OutputEmitterRef<void> = output();
 
-  /** Reactive signal representing the current difficulty level (1–4). */
+  /** Writable signal representing the current difficulty level of the game (1–4). */
   #hardness: WritableSignal<number> = signal(1);
 
-  /** Reactive signal for the current primary color. */
+  /** Writable signal for the primary theme color. */
   #primaryColor: WritableSignal<string> = signal(
     this.theme.primaryColor ?? '#fff'
   );
 
-  /** Stores the previous primary color for easy restoration. */
+  /** Stores the previous primary color for restoring when cancelling changes. */
   private previousPrimaryColor = this.#primaryColor();
 
-  /** Reactive signal for the current accent color. */
+  /** Writable signal for the accent theme color. */
   #accentColor: WritableSignal<string> = signal(
     this.theme.accentColor ?? '#fff'
   );
 
-  /** Stores the previous accent color for easy restoration. */
+  /** Stores the previous accent color for restoring when cancelling changes. */
   private previousAccentColor = this.#accentColor();
 
-  /** Reactive signal for the current game name. */
+  /** Writable signal representing the current game name entered by the user. */
   #gameName: WritableSignal<string> = signal('');
 
-  /** Reactive signal for the user’s email address. */
+  /** Writable signal for the user's email input. */
   #email: WritableSignal<string> = signal('');
 
-  /** Reactive signal for the user's entered password. */
+  /** Writable signal for the user's password input. */
   #password: WritableSignal<string> = signal('');
 
-  /** Reactive signal for the repeated password confirmation. */
+  /** Writable signal for repeated password confirmation. */
   #rePassword: WritableSignal<string> = signal('');
 
-  /** Reactive signal representing the selected opponent. */
+  /** Writable signal representing the selected opponent type (e.g., 'computer' or 'human'). */
   #opponent: WritableSignal<string> = signal('computer');
 
-  /** Reactive signal representing the selected game board size. */
+  /** Writable signal representing the selected game board size (e.g., 3x3, 4x4). */
   #size: WritableSignal<number> = signal(3);
 
-  /** Getter and setter for hardness level. */
+  /** Getter and setter for the difficulty level signal. */
   protected get hardness(): WritableSignal<number> {
     return this.#hardness;
   }
@@ -145,7 +147,7 @@ export class DialogForm {
     this.#hardness.set(value);
   }
 
-  /** Getter and setter for primary color. */
+  /** Getter and setter for the primary color signal. */
   protected get primaryColor(): WritableSignal<string> {
     return this.#primaryColor;
   }
@@ -153,7 +155,7 @@ export class DialogForm {
     this.#primaryColor.set(value);
   }
 
-  /** Getter and setter for accent color. */
+  /** Getter and setter for the accent color signal. */
   protected get accentColor(): WritableSignal<string> {
     return this.#accentColor;
   }
@@ -161,7 +163,7 @@ export class DialogForm {
     this.#accentColor.set(value);
   }
 
-  /** Getter and setter for game name. */
+  /** Getter and setter for the game name signal. */
   protected get gameName(): WritableSignal<string> {
     return this.#gameName;
   }
@@ -169,7 +171,7 @@ export class DialogForm {
     this.#gameName.set(value);
   }
 
-  /** Getter and setter for email. */
+  /** Getter and setter for the email signal. */
   protected get email(): WritableSignal<string> {
     return this.#email;
   }
@@ -177,7 +179,7 @@ export class DialogForm {
     this.#email.set(value);
   }
 
-  /** Getter and setter for password. */
+  /** Getter and setter for the password signal. */
   protected get password(): WritableSignal<string> {
     return this.#password;
   }
@@ -185,7 +187,7 @@ export class DialogForm {
     this.#password.set(value);
   }
 
-  /** Getter and setter for repeated password. */
+  /** Getter and setter for the repeated password signal. */
   protected get rePassword(): WritableSignal<string> {
     return this.#rePassword;
   }
@@ -193,7 +195,7 @@ export class DialogForm {
     this.#rePassword.set(value);
   }
 
-  /** Getter and setter for opponent. */
+  /** Getter and setter for the opponent signal. */
   protected get opponent(): WritableSignal<string> {
     return this.#opponent;
   }
@@ -201,7 +203,7 @@ export class DialogForm {
     this.#opponent.set(value);
   }
 
-  /** Getter and setter for game board size. */
+  /** Getter and setter for the board size signal. */
   protected get size(): WritableSignal<number> {
     return this.#size;
   }
@@ -209,7 +211,7 @@ export class DialogForm {
     this.#size.set(value);
   }
 
-  /** References the form element from the template. */
+  /** Signal referencing the template form element (NgForm) for reactive access. */
   protected ngForm: Signal<NgForm | undefined> = viewChild('form', {
     read: NgForm,
   });
@@ -234,24 +236,6 @@ export class DialogForm {
         }
       }
     }
-
-    /*
-    effect(() => {
-      if (this.ngForm()) {
-        this.#controls = [];
-        for (const formField of this.#formTemplate.formFieldMap.get(
-          this.dialog.activeContent()!
-        )!) {
-          const contol = this.ngForm()!.form.get(formField.field);
-          if (contol) this.#controls.push(contol);
-        }
-         console.log(this.ngForm())
-      console.log('Controls')
-      console.log(this.#controls)
-      }
-     
-    });
-    */
 
     // Revert unsaved changes if rejection triggered
     effect(() => {
@@ -293,6 +277,7 @@ export class DialogForm {
       }
     });
 
+    // Reactive effect: whenever the callback signal is set, validate the form and, if valid, execute the callback.
     effect(() => {
       if (this.callback()) {
         this.checkForm();
@@ -305,19 +290,49 @@ export class DialogForm {
     });
   }
 
+  /**
+   * Executes the callback function passed from the parent component when the form is submitted.
+   *
+   * Steps:
+   * 1. Retrieves the current form data in a type-safe object.
+   * 2. If the form data is invalid or undefined, it exits early.
+   * 3. Calls the parent-provided callback function asynchronously with the form data.
+   * 4. Logs the callback result for debugging purposes.
+   * 5. If the callback succeeds (returns `true`):
+   *    - Emits `true` via the DialogHandler to close the dialog.
+   * 6. If the callback fails (returns `false`):
+   *    - Emits an event to notify the parent that the callback was disabled.
+   *    - Marks all form controls with an execution error to visually indicate the failure.
+   */
   async handleCallback() {
+    // Step 1: Get structured form data from the form signals
     const formResult = this.getFormResult();
+
+    // Step 2: Exit early if form is invalid or empty
     if (!formResult) {
       return;
     }
+
+    // Step 3: Execute the callback function with the form result
     const result = await this.callback()!(formResult);
+
+    // Step 4: Debug log of the callback result
     console.log('form result: ', result);
+
+    // Step 5: Handle success case
     if (result) {
+      // Notify DialogHandler to close the dialog
       this.dialog.dailogEmitter(true);
     } else {
-      this.disableCallback.emit()
-      for (const [control, value] of Object.entries(this.ngForm()!.controls)) {
-        value.setErrors({ executeError: true });
+      // Step 6: Handle failure case
+      // Notify parent that the callback failed
+      this.disableCallback.emit();
+
+      // Mark all form controls with an error so user sees validation feedback
+      for (const [controlName, control] of Object.entries(
+        this.ngForm()!.controls
+      )) {
+        control.setErrors({ executeError: true });
       }
     }
   }
@@ -353,6 +368,7 @@ export class DialogForm {
         (field) => field.field === controlName
       );
       if (templateOfActualField?.errorKeys) {
+        //console.log( ...templateOfActualField.errorKeys)
         this.formErrorHandler.checkErrors(
           actualContol,
           ...templateOfActualField.errorKeys
@@ -361,19 +377,39 @@ export class DialogForm {
     }
   }
 
+  /**
+   * Validates all form controls against their predefined error keys.
+   *
+   * Steps:
+   * 1. Ensures that the form reference (`ngForm`) exists. If not, throws an error.
+   * 2. Checks that the current dialog content is associated with a form.
+   *    - If the content is `undefined`, `error`, or `message`, it throws an error
+   *      because these dialog types should not use a form template.
+   * 3. Iterates over each field template for the active dialog content:
+   *    - Retrieves the corresponding form control from the `ngForm`.
+   *    - If the control exists and there are validation keys defined in the template,
+   *      it delegates the error checking to the `formErrorHandler` service.
+   * 4. Catches any runtime errors during validation and logs them for debugging.
+   */
   checkForm(): void {
     try {
+      // Step 1: Verify that the form exists
       if (!this.ngForm()) throw new Error('ngForm is undefined');
+
+      // Step 2: Ensure the dialog content is associated with a form template
       if ([undefined, 'error', 'message'].includes(this.dialog.activeContent()))
         throw new Error(
           `The content "${this.dialog.activeContent()}" should not be associated with a form-dialog template.`
         );
 
+      // Step 3: Iterate over each field template and validate corresponding control
       for (const fieldTemplate of this.#formTemplate.formFieldMap.get(
         this.dialog.activeContent()!
       )!) {
         const control = this.ngForm()?.form.get(fieldTemplate.field);
+
         if (control && fieldTemplate.errorKeys) {
+          // Delegate error checking to the formErrorHandler service
           this.formErrorHandler.checkErrors(
             control,
             ...fieldTemplate.errorKeys!
@@ -381,6 +417,7 @@ export class DialogForm {
         }
       }
     } catch (error) {
+      // Step 4: Log any errors encountered during form validation
       console.log(error);
     }
   }
@@ -414,7 +451,7 @@ export class DialogForm {
         const control = currentForm.get(field.field);
         if (control) {
           if ('clearErrors' in this.formErrorHandler) {
-            (this.formErrorHandler as any).clearErrors(control);
+            this.formErrorHandler.clearErrors(control);
           } else {
             control.setErrors(null);
             control.markAsPristine();
@@ -458,26 +495,30 @@ export class DialogForm {
    * Throws an error if a matching target property does not exist.
    */
   protected resetProperties(): void {
-    const previousObject: Record<string, any> = {};
+    const previousObject: Partial<Record<keyof this, unknown>> = {};
 
-    for (const [key, value] of Object.entries(this as any)) {
-      if (key.includes('previous') && !key.includes('_')) {
-        previousObject[key] = value;
+    for (const key of Object.keys(this) as (keyof this)[]) {
+      if (String(key).startsWith('previous') && !String(key).includes('_')) {
+        previousObject[key] = this[key];
       }
     }
 
-    for (const [key, value] of Object.entries(previousObject)) {
-      const currentKey = key.replace(/^previous/, '');
+    for (const key of Object.keys(
+      previousObject
+    ) as (keyof typeof previousObject)[]) {
+      const currentKey = String(key).replace(/^previous/, '');
       const formattedKey =
         currentKey.charAt(0).toLowerCase() + currentKey.slice(1);
-      if (formattedKey in (this as any)) {
-        (this as any)[formattedKey] = value;
+
+      if (formattedKey in this) {
+        (this as any)[formattedKey] = previousObject[key];
       } else {
         throw new Error(
           `resetProperties(): property "${formattedKey}" does not exist on DialogForm`
         );
       }
     }
+
     this.dialog.dailogEmitter(false);
   }
 }

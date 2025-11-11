@@ -105,7 +105,7 @@ export class FormError {
    */
   async markAsEmailInUse(control: AbstractControl): Promise<void> {
     const value = control.value;
-    if (this.#auth.csrf() && value && (await this.#auth.isUsedEmail(value))) {
+    if ( value && (await this.#auth.isUsedEmail(value))) {
       this.addErrorToControl(control, 'emailInUse');
     }
   }
@@ -122,7 +122,7 @@ export class FormError {
    */
   async markAsEmailDoesNotExist(control: AbstractControl): Promise<void> {
     const value = control.value;
-    if (this.#auth.csrf() && value && !(await this.#auth.isUsedEmail(value))) {
+    if (value && !(await this.#auth.isUsedEmail(value))) {
       this.addErrorToControl(control, 'emailDoesNotExist');
     }
   }

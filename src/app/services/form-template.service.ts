@@ -1,41 +1,40 @@
 import { computed, inject, Injectable, Signal } from '@angular/core';
 import {
   FieldKey,
-  FormField,
 } from '../utils/types/dialog-form-field-model.type';
 import { Auth } from './auth.service';
-import { GameLogic } from './game-logic.service';
-import { Functions } from './functions.service';
+import { Store } from '@ngrx/store';
+import { selectGameHardness, selectGameOpponent, selectGameSize } from '../store/selectors/game-state.selector';
+import { FormField } from '../utils/interfaces/form-field-template.interface';
 
+/**
+ * @service FormTemplate
+ *
+ * Provides reactive, strongly-typed form field configurations for different
+ * sections of the application (game settings, login, registration, theme settings, etc.).
+ *
+ * Each form field automatically updates its `baseValue` from the latest state
+ * in the store or authentication service, making the form reactive to state changes.
+ */
 @Injectable({
   providedIn: 'root',
 })
 export class FormTemplate {
-  /** Authentication service, injected for user info */
+  /** Authentication service, injected for user info like available options */
   #auth: Auth = inject(Auth);
 
-  /** GameLogic service, injected for reactive game state */
-  #game: GameLogic = inject(GameLogic);
-
-  /** Helper functions service */
-  #helper: Functions = inject(Functions);
+  /** NgRx Store service for reactive state selection */
+  #store : Store = inject(Store)
 
   /**
    * Reactive map of form field configurations.
    *
-   * This `computed` signal always returns the latest state of `GameLogic` signals,
-   * ensuring that fields like board size, opponent type, and difficulty level
-   * are always up-to-date when the form is rendered.
+   * This `computed` signal recalculates whenever its dependencies (store selectors, auth service)
+   * change, ensuring that form fields always reflect the latest application state.
    *
-   * Each `FieldKey` represents a specific form section, e.g., 'game_setting', 'login'.
-   * Each `FormField` describes an individual input, its type, model binding,
-   * options (for selects), min/max (for ranges), and optionally errorKeys.
-   *
-   * @example
-   * ```ts
-   * const fields = formTemplate.formFieldMap.get('game_setting');
-   * console.log(fields[0].baseValue); // always returns the latest size
-   * ```
+   * Map keys (`FieldKey`) represent logical form sections.
+   * Values (`FormField[]`) define individual form inputs, their type, model binding,
+   * options (for select fields), range min/max, base value, and optional error keys.
    */
   #formFieldMap: Signal<Map<FieldKey, FormField[]>> = computed(() => {
     return new Map<FieldKey, FormField[]>([
@@ -48,7 +47,8 @@ export class FormTemplate {
             type: 'select',
             model: 'size',
             options: [3, 4, 5, 6, 7, 8, 9],
-            baseValue: this.#game.size(),
+            // Reactive value from store
+            baseValue:  this.#store.selectSignal(selectGameSize)(),
             valueType: 'number',
           },
           {
@@ -56,8 +56,9 @@ export class FormTemplate {
             title: 'Opponent Type',
             type: 'select',
             model: 'opponent',
+            // Only show 'computer' if user is logged in
             options: this.#auth.user() ? ['computer', 'player'] : ['player'],
-            baseValue: this.#auth.user() ? this.#game.opponent() : 'player',
+            baseValue: this.#store.selectSignal(selectGameOpponent)(),
             valueType: 'string',
           },
           {
@@ -67,7 +68,7 @@ export class FormTemplate {
             model: 'hardness',
             min: 1,
             max: 4,
-            baseValue: this.#game.hardness(),
+            baseValue: this.#store.selectSignal(selectGameHardness)(),
             valueType: 'number',
           },
         ],
@@ -160,8 +161,10 @@ export class FormTemplate {
   /**
    * Returns a fresh copy of the form field map.
    *
-   * The returned map always reflects the current state of `GameLogic` signals,
-   * so reactive values like `size`, `opponent`, and `hardness` are always up-to-date.
+   * Consumers of this service should always use this getter to
+   * prevent accidental mutation of the internal `computed` signal.
+   *
+   * @returns Map<FieldKey, FormField[]> - reactive form configuration map
    */
   get formFieldMap(): Map<FieldKey, FormField[]> {
     return new Map(this.#formFieldMap());

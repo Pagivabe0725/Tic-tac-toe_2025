@@ -20,31 +20,43 @@ import { BASE_URL } from '../utils/constants/base-URL.constant';
  * By using `HttpBackend`, the request for the CSRF token bypasses all interceptors
  * and resolves normally.
  */
+/**
+ * Centralized CSRF token management with concurrency-safe handling.
+ *
+ * This service fetches and stores a CSRF token, ensuring:
+ *  - Only one token fetch occurs at a time.
+ *  - Concurrent requests wait for the first fetch to complete.
+ * 
+ * Note: Uses a separate {@link HttpClient} instance (#rawHttp) that bypasses
+ * interceptors to prevent circular dependency deadlocks.
+ */
 @Injectable({ providedIn: 'root' })
 export class Csrf {
 
-  /** HttpClient that bypasses interceptors (used only to fetch CSRF token) */
+  /** HttpClient that bypasses interceptors (used exclusively for token fetch) */
   #rawHttp: HttpClient = new HttpClient(inject(HttpBackend));
 
-  /** Writable signal storing the token */
+  /** Writable signal storing the current CSRF token */
   #token: WritableSignal<string | undefined> = signal(undefined);
 
-  /** Flag indicating ongoing token fetch */
+  /** Flag indicating if a token fetch is ongoing */
   #loading = false;
 
-  /** Queue of waiting resolvers for concurrent token requests */
+  /** Queue of resolvers for concurrent token requests */
   #waiters: ((value: string | undefined) => void)[] = [];
 
-  /** Readonly signal for current token */
+  /** Read-only signal exposing the current token */
   get token() {
     return this.#token.asReadonly();
   }
 
   /**
    * Ensures a CSRF token is available.
-   * Fetches a new token if necessary.
-   * 
-   * Uses #rawHttp to avoid deadlocks caused by interceptors.
+   * Fetches a new token if none exists, otherwise returns the cached one.
+   *
+   * Uses #rawHttp to avoid interceptor deadlocks.
+   *
+   * @returns The CSRF token or undefined if fetch fails
    */
   async ensureToken(): Promise<string | undefined> {
     if (this.#token()) return this.#token();
@@ -57,9 +69,7 @@ export class Csrf {
 
     try {
       const res = await firstValueFrom(
-        this.#rawHttp.get<{ csrfToken: string }>(`${BASE_URL}/csrf-token`, {
-          withCredentials: true,
-        }).pipe(take(1))
+        this.#rawHttp.get<{ csrfToken: string }>(`${BASE_URL}/csrf-token`, { withCredentials: true }).pipe(take(1))
       );
 
       this.#token.set(res.csrfToken);
@@ -75,7 +85,7 @@ export class Csrf {
     }
   }
 
-  /** Invalidate current token (e.g., logout or token rotation) */
+  /** Invalidate the current token (e.g., on logout or token rotation) */
   invalidate() {
     this.#token.set(undefined);
   }

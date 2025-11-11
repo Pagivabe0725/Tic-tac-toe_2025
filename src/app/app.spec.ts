@@ -1,8 +1,9 @@
-import { importProvidersFrom, provideZonelessChangeDetection } from '@angular/core';
+import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { App } from './app';
-import { DIALOG_CONTENT, DialogHandler } from './services/dialog-handler.service';
+import { DialogHandler } from './services/dialog-handler.service';
 import { HttpClientModule } from '@angular/common/http';
+import { DIALOG_CONTENT } from './utils/constants/dialog-content.constant';
 
 describe('App', () => {
   let fixture: any;

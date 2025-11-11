@@ -42,11 +42,11 @@ export class Http {
 
   /**
    * Creates an operator for retrying failed requests with exponential backoff.
-   * 
+   *
    * @param maxRetries Maximum number of retry attempts (default: 5)
    * @param initialDelay Initial delay in milliseconds before the first retry (default: 200ms)
    * @returns RxJS operator function that can be piped into an observable
-   * 
+   *
    * Behavior:
    *  - Each subsequent retry delay is doubled (2^i * initialDelay)
    *  - If maxRetries is exceeded, the original error is re-thrown
@@ -74,14 +74,14 @@ export class Http {
 
   /**
    * Prepares an HTTP request observable.
-   * 
+   *
    * @param method HTTP method
    * @param URL Endpoint relative to BASE_URL
    * @param body Optional request body
    * @param retryConfig Optional per-request retry config
    * @param queryParams Optional query parameters
    * @returns Observable<T> representing the HTTP request
-   * 
+   *
    * Notes:
    *  - Adds query parameters to the request if provided
    *  - Pipes in exponential backoff retry and error handling
@@ -134,14 +134,14 @@ export class Http {
 
   /**
    * Sends an HTTP request and converts the observable to a Promise.
-   * 
+   *
    * @param method HTTP method
    * @param URL Endpoint relative to BASE_URL
    * @param body Optional request body
    * @param retryConfig Optional retry configuration
    * @param queryParams Optional query parameters
    * @returns Promise resolving to the response type T
-   * 
+   *
    * Notes:
    *  - Uses firstValueFrom + take(1) to handle observable completion
    */
@@ -161,14 +161,14 @@ export class Http {
 
   /**
    * Public method for making HTTP requests with built-in retry and error handling.
-   * 
+   *
    * @param method HTTP method
    * @param URL Endpoint relative to BASE_URL
    * @param body Optional request body
    * @param retryConfig Optional retry configuration
    * @param queryParams Optional query parameters
    * @returns Promise<T | undefined>
-   * 
+   *
    * Notes:
    *  - Returns undefined if the request ultimately fails
    *  - Logs errors to the console

@@ -9,7 +9,7 @@
     "test": "ng test",
     "lint": "ng lint",
     "doc": "npx compodoc -p tsconfig.app.json --serve --includes ./documentation",
-    "check" : "npx eslint src/ --fix" 
+    "check": "npx eslint src/ --fix"
   },
   "private": true,
   "dependencies": {
@@ -19,6 +19,8 @@
     "@angular/forms": "^20.0.0",
     "@angular/platform-browser": "^20.0.0",
     "@angular/router": "^20.0.0",
+    "@ngrx/effects": "^20.1.0",
+    "@ngrx/store": "^20.1.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"

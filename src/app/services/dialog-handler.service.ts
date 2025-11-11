@@ -18,7 +18,7 @@ import { DialogContent } from '../utils/types/dialog-content.type';
   providedIn: 'root',
 })
 export class DialogHandler {
-  /** Reactive signal storing the currently active dialog content. */
+  /** Reactive signal storing the currently active dialog content. `undefined` if no dialog is open. */
   #activeContent: WritableSignal<DialogContent> = signal(undefined);
 
   /**
@@ -27,56 +27,42 @@ export class DialogHandler {
    */
   #dataSubject: Subject<any> | null = null;
 
-  /**
-   * placeholder
-   */
+  /** Optional title to display in the dialog. */
   #title?: string;
 
-  /**
-   * placeholdert
-   */
+  /** Optional message or body content to display in the dialog. */
   #message?: string;
 
+  /** Flag indicating if the dialog presents a choice (e.g., yes/no buttons). */
   #choosable?: boolean;
 
-  /**
-   * Returns a read-only signal representing the currently active dialog.
-   * If no dialog is open, the value is `undefined`.
-   */
+  /** Returns a read-only signal representing the currently active dialog. */
   get activeContent(): Signal<DialogContent> {
     return this.#activeContent.asReadonly();
   }
 
-  /**
-   * Updates the currently active dialog content.
-   *
-   * @param content - The new dialog identifier, or `undefined` to clear it.
-   */
+  /** Updates the currently active dialog content. */
   set activeContent(content: DialogContent) {
     this.#activeContent.set(content);
   }
 
-  /** Title getter */
+  /** Returns the dialog's title if set. */
   public get title(): string | undefined {
     return this.#title;
   }
 
-  /** Content getter */
+  /** Returns the dialog's message/body content if set. */
   public get message(): string | undefined {
     return this.#message;
   }
 
-  public get choosable(): undefined | boolean {
+  /** Returns whether the current dialog is choosable (requires user confirmation). */
+  public get choosable(): boolean | undefined {
     return this.#choosable;
   }
 
   /**
    * Opens a dialog and waits for a single emitted result.
-   *
-   * - Sets the active dialog content.
-   * - Initializes a new {@link Subject} for communication.
-   * - Returns a Promise that resolves when the dialog emits a value.
-   * - Automatically closes the dialog after resolving.
    *
    * @param content - The dialog content identifier to display.
    * @returns A promise resolving to the value emitted by the dialog.
@@ -93,6 +79,15 @@ export class DialogHandler {
     return result;
   }
 
+  /**
+   * Opens a custom dialog with title, message, and optional choice buttons.
+   *
+   * @param content - Type of the dialog ('message' or 'error').
+   * @param message - The message text to display.
+   * @param title - The dialog title.
+   * @param choosable - Whether the dialog requires user confirmation.
+   * @returns A promise resolving to the value emitted by the dialog.
+   */
   public async openCustomDialog(
     content: 'message' | 'error',
     message: string,

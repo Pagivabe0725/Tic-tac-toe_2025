@@ -1,4 +1,3 @@
-
 import {
   inject,
   Injectable,
@@ -7,17 +6,7 @@ import {
   WritableSignal,
 } from '@angular/core';
 import { Http } from './http.service';
-
-/**
- * @interface User
- * Defines the structure of a user object as returned by the backend.
- */
-export interface User {
-  userId: number;      // Unique user ID
-  email: string;       // User email
-  winNumber: number;   // Number of wins (game stats)
-  loseNumber: number;  // Number of losses (game stats)
-}
+import { User } from '../utils/interfaces/user.interface';
 
 /**
  * @service Auth
@@ -35,9 +24,6 @@ export class Auth {
   /** Writable signal storing the currently logged-in user */
   #user: WritableSignal<User | undefined> = signal(undefined);
 
-  /** Writable signal storing the current CSRF token (if applicable) */
-  #CSRF: WritableSignal<string | undefined> = signal(undefined);
-
   /**
    * Read-only access to the current user signal.
    * Use this to observe user changes without being able to modify directly.
@@ -54,12 +40,6 @@ export class Auth {
     this.#user.set(newValue);
   }
 
-  /**
-   * Read-only access to the current CSRF token signal.
-   */
-  get csrf(): Signal<string | undefined> {
-    return this.#CSRF.asReadonly();
-  }
 
   /**
    * Performs login request to backend with email & password.
@@ -81,11 +61,12 @@ export class Auth {
    * @returns Promise<User | undefined>
    */
   async fetchCurrentSessionUser(): Promise<User | undefined> {
-    return await this.#httpHandler.request<User>(
+    const result= await(this.#httpHandler.request<{user: User| undefined}>(
       'post',
-      'users/check/session',
+      'users/check-session',
       null
-    );
+    ));
+    return result?.user ?? undefined
   }
 
   /**
@@ -111,7 +92,7 @@ export class Auth {
    * Uses HTTP service with retry to handle transient errors.
    * @returns Promise<{ userId: string } | undefined>
    */
-  async singup(
+  async signup(
     email: string,
     password: string,
     rePassword: string
