@@ -42,22 +42,6 @@ export class Auth {
     this.#user.set(newValue);
   }
 
-  constructor() {
-    /**
-     * Automatically sends backend updates whenever the user signal changes.
-     * Uses PATCH method to update user data and retries transient failures.
-     */
-    effect(() => {
-      if (this.#user()) {
-        this.#httpHandler.request<User>(
-          'patch',
-          'users/update-user',
-          { ...this.#user() },
-          { maxRetries: 3, initialDelay: 200 }
-        );
-      }
-    });
-  }
 
   /**
    * Logs in a user with email and password.
@@ -131,7 +115,6 @@ export class Auth {
    */
   async setCurrentUserIfExist(): Promise<void> {
     this.user = await this.fetchCurrentSessionUser();
-    console.log(this.user());
   }
 
   /**
@@ -152,14 +135,24 @@ export class Auth {
   }
 
   /**
-   * Updates the current user signal with partial data.
-   * Merges provided properties with the existing user object.
-   * @param newUser Partial User object containing updates
+   * Updates the local user signal by merging new properties and
+   * sends a PATCH request to persist the changes on the backend.
+   *
+   * @param {Partial<User>} newUser - The user properties to update.
+   * @returns {Promise<void>} Resolves when the server request completes.
    */
   async updateUser(newUser: Partial<User>): Promise<void> {
-    this.#user.update((previous) => ({
-      ...previous!,
-      ...newUser,
-    }));
+    this.#user.update((previous) => {
+      if (!previous) return undefined;
+      return { ...previous, ...newUser };
+    });
+
+    await this.#httpHandler.request<User>(
+      'patch',
+      'users/update-user',
+      { ...this.#user() },
+      { maxRetries: 3, initialDelay: 200 }
+    );
   }
+
 }

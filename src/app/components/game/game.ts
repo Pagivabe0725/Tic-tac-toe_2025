@@ -315,14 +315,15 @@ export class Game implements OnInit {
    * Persists user statistics (wins or losses) after the match ends,
    * provided the user is authenticated.
    */
-  private saveResult() {
-    const user = this.#auth.user();
-    const winner = this.#winner();
+ private saveResult() {
+  const user = this.#auth.user();
+  const winner = this.#winner();
 
-    if (winner === 'o') {
-      this.#auth.updateUser({ winNumber: (user?.winNumber ?? 0) + 1 });
-    } else if (winner === 'x') {
-      this.#auth.updateUser({ loseNumber: (user?.loseNumber ?? 0) + 1 });
-    }
+  if (winner === 'o') {
+    this.#auth.updateUser({ winNumber: (user?.winNumber ?? 0) + 1 });
+  } else if (winner === 'x') {
+    this.#auth.updateUser({ loseNumber: (user?.loseNumber ?? 0) + 1 });
   }
+}
+
 }

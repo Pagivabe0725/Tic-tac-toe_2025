@@ -286,6 +286,8 @@ export class Dialog implements AfterViewInit {
     console.log('succsess:', succsess);
     if (succsess) {
       this.#auth.user = succsess;
+      console.log('IN AUTH: ', this.#auth.user() )
+
       return true;
     }
     return false;

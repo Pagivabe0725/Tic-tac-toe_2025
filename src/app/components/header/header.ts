@@ -11,6 +11,7 @@ import {
   SNACKBAR_FAILED_MESSAGES,
   SNACKBAR_SUCCESS_MESSAGES,
 } from '../../utils/constants/snackbar-message.constant';
+import { modifyGameInfo } from '../../store/actions/game-info-modify.action';
 
 /**
  * @component Header
@@ -130,13 +131,11 @@ export class Header {
 
     if (result) {
       await this.#auth.logout();
-      // Reset opponent to default 'player'
-      sessionStorage.setItem(
-        `${STORAGE_PREFIX}opponent`,
-        JSON.stringify('player')
-      );
+    
+      sessionStorage.clear()
       this.#store.dispatch(modifyGameSettings({ opponent: 'player' }));
-      this.#auth.user = undefined;
+      this.#store.dispatch(modifyGameInfo({ actualBoard: undefined }));
     }
+       this.#auth.user = undefined;
   }
 }
