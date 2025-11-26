@@ -1,11 +1,34 @@
 @if (markup()) {
-  <div class="own-icon-format-div">
-    @if (markup()==='x') {
-      <span class="material-icons own-field-icon" [style.fontSize]="fontSize().icon">close</span>
-    }
-    @else {
-      <span class="material-icons own-field-icon" [style.fontSize]="fontSize().icon">circle</span>
-      <span class="material-icons own-field-cover-icon" [style.fontSize]="fontSize().cover" >circle</span>
-    }
-  </div>
+  <div class="own-icon-format-div" aria-hidden="true">
+
+    <svg
+      class="own-field-icon"
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 -960 960 960"
+      
+    >
+      <defs>
+        @let primary = theme.primaryColor; @let accent = theme.accentColor;
+        <linearGradient id="player-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" [attr.stop-color]="primary" />
+          <stop offset="100%" [attr.stop-color]="accent" />
+        </linearGradient>
+      </defs>
+
+      @if (markup() === 'x') {
+        <path
+          fill="url(#player-gradient)"
+          d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"
+        />
+      }
+
+      @else {
+        <path
+          fill="url(#player-gradient)"
+          d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"
+        />
+      }
+    </svg>
+    
+</div>
 }

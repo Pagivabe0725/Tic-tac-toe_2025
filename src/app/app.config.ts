@@ -9,9 +9,11 @@ import { ROUTES } from './app.routes';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { csrfInterceptor } from './shared/interceptors/csfr.interceptor';
 import { provideStore } from '@ngrx/store';
-import { gameStateReducer } from './store/reducers/game-state.reducer';
+import { gameSettingsReducer } from './store/reducers/game-settings.reducer';
 import { provideEffects } from '@ngrx/effects';
-import { GameStateStorageEffects } from './store/effects/game-state.effect';
+import { GameSettingsStorageEffects } from './store/effects/game-settings.effect';
+import { gameInfoReducer } from './store/reducers/game-info.reducer';
+import { gameInfoStorageEffect } from './store/effects/game-info.effect';
 
 export const APPCONFIG: ApplicationConfig = {
   providers: [
@@ -21,8 +23,9 @@ export const APPCONFIG: ApplicationConfig = {
     provideRouter(ROUTES),
     provideHttpClient(withInterceptors([csrfInterceptor])),
     provideStore({
-      gameState: gameStateReducer,
+      gameSettings: gameSettingsReducer,
+      gameInfo:gameInfoReducer
     }),
-    provideEffects([GameStateStorageEffects]),
+    provideEffects([GameSettingsStorageEffects, gameInfoStorageEffect]),
   ],
 };

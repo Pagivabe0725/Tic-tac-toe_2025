@@ -1,39 +1,44 @@
-.own-cell-hover {
-  &:hover::after {
-    padding: 0.3em;
+:host {
+  width: 95%;
+  height: 95%;
+  background-color: light-dark(var(--n-0), var(--theme-background)) !important;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-width: max(2px , 0.2vw);
+  border-style: solid;
+  border-color: light-dark(var(--p-90), var(--p-30));
+  border-radius: 10px;
+
+  &::after{
+    padding: 0.4rem;
+  }
+
+  &:hover {
+    border-color: light-dark(var(--a-90), var(--a-30));
+    scale: 1.05;
   }
 }
 
-.own-field {
+.own-icon-format-div {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-.own-field-icon {
-  position: absolute;
-
-  font-weight: 100;
-  user-select: none;
-  -webkit-background-clip: inherit;
-  background: linear-gradient(to bottom right, var(--gradient-p-component), var(--gradient-a-component));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.own-field-cover-icon {
-  user-select: none;
-  position: absolute;
-  color: var(--theme-background);
-}
-
-.own-icon-format-div {
+  animation: display 0.2s ease-in;
+  background-color: var(--theme-background);
+  border-radius: 10px;
   width: 100%;
   height: 100%;
-  position: absolute;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: display 0.21s ease-in;
+
+  svg {
+    width: 60%;
+    height: 60%;
+    max-width: 60%;
+    max-height: 60%;
+    position: relative;
+  }
 }
 
 @keyframes display {

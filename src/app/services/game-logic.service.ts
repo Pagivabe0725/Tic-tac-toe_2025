@@ -1,44 +1,42 @@
 import { inject, Injectable } from '@angular/core';
-import { game } from '../utils/interfaces/game.interface';
-
 import { Functions } from './functions.service';
 import { Http } from './http.service';
 import { aiMove } from '../utils/interfaces/ai-move.interface';
+import { LastMove } from '../utils/types/last-move.type';
 
 /**
  * @service GameLogic
  *
- * Manages the state and logic of a Tic-Tac-Toe game.
- *
- * Responsibilities:
- * - Tracks the game board and markup
- * - Maintains reactive signals for board size and cells
- * - Synchronizes computed cells with a writable gameField signal
+ * Handles the core logic of a Tic-Tac-Toe game.
+ * Responsibilities include:
+ * - Interfacing with the backend for AI move computation
+ * - Checking for a winner on the board
+ * - Providing difficulty translation via helper functions
  */
 @Injectable({
   providedIn: 'root',
 })
 export class GameLogic {
-  /** {@link Http} service used for sending requests to the backend API. */
+  /** Injected HTTP service used for sending requests to the backend API. */
   #httpHandler: Http = inject(Http);
 
-  /** {@link Functions} service providing generic helper functions, e.g., numberToDifficulty conversion. */
+  /** Injected helper service providing generic utility functions (e.g., difficulty conversion). */
   #helperFunctions: Functions = inject(Functions);
 
   /**
-   * Sends a request to the backend to compute the AI's next move.
+   * Requests the backend to calculate the AI's next move.
    *
-   * @param board - Current game board as a 2D array of strings
-   * @param markup - AI's symbol ('x' or 'o')
-   * @param hardness - Difficulty level (numeric 1–4)
-   * @param lastMove - Last move made in the game
-   * @returns A Promise resolving to the AI's move (`aiMove`) or `undefined` if no move is available
+   * @param board Current game board as a 2D array of strings
+   * @param markup The AI's symbol ('x' or 'o')
+   * @param hardness Difficulty level (numeric, e.g., 1–4)
+   * @param lastMove The last move played in the game
+   * @returns Promise resolving to an {@link aiMove} object or `undefined` if no move is possible
    */
   async aiMove(
     board: string[][],
     markup: 'x' | 'o',
     hardness: number,
-    lastMove: game['lastMove']
+    lastMove: LastMove
   ): Promise<aiMove | undefined> {
     return await this.#httpHandler.request<aiMove>(
       'post',
@@ -50,6 +48,24 @@ export class GameLogic {
         lastMove,
       },
       { maxRetries: 5, initialDelay: 700 }
+    );
+  }
+
+  /**
+   * Checks the current board for a winner or draw.
+   *
+   * @param board Current game board as a 2D array of strings
+   * @returns Promise resolving to an object containing:
+   *  - `winner`: 'x', 'o', 'draw', or null if the game is ongoing
+   */
+  async hasWinner(board: string[][]) {
+    return await this.#httpHandler.request<{
+      winner: 'draw' | 'x' | 'o' | null;
+    }>(
+      'post',
+      'game/check-board',
+      { board },
+      { maxRetries: 3, initialDelay: 200 }
     );
   }
 }

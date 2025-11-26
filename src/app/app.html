@@ -1,15 +1,24 @@
 @if (dialog.activeContent()) {
-  <app-dialog >
-    
-  </app-dialog>
-
+  <app-dialog/>
 }
 
-<div>
+@if (snackBarHandler.snackbarContent().length) {
+  <app-snack-bar/>
+}
+
+<div role="application">
   <header appHeader>
-    <h1>Let's play</h1>
+    @if (winner()) {
+      <div id="own-app-ephasize-div" aria-live="polite">
+        <span>Winner: "{{winner()}}"</span>
+        <button (click)="startNewGame()" class="own-basic-button">New game</button>
+      </div>
+    }
+    @else {
+      <h1>Let's play</h1>
+    }
   </header>
   <main>
-    <router-outlet></router-outlet>
+    <router-outlet/>
   </main>
 </div>

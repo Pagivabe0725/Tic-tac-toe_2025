@@ -15,7 +15,7 @@ import { createAction, props } from "@ngrx/store";
  * store.dispatch(modifyGameState({ size: 5, hardness: 2, opponent: 'computer' }));
  * ```
  */
-export const modifyGameState = createAction(
+export const modifyGameSettings = createAction(
     '[gameState] modifier',
     props<{ size?: number; hardness?: number; opponent?: 'player' | 'computer' }>()
 );

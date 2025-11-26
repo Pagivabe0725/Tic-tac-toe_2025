@@ -1,67 +1,66 @@
 import {
   Component,
-  computed,
   EventEmitter,
   HostBinding,
   HostListener,
+  inject,
   Input,
   input,
   InputSignal,
   Output,
-  Signal,
-  ViewEncapsulation,
 } from '@angular/core';
-import { CellCoordinate } from '../../../utils/interfaces/celll-coordinate.interface';
-import { sizeMap } from '../../../utils/constants/icon-size.constant';
-
+import { Theme } from '../../../services/theme.service';
+import { LastMove } from '../../../utils/types/last-move.type';
+import { Store } from '@ngrx/store';
+import { modifyGameInfo } from '../../../store/actions/game-info-modify.action';
 
 /**
- * @component GameFieldCell
+ * GameFieldCell component represents a single cell within the game board grid.
  *
- * Represents a single cell in the game field grid.
- * Each cell is responsible for displaying its current state (`'x'`, `'o'`, or empty`)
- * and for emitting click events when selected.
+ * Responsibilities:
+ *  - Displays the current markup ('x', 'o', or empty).
+ *  - Applies dynamic styling based on content, hover state, and last move.
+ *  - Emits click events when a cell is selected, if allowed.
  *
- * The component uses Angular’s `signals` API for reactivity and binds dynamic styles
- * based on the cell’s content and game configuration.
+ * Uses Angular Signals API for reactivity.
  */
 @Component({
-  selector: 'div[appGameFieldCell]',
+  selector: 'button[appGameFieldCell]',
   imports: [],
   templateUrl: './game-field-cell.html',
   styleUrl: './game-field-cell.scss',
-  host: {
-    class: 'own-animated-border own-field',
-  },
-  encapsulation: ViewEncapsulation.None,
 })
 export class GameFieldCell {
+  /** Theme service for responsive styling and dynamic layout. */
+  protected theme: Theme = inject(Theme);
+
+  /** NgRx store instance for dispatching state updates. */
+  #store: Store = inject(Store);
+
   /**
-   * The current markup symbol in the cell.
-   * Possible values:
-   * - `'x'`
-   * - `'o'`
-   * - `undefined` (empty cell)
+   * Current cell markup.
+   * Can be:
+   *  - 'x' for X player,
+   *  - 'o' for O player,
+   *  - undefined for empty.
    */
   markup: InputSignal<string | undefined> = input.required();
 
-  /** The Y coordinate of the cell within the game grid. */
+  /** Last move performed in the game. */
+  lastMove: InputSignal<LastMove | undefined> = input.required();
+
+  /** Y-coordinate of this cell in the board grid. Required input. */
   @Input({ required: true }) yCoordinate!: number;
 
-  /** The X coordinate of the cell within the game grid. */
+  /** X-coordinate of this cell in the board grid. Required input. */
   @Input({ required: true }) xCoordinate!: number;
 
-  /** The total game board size (e.g., 3×3, 9×9). Used to scale cell visuals. */
-  size: InputSignal<number> = input.required();
-  
-  /**
-   * placeholder
-   */
+  /** Determines whether clicking this cell is currently allowed. */
   clickPermission: InputSignal<boolean> = input.required();
 
   /**
-   * Event emitter fired when a cell is clicked.
-   * Emits an object containing both X and Y coordinates of the clicked cell.
+   * Event emitted when the cell is clicked.
+   * Emits an object with the cell coordinates: `{ xCoordinate, yCoordinate }`.
    */
   @Output() setPosition = new EventEmitter<{
     yCoordinate: number;
@@ -69,48 +68,51 @@ export class GameFieldCell {
   }>();
 
   /**
-   * Reactive computation of icon and cover font sizes
-   * based on the current board size.
-   */
-protected fontSize: Signal<{ icon: string; cover: string }> = computed(() => {
-  const currentSize = this.size();
-  return sizeMap.get(currentSize) ?? { icon: '2vw', cover: '1.5vw' };
-});
-
-
-  /**
-   * Dynamically controls the cursor style depending on cell state.
-   * Returns `'pointer'` if the cell is empty, `'default'` if already filled.
+   * Dynamically sets the cursor style.
+   * - 'pointer' if cell is empty and clicking is allowed,
+   * - 'default' otherwise.
    */
   @HostBinding('style.cursor')
-  get cursor() {
+  get cursor(): string {
     return this.markup() || !this.clickPermission() ? 'default' : 'pointer';
   }
 
   /**
-   * Dynamically applies a CSS class to the cell.
-   * Adds hover animation only if the cell is empty.
+   * Applies a CSS class to enable hover scaling animation for empty cells.
    */
   @HostBinding('class')
-  get scale() {
-    return this.markup() || !this.clickPermission() ? '' : 'own-cell-hover';
+  get scale(): string | null {
+    return this.markup() || !this.clickPermission() ? null : 'own-cell-hover';
   }
 
   /**
-   * Handles cell click events.
-   * Emits the cell’s coordinates if it is not yet filled.
+   * Applies a CSS class to emphasize the last move cell with a border animation.
+   */
+  @HostBinding('class')
+  get emphasize(): string | null {
+    const move = this.lastMove();
+    return move?.row === this.xCoordinate && move?.column === this.yCoordinate
+      ? 'own-animated-border'
+      : null;
+  }
+
+  /**
+   * Handles user click events on the cell.
+   * Updates the NgRx store with the lastMove if the cell is empty and clickable.
    *
    * @event
    */
   @HostListener('click')
   fill(): void {
     if (!this.markup() && this.clickPermission()) {
-      this.setPosition.emit({
-        xCoordinate: this.xCoordinate,
-        yCoordinate: this.yCoordinate,
-      } as CellCoordinate);
+      this.#store.dispatch(
+        modifyGameInfo({
+          lastMove: { row: this.xCoordinate, column: this.yCoordinate },
+        })
+      );
+
+      // Optional: emit the coordinates to parent components if needed
+      // this.setPosition.emit({ xCoordinate: this.xCoordinate, yCoordinate: this.yCoordinate });
     }
   }
-
-
 }

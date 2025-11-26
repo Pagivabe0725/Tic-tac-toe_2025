@@ -1,9 +1,26 @@
 <div class="own-display-title">
     <ng-content  select="first"></ng-content>
 </div>
-<div class="own-display-content">
-    <ng-content select="second"></ng-content>
+
+<div class="own-display-content" role="group">
+  <ul class="own-results-ul" aria-label="Game statistics">
+    <li class="own-result-li">
+      <span aria-hidden="true">Win:</span>
+      <span aria-label="Win count">{{winNumber}}</span>
+    </li>
+
+    <li class="own-result-li">
+      <span aria-hidden="true">Lose:</span>
+      <span aria-label="Lose count">{{loseNumber}}</span>
+    </li>
+
+    <li class="own-result-li">
+      <span aria-hidden="true">Draw:</span>
+      <span aria-label="Draw count">{{drawNumber}}</span>
+    </li>
+  </ul>
 </div>
+
 <div class="own-display-footer">
-    <ng-content select="third"></ng-content>
+    <time aria-label="Current time">{{time()}}</time>
 </div>

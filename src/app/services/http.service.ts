@@ -52,8 +52,8 @@ export class Http {
    *  - If maxRetries is exceeded, the original error is re-thrown
    */
   private exponentialBackoffRetry<T>(
-    maxRetries: number = 5,
-    initialDelay: number = 200
+    maxRetries = 5,
+    initialDelay = 200
   ): (source: Observable<T>) => Observable<T> {
     return (source: Observable<T>) =>
       source.pipe(

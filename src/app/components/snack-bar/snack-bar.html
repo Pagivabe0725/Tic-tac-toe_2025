@@ -1,0 +1,9 @@
+  <section role="status" aria-live="polite" aria-label="Snackbar messages" id="own-snack-bar-div">
+    @for (element of content(); track $index;) {
+      <app-snack-element 
+        [SnackBarObject]="element"
+        (closeEvent)="closeElement($event)"
+        [ariaLabel]="'Notification ' + ($index + 1)"
+      />
+    }
+  </section>

@@ -1,6 +1,6 @@
 import { createReducer, on } from '@ngrx/store';
-import { modifyGameState } from '../actions/game-modify.action';
-import { GameState } from '../../utils/interfaces/game-state.interface';
+import { modifyGameSettings } from '../actions/game-settings-modify.action';
+import { GameSettings } from '../../utils/interfaces/game-settings.interface';
 import { STORAGE_PREFIX } from '../../utils/constants/sessionstorage-prefix.constant';
 import { parseFromStorage } from '../../utils/functions/parser.function';
 
@@ -15,7 +15,7 @@ import { parseFromStorage } from '../../utils/functions/parser.function';
  * @see {@link GameState}
  */
 
-const INITIAL_STATE: GameState = {
+const INITIAL_STATE: GameSettings = {
   size:
     parseFromStorage<number>(`${STORAGE_PREFIX}size`, 'sessionStorage') ?? 3,
   opponent:
@@ -43,9 +43,9 @@ const INITIAL_STATE: GameState = {
  * store.dispatch(modifyGameState({ size: 5, hardness: 2, opponent: 'computer' }));
  * ```
  */
-export const gameStateReducer = createReducer(
+export const gameSettingsReducer = createReducer(
   INITIAL_STATE,
-  on(modifyGameState, (state, action) => {
+  on(modifyGameSettings, (state, action) => {
     const { type, ...properties } = action;
     return {
       ...state,

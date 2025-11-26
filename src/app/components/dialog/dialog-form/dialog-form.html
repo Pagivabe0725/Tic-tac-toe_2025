@@ -6,21 +6,25 @@
     @for (actualTemplate of templates.get(key) ; track $index) {
       
         @let control = form.form.get(actualTemplate.field) ;
+
        
         <fieldset [class]="control && formErrorHandler.hasErrors(control) ? 'own-error-fieldset' : ''">
 
-            <legend>{{actualTemplate.title+':'}}</legend>
+            <legend >{{actualTemplate.title+':'}}</legend>
 
 
             @if (!['select', 'range'].includes(actualTemplate.type)) {
 
-               @let error = control && formErrorHandler.getPrimaryError(control);
-              <input [type]="actualTemplate.type" [name]="actualTemplate.field"  
-              [ngModel]="getterSetter(actualTemplate.model).get()()" 
-              (ngModelChange)="getterSetter(actualTemplate.model).set(helperFunctions.convertType($event, actualTemplate.valueType))"
-              (blur)="setErrorsOnOneField(actualTemplate.field)"
-              (focus)="control ? formErrorHandler.clearErrors(control!): ''">
-
+              @let error = control && formErrorHandler.getPrimaryError(control);
+              <input 
+                [type]="actualTemplate.type" 
+                [name]="actualTemplate.field"  
+                [ngModel]="getterSetter(actualTemplate.model).get()()" 
+                (ngModelChange)="getterSetter(actualTemplate.model).set(helperFunctions.convertType($event, actualTemplate.valueType))"
+                (blur)="setErrorsOnOneField(actualTemplate.field)"
+                (focus)="control ? formErrorHandler.clearErrors(control!): ''"
+                [attr.aria-invalid]="error ? 'true' : null">
+                
               @if (error) {
                 <span class="own-error-span" >{{error}}</span>
               }
@@ -30,22 +34,25 @@
             @else if (actualTemplate.type==='select') {
 
               <select [name]="actualTemplate.field"
-              [ngModel]="getterSetter(actualTemplate.model).get()()" 
-              (ngModelChange)="getterSetter(actualTemplate.model).set(helperFunctions.convertType($event, actualTemplate.valueType))">
-                @for (option of actualTemplate.options; track $index) {
-                  <option [value]="option">{{option}}</option>
-                }
+                [ngModel]="getterSetter(actualTemplate.model).get()()" 
+                (ngModelChange)="getterSetter(actualTemplate.model).set(helperFunctions.convertType($event, actualTemplate.valueType))">
+                  @for (option of actualTemplate.options; track $index) {
+                    <option [value]="option">{{option}}</option>
+                  }
               </select>
 
             }
 
             @else if (actualTemplate.type==='range') {
 
-              <input [type]="actualTemplate.type" [name]="actualTemplate.field"  
-              [min]="actualTemplate.min"
-              [max]="actualTemplate.max"
-              [ngModel]="getterSetter(actualTemplate.model).get()()" 
-              (ngModelChange)="getterSetter(actualTemplate.model).set(helperFunctions.convertType($event, actualTemplate.valueType))">
+              <input 
+                [type]="actualTemplate.type" 
+                aria-label="difficulty"
+                [name]="actualTemplate.field"  
+                [min]="actualTemplate.min"
+                [max]="actualTemplate.max"
+                [ngModel]="getterSetter(actualTemplate.model).get()()" 
+                (ngModelChange)="getterSetter(actualTemplate.model).set(helperFunctions.convertType($event, actualTemplate.valueType))">
 
             }
 

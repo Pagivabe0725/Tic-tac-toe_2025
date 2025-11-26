@@ -1,10 +1,12 @@
 import { computed, inject, Injectable, Signal } from '@angular/core';
-import {
-  FieldKey,
-} from '../utils/types/dialog-form-field-model.type';
+import { FieldKey } from '../utils/types/dialog-form-field-model.type';
 import { Auth } from './auth.service';
 import { Store } from '@ngrx/store';
-import { selectGameHardness, selectGameOpponent, selectGameSize } from '../store/selectors/game-state.selector';
+import {
+  selectGameHardness,
+  selectGameOpponent,
+  selectGameSize,
+} from '../store/selectors/game-settings.selector';
 import { FormField } from '../utils/interfaces/form-field-template.interface';
 
 /**
@@ -24,7 +26,7 @@ export class FormTemplate {
   #auth: Auth = inject(Auth);
 
   /** NgRx Store service for reactive state selection */
-  #store : Store = inject(Store)
+  #store: Store = inject(Store);
 
   /**
    * Reactive map of form field configurations.
@@ -48,7 +50,7 @@ export class FormTemplate {
             model: 'size',
             options: [3, 4, 5, 6, 7, 8, 9],
             // Reactive value from store
-            baseValue:  this.#store.selectSignal(selectGameSize)(),
+            baseValue: this.#store.selectSignal(selectGameSize)(),
             valueType: 'number',
           },
           {

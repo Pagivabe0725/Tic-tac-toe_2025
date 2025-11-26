@@ -1,5 +1,4 @@
 import {
-  AfterViewInit,
   Component,
   effect,
   inject,
@@ -12,7 +11,7 @@ import {
   viewChild,
   WritableSignal,
 } from '@angular/core';
-import { AbstractControl, FormsModule, NgForm } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { DialogHandler } from '../../../services/dialog-handler.service';
 import { Theme } from '../../../services/theme.service';
 import {
@@ -32,6 +31,7 @@ import { Functions } from '../../../services/functions.service';
  */
 @Component({
   selector: 'app-dialog-form',
+  standalone: true,
   imports: [FormsModule],
   templateUrl: './dialog-form.html',
   styles: [
@@ -60,6 +60,7 @@ import { Functions } from '../../../services/functions.service';
           border: 2px solid red;
           font-style: italic;
         }
+
       }
     `,
   ],
@@ -486,13 +487,18 @@ export class DialogForm {
   }
 
   /**
-   * Restores previous values for all properties prefixed with "previous".
+   * Resets properties of the current class based on their "previous" counterparts.
    *
-   * Example:
-   * - previousPrimaryColor → primaryColor
-   * - previousAccentColor → accentColor
+   * This method searches for all properties whose names start with "previous"
+   * (and do not contain underscores) and attempts to copy their values
+   * to the corresponding current properties. For example, a property
+   * `previousName` will be copied to `name`.
    *
-   * Throws an error if a matching target property does not exist.
+   * Finally, it emits `undefined` via `this.dialog.dailogEmitter()` to
+   * signal that the dialog state has been reset.
+   *
+   * @throws Error if a "previous" property exists but the corresponding
+   *   current property does not exist on the class.
    */
   protected resetProperties(): void {
     const previousObject: Partial<Record<keyof this, unknown>> = {};
@@ -519,6 +525,6 @@ export class DialogForm {
       }
     }
 
-    this.dialog.dailogEmitter(false);
+    this.dialog.dailogEmitter(undefined);
   }
 }

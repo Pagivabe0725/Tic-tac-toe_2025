@@ -13,6 +13,7 @@ import {
   effect,
   inject,
   Injectable,
+  Signal,
   signal,
   WritableSignal,
 } from '@angular/core';
@@ -21,8 +22,15 @@ import {
  * A fixed list of available responsive breakpoints.
  */
 
- 
-export const BRAKE_POINTS = ['xs', 'sm', 'md', 'lg', 'xl', '2xl', undefined] as const;
+export const BRAKE_POINTS = [
+  'xs',
+  'sm',
+  'md',
+  'lg',
+  'xl',
+  '2xl',
+  undefined,
+] as const;
 
 /**
  * Type representing possible responsive breakpoint names.
@@ -57,7 +65,7 @@ export class Theme {
   #mode: WritableSignal<'light' | 'dark' | undefined> = signal(undefined);
 
   /** Reactive signal representing the current responsive width breakpoint. */
-  #width: WritableSignal<BrakePoint> = signal(undefined);
+  #width: WritableSignal<number | undefined> = signal(undefined);
 
   /** Reactive signal storing the current viewport height (in px). */
   #height: WritableSignal<number | undefined> = signal(undefined);
@@ -65,8 +73,8 @@ export class Theme {
   /**
    * Gets the current responsive breakpoint name (e.g., `'md'`, `'xl'`).
    */
-  get width(): BrakePoint {
-    return this.#width();
+  get width(): Signal<number | undefined> {
+    return this.#width;
   }
 
   /**
@@ -74,7 +82,7 @@ export class Theme {
    *
    * @param newWidth - The breakpoint identifier (one of `'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl'`).
    */
-  set width(newWidth: BrakePoint) {
+  set width(newWidth: number | undefined) {
     this.#width.set(newWidth);
   }
 
@@ -90,7 +98,7 @@ export class Theme {
    *
    * @param newHeight - The new viewport height in pixels.
    */
-  set height(newHeight: number) {
+  set height(newHeight: number | undefined) {
     this.#height.set(newHeight);
   }
 
@@ -150,6 +158,8 @@ export class Theme {
    * - Sets up effects to keep CSS variables in sync with reactive signals.
    */
   constructor() {
+    this.width= this.#document.defaultView?.innerWidth
+    this.height= this.#document.defaultView?.innerHeight
     this.#document.defaultView?.addEventListener('resize', this.onResize);
 
     this.setBasicState();
@@ -185,28 +195,6 @@ export class Theme {
     });
   }
 
-  /**
-   * Determines the breakpoint name (`xs`–`2xl`) for a given width value.
-   *
-   * @param size - The viewport width in pixels.
-   * @returns The breakpoint identifier as a string.
-   * @private
-   */
-  private getBreakPointName(size: number): string {
-    if (size < 640) {
-      return 'xs';
-    } else if (size < 768) {
-      return 'sm';
-    } else if (size < 1024) {
-      return 'md';
-    } else if (size < 1280) {
-      return 'lg';
-    } else if (size < 1536) {
-      return 'xl';
-    } else {
-      return '2xl';
-    }
-  }
 
   /**
    * Extracts the lightness component from an OKLCH color string.
@@ -226,7 +214,8 @@ export class Theme {
    * @private
    */
   private onResize = () => {
-    console.log(this.getBreakPointName(this.#document.defaultView!.innerWidth));
+    this.height = this.#document.defaultView?.innerHeight;
+    this.width = this.#document.defaultView?.innerWidth;
   };
 
   /**
@@ -266,6 +255,5 @@ export class Theme {
           ? 'dark'
           : 'light')
     );
-
   }
 }

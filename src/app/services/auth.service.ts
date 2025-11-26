@@ -1,4 +1,5 @@
 import {
+  effect,
   inject,
   Injectable,
   Signal,
@@ -11,14 +12,15 @@ import { User } from '../utils/interfaces/user.interface';
 /**
  * @service Auth
  *
- * Handles authentication logic, including login, signup, logout,
- * session validation, and user state management using Angular signals.
+ * Handles authentication and user state management.
+ * Uses Angular signals for reactive state and interacts with the backend
+ * via {@link Http} for login, signup, logout, session validation, and user updates.
  */
 @Injectable({
-  providedIn: 'root', // Provides singleton instance app-wide
+  providedIn: 'root', // singleton instance for the entire app
 })
 export class Auth {
-  /** Injected HTTP service wrapper for requests with retry/error handling */
+  /** Injected HTTP service wrapper for making backend requests */
   #httpHandler: Http = inject(Http);
 
   /** Writable signal storing the currently logged-in user */
@@ -26,7 +28,7 @@ export class Auth {
 
   /**
    * Read-only access to the current user signal.
-   * Use this to observe user changes without being able to modify directly.
+   * Allows observing changes without direct mutation.
    */
   get user(): Signal<User | undefined> {
     return this.#user.asReadonly();
@@ -34,45 +36,61 @@ export class Auth {
 
   /**
    * Setter for updating the current user signal value.
-   * Accepts a User object or undefined (to clear user on logout).
+   * Accepts a User object or undefined (for logout or clearing state).
    */
   set user(newValue: User | undefined) {
     this.#user.set(newValue);
   }
 
+  constructor() {
+    /**
+     * Automatically sends backend updates whenever the user signal changes.
+     * Uses PATCH method to update user data and retries transient failures.
+     */
+    effect(() => {
+      if (this.#user()) {
+        this.#httpHandler.request<User>(
+          'patch',
+          'users/update-user',
+          { ...this.#user() },
+          { maxRetries: 3, initialDelay: 200 }
+        );
+      }
+    });
+  }
 
   /**
-   * Performs login request to backend with email & password.
-   * Uses HTTP service with exponential backoff retry.
-   * @returns Promise resolving to User object if successful, otherwise undefined
+   * Logs in a user with email and password.
+   * @param email User email
+   * @param password User password
+   * @returns Promise resolving to a User object if successful, undefined otherwise
    */
   async login(email: string, password: string): Promise<User | undefined> {
     return await this.#httpHandler.request<User>(
       'post',
-      'users/login', // backend endpoint
+      'users/login',
       { email, password },
-      { maxRetries: 3, initialDelay: 200 } // retry config
+      { maxRetries: 3, initialDelay: 200 }
     );
   }
 
   /**
-   * Fetches the currently logged-in user from the session.
-   * Useful to check if the user is already logged in when app loads.
-   * @returns Promise<User | undefined>
+   * Checks the current session for an authenticated user.
+   * @returns Promise resolving to the current User or undefined if no session exists
    */
-  async fetchCurrentSessionUser(): Promise<User | undefined> {
-    const result= await(this.#httpHandler.request<{user: User| undefined}>(
+  private async fetchCurrentSessionUser(): Promise<User | undefined> {
+    const result = await this.#httpHandler.request<{ user: User | undefined }>(
       'post',
       'users/check-session',
       null
-    ));
-    return result?.user ?? undefined
+    );
+    return result?.user ?? undefined;
   }
 
   /**
-   * Performs logout by calling backend endpoint.
-   * Converts the response to boolean if available.
-   * @returns Promise<boolean | undefined>
+   * Logs out the current user.
+   * Calls backend logout endpoint and clears the user signal.
+   * @returns Promise resolving to true if logout succeeded, undefined otherwise
    */
   async logout(): Promise<boolean | undefined> {
     return (
@@ -87,10 +105,12 @@ export class Auth {
   }
 
   /**
-   * Performs signup of a new user.
-   * Sends email, password, and confirmed password.
-   * Uses HTTP service with retry to handle transient errors.
-   * @returns Promise<{ userId: string } | undefined>
+   * Signs up a new user.
+   * Sends email, password, and confirmation password to backend.
+   * @param email User email
+   * @param password User password
+   * @param rePassword Confirmation password
+   * @returns Promise resolving to { userId: string } if successful, undefined otherwise
    */
   async signup(
     email: string,
@@ -100,18 +120,14 @@ export class Auth {
     return await this.#httpHandler.request<{ userId: string }>(
       'post',
       'users/signup',
-      {
-        email: email,
-        password: password,
-        confirmPassword: rePassword,
-      },
+      { email, password, confirmPassword: rePassword },
       { maxRetries: 5, initialDelay: 200 }
     );
   }
 
   /**
-   * Sets the current user signal if a valid session exists.
-   * Useful to initialize user state on app startup.
+   * Initializes the user signal if a valid session exists.
+   * Useful on app startup to restore the logged-in state.
    */
   async setCurrentUserIfExist(): Promise<void> {
     this.user = await this.fetchCurrentSessionUser();
@@ -119,9 +135,9 @@ export class Auth {
   }
 
   /**
-   * Checks if an email is already used.
-   * @param email Email to check
-   * @returns Promise<boolean> True if email exists, false otherwise
+   * Checks whether an email is already registered.
+   * @param email Email to verify
+   * @returns Promise resolving to true if email exists, false otherwise
    */
   async isUsedEmail(email: string): Promise<boolean> {
     const response = await this.#httpHandler.request<{ result: boolean }>(
@@ -131,7 +147,19 @@ export class Auth {
       { maxRetries: 3, initialDelay: 300 }
     );
 
-    if (!response) return false; // fallback if request fails
+    if (!response) return false;
     return response.result;
+  }
+
+  /**
+   * Updates the current user signal with partial data.
+   * Merges provided properties with the existing user object.
+   * @param newUser Partial User object containing updates
+   */
+  async updateUser(newUser: Partial<User>): Promise<void> {
+    this.#user.update((previous) => ({
+      ...previous!,
+      ...newUser,
+    }));
   }
 }

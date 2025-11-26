@@ -1,6 +1,13 @@
-import { Injectable, Signal, signal, WritableSignal } from '@angular/core';
+import {
+  effect,
+  Injectable,
+  Signal,
+  signal,
+  WritableSignal,
+} from '@angular/core';
 import { firstValueFrom, Subject, take } from 'rxjs';
 import { DialogContent } from '../utils/types/dialog-content.type';
+
 
 /**
  * @service DialogHandler
@@ -36,6 +43,17 @@ export class DialogHandler {
   /** Flag indicating if the dialog presents a choice (e.g., yes/no buttons). */
   #choosable?: boolean;
 
+  /**
+   * Stores the last active dialog content.
+   *
+   * Since the dialog service’s `actualContent` value changes dynamically
+   * and resets to `undefined` when the dialog closes, this property
+   * preserves the most recent dialog type even after the dialog has
+   * disappeared. This is useful whenever post-dialog logic requires
+   * knowledge of what was previously opened.
+   */
+  #lastContent: DialogContent = undefined;
+
   /** Returns a read-only signal representing the currently active dialog. */
   get activeContent(): Signal<DialogContent> {
     return this.#activeContent.asReadonly();
@@ -47,18 +65,36 @@ export class DialogHandler {
   }
 
   /** Returns the dialog's title if set. */
-  public get title(): string | undefined {
+  get title(): string | undefined {
     return this.#title;
   }
 
   /** Returns the dialog's message/body content if set. */
-  public get message(): string | undefined {
+  get message(): string | undefined {
     return this.#message;
   }
 
   /** Returns whether the current dialog is choosable (requires user confirmation). */
-  public get choosable(): boolean | undefined {
+  get choosable(): boolean | undefined {
     return this.#choosable;
+  }
+
+  get lastContent(): DialogContent {
+    return this.#lastContent;
+  }
+
+  /**
+   * Tracks the last non-empty `activeContent()` value.
+   * This ensures the previously used active content remains available,
+   * for example when displaying messages.
+   */
+  constructor() {
+    effect(() => {
+      const actualContent = this.activeContent();
+      if (actualContent) {
+        this.#lastContent = actualContent;
+      }
+    });
   }
 
   /**
@@ -68,6 +104,7 @@ export class DialogHandler {
    * @returns A promise resolving to the value emitted by the dialog.
    */
   public async openDialog(content: DialogContent): Promise<boolean> {
+    this.#choosable = true;
     this.#activeContent.set(content);
     this.#dataSubject = new Subject<any>();
 
@@ -106,6 +143,7 @@ export class DialogHandler {
     );
 
     this.close();
+
     console.log(result);
     return result;
   }
@@ -122,6 +160,7 @@ export class DialogHandler {
     this.#dataSubject?.complete();
     this.#dataSubject = null;
     this.#activeContent.set(undefined);
+    this.#choosable = undefined;
   };
 
   /**

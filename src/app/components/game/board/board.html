@@ -1,0 +1,19 @@
+@if (gameField()) {
+    @for (subArray of gameField(); track $index) { 
+        @let x = $index; @for (elementm of subArray; track $index) {
+            @let y = $index;
+            <button
+            type="button"
+            appGameFieldCell
+            [ariaLabel]="getAriaLabelText({xCoordinate:x, yCoordinate:y})"
+            [attr.aria-pressed]="gameField()![x][y] ? true : false"
+            [markup]="gameField()![x][y]"
+            [xCoordinate]="x"
+            [yCoordinate]="y"
+            [clickPermission]="clickPermission()"
+            [lastMove]="lastMove()"
+            (setPosition)="setCell($event)"
+            ></button>
+        }
+    } 
+}

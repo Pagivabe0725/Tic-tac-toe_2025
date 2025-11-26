@@ -1,51 +1,48 @@
-<div id="own-dialog-background">
+<div id="own-dialog-background" role="presentation">
 
-  <div id="own-dialog-div">
+  <div #dialogContainer id="own-dialog-div" role="dialog" aria-modal="true" aria-labelledby="dialog-title" aria-describedby="dialog-content">
 
-    <div id="own-title-div">
-
+    <header id="own-title-div">
       <span>{{title()}}</span>
-      <span class="material-icons" (click)="closeDialog()">close</span>
+       <button id="own-dialog-close-button" (click)="closeDialog()" aria-label="dialog close button.">
+      <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" >
+        <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/>
+      </svg>
+      </button>
+    </header>
 
-    </div>
-
-    <div id="own-content-div">
+    <section id="own-content-div">
       @if (dialogContent () && !['message', 'error'].includes(dialogContent()!)) {
-
-        <app-dialog-form 
+        <app-dialog-form
           [rejectChanges]="rejectEmitter"
           [callback]="callback"
-          (disableCallback)="callback=undefined">
-        </app-dialog-form>
+          (disableCallback)="callback=undefined"
+        >
+        </app-dialog-form>  
+      } 
+      @else {{{message}}}
+    </section>
 
+    <section id="own-action-div">
+      @if (dialogContent() && ['login', 'registration'].includes(dialogContent()!)) {
+        <button  class="own-basic-button"  (click)="acceptButton()">
+          {{dialogContent()==='login' ? 'Login' : 'Registration'}}
+        </button>
+        <button  class="own-basic-button"  (click)="toggleAuthMode()">
+          {{dialogContent()==='login' ? 'Registration' : 'Login'}}
+        </button>
       }
       @else {
-
-        {{message}}
-
+        @if (!chooeable) {
+           <button class="own-basic-button" (click)="emitData(undefined)">Ok</button>
+        }
+        @else {
+          <button class="own-basic-button" (click)="acceptButton()">yes</button>
+          <button class="own-basic-button" (click)="rejectButton()">No</button>
+        }
       }
-
-    </div>
-
-    <div id="own-action-div">
-
-      @if (dialogContent()  && ['login', 'registration',].includes(dialogContent()!)) {
-
-        <button (click)="acceptButton()">{{dialogContent()==='login' ? 'Login' : 'Registration'}}</button>
-        <button (click)="toggleAuthMode()">{{dialogContent()==='login' ? 'Registration' : 'Login'}}</button>
-      
-      }
-
-      @else {
-
-        <button (click)="acceptButton()">yes</button>
-        <button (click)="rejectButton()">No</button>
-        <button (click)="emitData(undefined)">Ok</button>
-
-      }
-
-    </div>
+    </section>
 
   </div>
-  
+
 </div>

@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { game } from '../utils/interfaces/game.interface';
+
 import { FieldKey } from '../utils/types/dialog-form-field-model.type';
 import { FormField } from '../utils/interfaces/form-field-template.interface';
+import { Hardness } from '../utils/types/hardness.type';
 
 @Injectable({
   providedIn: 'root',
@@ -37,7 +38,7 @@ export class Functions {
    * @param value - Numeric difficulty level (1–4)
    * @returns Corresponding `game['hardness']` string
    */
-  numberToDifficulty(value: number): game['hardness'] {
+  numberToDifficulty(value: number): Hardness{
     switch (value) {
       case 1:
         return 'very-easy';

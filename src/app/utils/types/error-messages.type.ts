@@ -1,7 +1,5 @@
 import { ERROR_MESSAGES } from "../interfaces/error-message.interface";
 
-
-
 /**
  * Represents the valid error keys (e.g., "required", "invalidEmail").
  *

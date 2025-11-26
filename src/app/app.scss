@@ -1,8 +1,41 @@
+@use "./shared/styles/button" as btn;
+$scheme: dark light;
+@include btn.basic_button($scheme);
+
+#own-app-ephasize-div {
+  background-color: var(--theme-background);
+  height: 80%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40%;
+  border-radius: 1000px;
+}
+
+@media (max-width: 1400px) {
+  #own-app-ephasize-div {
+    width: 70%;
+  }
+}
+@media (max-width: 1000px) {
+  #own-app-ephasize-div {
+    width: 95%;
+    justify-content: space-between;
+    padding: 0 1px;
+  }
+}
+@media (max-width: 600px) {
+  #own-app-ephasize-div {
+    width: 100%;
+  }
+}
+
 div {
   height: 100%;
   gap: 1vh;
   display: grid;
-  grid-template-rows: max(70px, 8vh) 1fr;
+  grid-template-rows: clamp(70px, 8vh, 200px) 1fr;
+  align-items: center;
 }
 
 main {

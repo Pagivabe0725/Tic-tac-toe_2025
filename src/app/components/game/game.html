@@ -1,36 +1,46 @@
-<div id="own-game-container">
-  <div appGameDisplayPart class="own-game-side-div"
-    [class]="step()%2 ===0 ? 'own-animated-border' :'own-game-unchosen-side-div'">
-    <span ngProjectAs="first" class="own-animated-border">Player - 1(0)</span>
-    <span ngProjectAs="second">1</span>
-    <span ngProjectAs="third">1</span>
-  </div>
-  <div appGameField id="own-game-filed-container"
-    [style.gridTemplateColumns]="`repeat(${size()}, 1fr)`"
-    [style.gridTemplateRows]="`repeat(${size()}, 1fr)`"
-   >
-    
-    @if (gameField()) {
-      @for (subArray of gameField(); track $index) { 
-        @let $x = $index; 
-        @for (elementm of subArray; track $index) { 
-          @let $y = $index;
-          <div
-          appGameFieldCell
-          [markup]="gameField()![$x][$y]"
-          [xCoordinate]="$x"
-          [yCoordinate]="$y"
-          [size]="size()"
-          [clickPermission]="clickPermission()"
-          (setPosition)="setCell($event)"
-          ></div>
-        } 
-      }
-    }
-  </div>
-  <div appGameDisplayPart class="own-game-side-div"
-    [class]="step()%2 ===1 ? 'own-animated-border' :'own-game-unchosen-side-div'">
-    <span ngProjectAs="first">Player - 2(X)</span>
-    <span ngProjectAs="second">1</span>
-  </div>
+<div id="own-game-container" role="region" aria-label="game section">
+  
+  <section
+    appGameDisplayPart
+    [class]="step()%2 ===0 ? 'own-animated-border' :'own-game-unchosen-side-div'"
+    markup="o"
+    [actualMarkup]="actualMarkup()"
+    [spentTimes]="spentTimes()"
+    [results]="results()"
+    [lastMove]="lastMove()"
+    [started]="started()"
+    role="region"
+    aria-label="player one with circle sign"
+    [attr.aria-current]="step()%2 === 0 ? 'step' : null"
+  >
+    <span  ngProjectAs="first">Player - 1(O)</span>
+  </section>
+
+  <section
+    id="own-game-filed-container"
+    appBoard
+    [clickPermission]="clickPermission()"
+    [size]="size()"
+    [lastMove]="lastMove()!"
+    [step]="step()"
+    role="region"
+    aria-label="game board"
+  ></section>
+
+  <section
+    appGameDisplayPart
+    [class]="step()%2 ===1 ? 'own-animated-border' :'own-game-unchosen-side-div'"
+    markup="x"
+    [actualMarkup]="actualMarkup()"
+    [spentTimes]="spentTimes()"
+    [results]="results()"
+    [lastMove]="lastMove()"
+    [started]="started()"
+    role="region"
+    aria-label="player two with ex sign"
+    [attr.aria-current]="step()%2 === 1 ? 'step' : null"
+  >
+    <span  ngProjectAs="first">Player - 2(X)</span>
+  </section>
+  
 </div>

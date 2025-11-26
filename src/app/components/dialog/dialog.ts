@@ -1,12 +1,25 @@
-import { Component, computed, inject, Signal } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  computed,
+  ElementRef,
+  HostListener,
+  inject,
+  Signal,
+  viewChild,
+} from '@angular/core';
 import { DialogHandler } from '../../services/dialog-handler.service';
 import { AbstractControl, FormGroup } from '@angular/forms';
 import { DialogContent } from '../../utils/types/dialog-content.type';
 import { DialogForm } from './dialog-form/dialog-form';
 import { Auth } from '../../services/auth.service';
-import { modifyGameState } from '../../store/actions/game-modify.action';
+import { modifyGameSettings } from '../../store/actions/game-settings-modify.action';
 import { Store } from '@ngrx/store';
-import { GameState } from '../../utils/interfaces/game-state.interface';
+import { GameSettings } from '../../utils/interfaces/game-settings.interface';
+import { modifyGameInfo } from '../../store/actions/game-info-modify.action';
+import { storageCleaner } from '../../utils/functions/storage-cleaner.function';
+import { selectGameInfo } from '../../store/selectors/game-info.selector';
+import { FocusTrap, FocusTrapFactory } from '@angular/cdk/a11y';
 
 /**
  * Main dialog container component.
@@ -30,28 +43,47 @@ import { GameState } from '../../utils/interfaces/game-state.interface';
   templateUrl: './dialog.html',
   styleUrl: './dialog.scss',
 })
-export class Dialog {
-/** 
- * {@link DialogHandler} manages the visibility and active content of dialogs.
- */
-#dialog: DialogHandler = inject(DialogHandler);
+export class Dialog implements AfterViewInit {
+  /**
+   * {@link DialogHandler} manages the visibility and active content of dialogs.
+   */
+  #dialogHandler: DialogHandler = inject(DialogHandler);
 
-/** 
- * {@link Auth} service used for login and registration operations.
- */
-#auth: Auth = inject(Auth);
+  /**
+   * {@link Auth} service used for login and registration operations.
+   */
+  #auth: Auth = inject(Auth);
 
-/** 
- * {@link Store} used to dispatch game state modifications.
- */
-#store: Store = inject(Store);
+  /**
+   * {@link Store} used to dispatch game state modifications.
+   */
+  #store: Store = inject(Store);
 
+  /**
+   * Injected {@link FocusTrapFactory} service from Angular CDK.
+   * Used to create a focus trap inside the dialog for accessibility purposes.
+   */
+  #focusTrapFactory: FocusTrapFactory = inject(FocusTrapFactory);
+
+  /**
+   * Instance of {@link FocusTrap} that manages focus containment within the dialog.
+   * Initialized when the dialog is opened and destroyed on close.
+   */
+  private focusTrap!: FocusTrap;
+
+  /**
+   * Query for the dialog container element in the template.
+   * Required because the focus trap needs a reference to the actual DOM element.
+   * Uses {@link viewChild.required} to guarantee the element exists.
+   */
+  private dialog = viewChild.required<ElementRef | null>('dialogContainer');
 
   /**
    * Signal representing the currently active dialog content type.
    * Example values: 'login', 'registration', 'game_setting', 'setting', etc.
    */
-  protected dialogContent: Signal<DialogContent> = this.#dialog.activeContent;
+  protected dialogContent: Signal<DialogContent> =
+    this.#dialogHandler.activeContent;
 
   /** Flag to notify DialogForm to reset or reject unsaved changes. */
   protected rejectEmitter = false;
@@ -64,7 +96,7 @@ export class Dialog {
    * If the content is a message or error type, the title is provided by DialogHandler.
    */
   protected title = computed(() => {
-    switch (this.#dialog.activeContent() as DialogContent) {
+    switch (this.#dialogHandler.activeContent() as DialogContent) {
       case 'game_setting':
         return 'Game Settings';
       case 'save':
@@ -76,26 +108,69 @@ export class Dialog {
       case 'registration':
         return 'Registration';
       case 'message':
-        return this.#dialog.title;
+        return this.#dialogHandler.title;
       case 'error':
-        return this.#dialog.title;
+        return this.#dialogHandler.title;
       default:
         return 'Title';
     }
   });
 
   /** Message to display inside the dialog, if applicable. */
-  protected message = this.#dialog.message;
+  protected message = this.#dialogHandler.message;
 
-  /** Closes the dialog or triggers a reject event depending on dialog type. */
+  /**
+   * Indicates whether the dialog requires explicit user confirmation.
+   * Returns true if the dialog is in a state where a choice/confirmation
+   * from the user is expected.
+   */
+  get chooeable(): boolean {
+    return !!this.#dialogHandler.choosable;
+  }
+
+  /**
+   * Host listener for the Escape key.
+   *
+   * - Listens to the 'keydown.escape' event on the document.
+   * - Casts the incoming generic Event to a {@link KeyboardEvent}.
+   * - Calls {@link KeyboardEvent.preventDefault()} to stop the browser's default Escape behavior.
+   * - Invokes {@link closeDialog} to close the dialog programmatically.
+   *
+   * This ensures that pressing Escape always closes the dialog while keeping focus management intact,
+   * without triggering any unwanted browser behavior.
+   *
+   * @param event The raw event object from the host listener, cast to {@link KeyboardEvent}.
+   */
+  @HostListener('document:keydown.escape', ['$event'])
+  onEscape(event: Event) {
+    const keyboardEvent = event as KeyboardEvent;
+    keyboardEvent.preventDefault();
+    this.closeDialog();
+  }
+
+  /**
+   * Lifecycle hook that is called after the component's view has been fully initialized.
+   *
+   * Initializes the {@link FocusTrap} for the dialog to ensure keyboard focus
+   * remains trapped within the dialog while it is open.
+   *
+   * - Uses the {@link dialog} ViewChild to get the container element.
+   * - Creates a focus trap using {@link #focusTrapFactory}.
+   * - Immediately focuses the initial focusable element inside the dialog.
+   */
+  ngAfterViewInit() {
+    const dialogElelement = this.dialog();
+    if (dialogElelement) {
+      console.log(dialogElelement); // Optional: debug the element reference
+      this.focusTrap = this.#focusTrapFactory.create(
+        dialogElelement.nativeElement
+      );
+      this.focusTrap.focusInitialElement();
+    }
+  }
+
   protected closeDialog(): void {
-    if (!['error', 'message', undefined].includes(this.dialogContent()))
-      this.rejectEmitter = true;
-    else if (
-      this.dialogContent() &&
-      ['error', 'message'].includes(this.dialogContent()!)
-    )
-      this.emitData(false);
+    this.emitData(undefined);
   }
 
   /**
@@ -119,24 +194,55 @@ export class Dialog {
 
   /** Emits a value outward through DialogHandler to notify parent components. */
   protected emitData(value: unknown): void {
-    this.#dialog.dailogEmitter(value);
+    this.#dialogHandler.dailogEmitter(value);
   }
 
   /** Toggles between login and registration dialogs. */
   protected toggleAuthMode(): void {
-    this.#dialog.activeContent =
+    this.#dialogHandler.activeContent =
       this.dialogContent() === 'login' ? 'registration' : 'login';
   }
 
   /**
-   * Applies new game rules by dispatching a modification to the store.
-   * @param rules Key-value mapping of game state properties to update.
-   * @returns Always returns true.
+   * Applies the provided rule changes to the game configuration and
+   * simultaneously resets the entire GameInfo state.
+   *
+   * This method ensures that modifying any game rule results in a fully
+   * reinitialized game environment by:
+   *  - updating the GameSettings with the given rule values,
+   *  - clearing the current board and gameplay metadata,
+   *  - resetting turn counters, timers, last move, and winner status,
+   *  - removing all relevant sessionStorage entries from the previous game.
+   *
+   * After this operation, the next game always starts from a clean,
+   * well-defined baseline that reflects the newly applied rules.
+   *
+   * @param {Record<keyof GameSettings, string | number>} rules
+   *        A rule object containing the GameSettings properties to update.
+   * @returns {boolean} Always returns true after the state reset and settings update.
    */
+
   protected setGameRules(
-    rules: Record<keyof GameState, string | number>
+    rules: Record<keyof GameSettings, string | number>
   ): boolean {
-    this.#store.dispatch(modifyGameState(rules as GameState));
+    console.log('clear');
+    this.#store.dispatch(modifyGameSettings(rules as GameSettings));
+    this.#store.dispatch(
+      modifyGameInfo({
+        actualBoard: undefined,
+        actualStep: 0,
+        actualMarkup: 'o',
+        lastMove: undefined,
+        started: false,
+        playerSpentTime: { player_O: 0, player_X: 0 },
+        winner: null,
+      })
+    );
+    const actualGameInfo = this.#store.selectSignal(selectGameInfo)();
+    if (actualGameInfo) {
+      storageCleaner('sessionStorage', true, ...Object.keys(actualGameInfo));
+    }
+
     return true;
   }
 
@@ -167,7 +273,10 @@ export class Dialog {
    * @param datas Object containing email and password.
    * @returns True if login succeeds, false otherwise.
    */
-  protected async login(datas: { email: string; password: string }): Promise<boolean> {
+  protected async login(datas: {
+    email: string;
+    password: string;
+  }): Promise<boolean> {
     const { email, password } = datas;
     let succsess;
     if (email && password) {
@@ -188,14 +297,14 @@ export class Dialog {
    * @returns Function to handle dialog acceptance, or undefined if none.
    */
   choseHandlerFunction(): Function | undefined {
-    switch (this.#dialog.activeContent()) {
+    switch (this.#dialogHandler.activeContent()) {
       case 'login':
         return this.login.bind(this);
       case 'registration':
         return this.registration.bind(this);
       case 'setting':
         return (datas: object) => {
-          this.#dialog.dailogEmitter(true);
+          this.#dialogHandler.dailogEmitter(true);
         };
       case 'game_setting':
         return this.setGameRules.bind(this);
@@ -216,7 +325,7 @@ export class Dialog {
     }
   }
 
-  /** Called when the user rejects the dialog. Triggers rejectEmitter or emits false. */
+  /** Called when the user rejects the dialog. Triggers rejectEmitter or emits undefined. */
   rejectButton() {
     if (![undefined, 'error', 'message'].includes(this.dialogContent())) {
       this.rejectEmitter = true;
@@ -224,7 +333,7 @@ export class Dialog {
       this.dialogContent() &&
       ['error', 'message'].includes(this.dialogContent()!)
     ) {
-      this.emitData(false);
+      this.emitData(undefined);
     }
   }
 }

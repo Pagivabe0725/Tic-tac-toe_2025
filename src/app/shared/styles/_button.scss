@@ -1,7 +1,7 @@
 @mixin basic_button($sch) {
   $scheme: #{$sch};
 
-  button {
+  .own-basic-button {
     $scheme: $sch;
   /*   $first-color: if($scheme == "light", var(--p-60), var(--p-20));
     $second-color: if($scheme == "light", var(--a-60), var(--a-20)); */

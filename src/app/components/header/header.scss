@@ -4,38 +4,92 @@
     var(--gradient-p-component),
     var(--gradient-a-component)
   );
-  height: 100%;
   width: 100%;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+
+  height: clamp(70px, 8vh, 200px);
   border-radius: 1000px;
   box-sizing: border-box;
-  padding-left: 30px;
-  padding-right: 5px;
   box-shadow: 1px 1px 8px var(--a-10), -1px -1px 8px var(--p-10);
+  overflow: hidden;
+  margin: 0;
+  display: flex;
+  justify-content: space-around;
+}
 
-  div {
-    width: 100%;
-    display: flex;
-    align-items: center;
-  }
+div {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
 
-  #own-first-container-div {
-    justify-content: flex-start;
-  }
+#own-first-container-div {
+  justify-content: flex-start;
+  height: 100%;
+  box-sizing: border-box;
+  padding-left: 30px;
+}
 
-  #own-second-container-div {
-    justify-content: flex-end;
-  }
+#own-second-container-div {
+  justify-content: flex-end;
+  box-sizing: border-box;
+  padding-right: 10px;
+}
 
+#own-header-action-div {
+  width: 50%;
+  height: 80%;
+  background-color: var(--theme-background);
+  border-radius: 1000px;
+  box-sizing: border-box;
+  padding: 1vw;
+  display: flex;
+  justify-content: space-between;
+}
+
+@media (max-width: 1400px) {
   #own-header-action-div {
-    width: 50%;
-    height: 90%;
-    background-color: var(--theme-background);
-    border-radius: 1000px;
-    box-sizing: border-box;
-    padding: 10px;
-    display: flex;
-    justify-content: space-between;
+    width: 70%;
+  }
+}
+@media (max-width: 1000px) {
+  #own-header-action-div {
+    width: 100%;
+  }
+}
+@media (max-width: 600px) {
+  #own-second-container-div  {
+    display: none;
+  }
+  #own-first-container-div {
+    padding-right: 30px;
+  }
+}
+
+.own-header-material-icons {
+  padding: 5px;
+  display: flex;
+  cursor: pointer;
+  border: 2px outset var(--p-30);
+  border-radius: 1000px;
+  background-image: linear-gradient(
+    var(--gradient-p-component),
+    var(--gradient-a-component)
+  );
+  user-select: none;
+  transition: all ease-in-out 0.4s;
+
+  svg {
+    width: max(24px, 2vw);
+    height: max(24px, 2vw);
+    fill: var(--p-110);
+  }
+
+  &:hover {
+    scale: 1.1;
+  }
+  &:active {
+    scale: 0.8;
   }
 }
