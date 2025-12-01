@@ -1,0 +1,22 @@
+<div id="own-account-container-div">
+  <section 
+  appAccountHeader 
+  [user]="user()"
+  ></section>
+
+  <section
+    appOperations
+    [page]="page()"
+    [pageCount]="pageCount()"
+    [filter]="filter()"
+    [order]="order()"
+
+  ></section>
+
+  <section
+    appLoader
+    [savedGames]="savedGames()"
+    (deleteEvent)="deleteGame($event)"
+    (loadeEvent)="loadGame($event)"
+  ></section>
+</div>

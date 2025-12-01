@@ -3,7 +3,6 @@ import { Theme } from '../../services/theme.service';
 import { DialogHandler } from '../../services/dialog-handler.service';
 import { Auth } from '../../services/auth.service';
 import { DialogContent } from '../../utils/types/dialog-content.type';
-import { STORAGE_PREFIX } from '../../utils/constants/sessionstorage-prefix.constant';
 import { Store } from '@ngrx/store';
 import { modifyGameSettings } from '../../store/actions/game-settings-modify.action';
 import { SnackBarHandler } from '../../services/snack-bar-handler.service';
@@ -12,6 +11,7 @@ import {
   SNACKBAR_SUCCESS_MESSAGES,
 } from '../../utils/constants/snackbar-message.constant';
 import { modifyGameInfo } from '../../store/actions/game-info-modify.action';
+import {  RouterLink } from '@angular/router';
 
 /**
  * @component Header
@@ -26,11 +26,12 @@ import { modifyGameInfo } from '../../store/actions/game-info-modify.action';
  */
 @Component({
   selector: 'header[appHeader]',
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './header.html',
   styleUrl: './header.scss',
 })
 export class Header {
+
   /**
    * Injected {@link Theme} service that manages the current theme mode.
    * Can be read or updated to switch between 'light' and 'dark' modes.
@@ -85,6 +86,12 @@ export class Header {
     this.#theme.mode = newMode;
   }
 
+
+  get userId():string{
+
+    return this.#auth.user()!.userId
+  }
+
   /**
    * Opens a dialog based on the given content type and handles the result.
    *
@@ -131,11 +138,13 @@ export class Header {
 
     if (result) {
       await this.#auth.logout();
-    
-      sessionStorage.clear()
+
+      sessionStorage.clear();
       this.#store.dispatch(modifyGameSettings({ opponent: 'player' }));
       this.#store.dispatch(modifyGameInfo({ actualBoard: undefined }));
+      this.#auth.user = undefined;
     }
-       this.#auth.user = undefined;
   }
+
+
 }

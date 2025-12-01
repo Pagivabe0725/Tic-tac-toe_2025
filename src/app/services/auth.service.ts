@@ -42,7 +42,6 @@ export class Auth {
     this.#user.set(newValue);
   }
 
-
   /**
    * Logs in a user with email and password.
    * @param email User email
@@ -66,7 +65,11 @@ export class Auth {
     const result = await this.#httpHandler.request<{ user: User | undefined }>(
       'post',
       'users/check-session',
-      null
+      null,
+      {
+        initialDelay: 50,
+        maxRetries: 3
+      }
     );
     return result?.user ?? undefined;
   }
@@ -155,4 +158,14 @@ export class Auth {
     );
   }
 
+  async setUserById(userId: string): Promise<void> {
+    console.log(userId)
+    const user = await this.#httpHandler.request<User>(
+      'post',
+      'users/get-user-by-identifier',
+      { userId }
+    );
+    console.log('setUser: ', user)
+    this.#user.set(user);
+  }
 }

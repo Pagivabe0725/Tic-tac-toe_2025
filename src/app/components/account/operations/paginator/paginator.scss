@@ -1,0 +1,38 @@
+:host {
+  display: grid !important;
+  grid-template-columns: repeat(5, 1fr);
+  align-items: center;
+  justify-content: center;
+
+  button {
+    background-color: var(--theme-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+
+    &:hover {
+      scale: 1.1;
+
+      svg {
+        fill: var(--a-90);
+      }
+    }
+  }
+
+  span {
+    font-weight: bolder;
+    font-size: 2vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  svg {
+    fill: var(--a-110);
+    height: 2vw;
+    width: 2vw;
+  }
+}

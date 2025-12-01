@@ -1,0 +1,97 @@
+@use "../../../shared/styles/button" as btn;
+
+$scheme: dark light;
+@include btn.basic_button($scheme);
+
+:host {
+
+  justify-content: space-between;
+  height: max(10vh, 70px);
+
+  div {
+    width: 50%;
+    display: flex;
+    height: 100%;
+    align-items: center;
+    gap: 10px;
+  }
+
+  ul {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    list-style: none;
+  }
+
+  li {
+    display: flex;
+    width: 30%;
+    border-bottom: 2px solid light-dark(var(--a-80), var(--a-20));
+    font-weight: bolder;
+    font-size: 1.2vw;
+
+    span {
+      display: flex;
+      align-items: flex-end;
+      box-sizing: border-box;
+      padding: 0 5px;
+    }
+
+    & :nth-child(1) {
+      width: 80%;
+    }
+    & :nth-child(2) {
+      width: 20%;
+      justify-content: flex-end;
+    }
+  }
+
+  button {
+    min-width: max(200px, 18vw);
+    margin: 0;
+    font-size: 1vw;
+  }
+}
+
+@media (max-width: 1000px) {
+  :host {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: max(40vh, 250px);
+
+    div {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  ul {
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+  }
+
+  span {
+    font-size: 2vw;
+  }
+
+  button {
+    font-size: 2vw !important;
+  }
+}
+
+@media (max-width: 600px) {
+  :host {
+    ul {
+      align-items: flex-end;
+    }
+  }
+  span {
+    font-size: 3vw;
+  }
+
+  button {
+    font-size: 2.5vw !important;
+  }
+}

@@ -1,0 +1,43 @@
+<button
+  [class]="order() === 'alpha-desc' ? 'active-order-button' : ''"
+  (click)="changeOrder('alpha-desc')"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+    <path
+      d="M760-160h-80v-528l-42 42-56-56 138-138 140 138-58 56-42-42v528ZM560-276 120-440v-80l440-164v76l-112 38v178l112 40v76ZM384-414v-132l-182 64v4l182 64Z"
+    />
+  </svg>
+</button>
+
+<button
+  [class]="order() === 'alpha-asc' ? 'active-order-button' : ''"
+  (click)="changeOrder('alpha-asc')"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+    <path
+      d="M240-120 100-258l58-56 42 42v-528h80v528l42-42 56 56-138 138Zm160-156v-76l112-38v-178l-112-40v-76l440 164v80L400-276Zm176-138 182-64v-4l-182-64v132Z"
+    />
+  </svg>
+</button>
+
+<button
+  [class]="order() === 'time-desc' ? 'active-order-button' : ''"
+  (click)="changeOrder('time-desc')"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+    <path
+      d="M340-520q42 0 71-29t29-71v-100H240v100q0 42 29 71t71 29ZM240-240h200v-100q0-42-29-71t-71-29q-42 0-71 29t-29 71v100Zm-140 80v-80h60v-100q0-42 18-78t50-62q-32-26-50-62t-18-78v-100h-60v-80h480v80h-60v100q0 42-18 78t-50 62q32 26 50 62t18 78v100h60v80H100Zm640 0v-488l-44 44-56-56 140-140 140 140-57 56-43-43v487h-80ZM340-720Zm0 480Z"
+    />
+  </svg>
+</button>
+
+<button
+  [class]="order() === 'time-asc' ? 'active-order-button' : ''"
+  (click)="changeOrder('time-asc')"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+    <path
+      d="M340-520q42 0 71-29t29-71v-100H240v100q0 42 29 71t71 29ZM240-240h200v-100q0-42-29-71t-71-29q-42 0-71 29t-29 71v100Zm-140 80v-80h60v-100q0-42 18-78t50-62q-32-26-50-62t-18-78v-100h-60v-80h480v80h-60v100q0 42-18 78t-50 62q32 26 50 62t18 78v100h60v80H100Zm680 0L640-300l57-56 43 43v-487h80v488l44-44 56 56-140 140ZM340-720Zm0 480Z"
+    />
+  </svg>
+</button>

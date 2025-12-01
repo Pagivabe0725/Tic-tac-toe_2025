@@ -1,0 +1,40 @@
+:host {
+  align-items: center;
+  justify-content: flex-start;
+  select {
+    background-color: var(--theme-background);
+    border: 2px solid light-dark(var(--a-80), var(--a-20));
+    border-radius: 1000px;
+    box-sizing: border-box;
+    padding: 0 10px;
+    width: 60%;
+    height: 80%;
+    font-size: 1.2vw;
+    font-weight: bolder;
+  }
+
+  @media (max-width: 1200px) {
+    select {
+      font-size: 1.4vw;
+    }
+  }
+
+  @media (max-width: 1000px) {
+    select {
+      font-size: 1.5vw;
+    }
+  }
+
+  @media (max-width: 800px) {
+    select {
+      font-size: 1.8vw;
+      width: 80%;
+    }
+  }
+
+  @media (max-width: 600px) {
+    select {
+      font-size: 2vw;
+    }
+  }
+}

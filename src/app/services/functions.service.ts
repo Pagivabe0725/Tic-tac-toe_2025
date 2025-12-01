@@ -38,10 +38,10 @@ export class Functions {
    * @param value - Numeric difficulty level (1–4)
    * @returns Corresponding `game['hardness']` string
    */
-  numberToDifficulty(value: number): Hardness{
+  numberToDifficulty(value: number): Hardness {
     switch (value) {
       case 1:
-        return 'very-easy';
+        return 'very_easy';
       case 2:
         return 'easy';
       case 3:
@@ -49,7 +49,34 @@ export class Functions {
       case 4:
         return 'hard';
       default:
-        return 'very-easy';
+        return 'very_easy';
+    }
+  }
+
+  /**
+   * Converts a difficulty string literal into its corresponding numeric value (1–4).
+   *
+   * Mapping:
+   * - 'very_easy' → 1
+   * - 'easy' → 2
+   * - 'medium' → 3
+   * - 'hard' → 4
+   *
+   * @param difficulty - Difficulty string from the `Hardness` enum
+   * @returns Numeric difficulty level (1–4)
+   */
+  difficultyToNumber(difficulty: Hardness): number {
+    switch (difficulty) {
+      case 'very_easy':
+        return 1;
+      case 'easy':
+        return 2;
+      case 'medium':
+        return 3;
+      case 'hard':
+        return 4;
+      default:
+        return 1; // fallback – consistent with your original function
     }
   }
 
@@ -133,5 +160,4 @@ export class Functions {
         return value;
     }
   }
- 
 }

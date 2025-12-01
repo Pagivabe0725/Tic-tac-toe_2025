@@ -1,0 +1,19 @@
+<h1>Saved games</h1>
+
+<div>
+  <div id="own-loader-wrapper-div">
+    @if (savedGames?.length) {
+      @for (game of savedGames; track $index) {
+
+      <app-game-element 
+        [gameDatas]="game"
+        (deleteEvent)="delete($event)"
+        (loadeEvent)="loadGame($event)"
+        />
+      }
+    }
+    @else {
+      <h2>not found any game...</h2>
+    }
+  </div>
+</div>

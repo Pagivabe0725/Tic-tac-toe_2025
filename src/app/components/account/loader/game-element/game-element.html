@@ -1,0 +1,32 @@
+<div>
+  <div class="own-game-element-title-div">
+    <span>Name:</span>
+    <span>{{gameDatas().name}}</span>
+  </div>
+  <div class="own-game-element-title-div">
+    <span>Size:</span>
+    @let size = gameDatas().size;
+    <span>{{`${size}X${size}`}}</span>
+  </div>
+  <div class="own-game-element-title-div">
+    <span>Updated:</span>
+    <span>{{date()}}</span>
+  </div>
+</div>
+<div>
+  <button (click)="deleteEvent.emit(gameDatas().gameId)">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+      <path
+        d="m376-300 104-104 104 104 56-56-104-104 104-104-56-56-104 104-104-104-56 56 104 104-104 104 56 56Zm-96 180q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520Zm-400 0v520-520Z"
+      />
+    </svg>
+  </button>
+
+  <button (click)="loadeEvent.emit(gameDatas().gameId)">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+      <path
+        d="M204-318q-22-38-33-78t-11-82q0-134 93-228t227-94h7l-64-64 56-56 160 160-160 160-56-56 64-64h-7q-100 0-170 70.5T240-478q0 26 6 51t18 49l-60 60ZM481-40 321-200l160-160 56 56-64 64h7q100 0 170-70.5T720-482q0-26-6-51t-18-49l60-60q22 38 33 78t11 82q0 134-93 228t-227 94h-7l64 64-56 56Z"
+      />
+    </svg>
+  </button>
+</div>

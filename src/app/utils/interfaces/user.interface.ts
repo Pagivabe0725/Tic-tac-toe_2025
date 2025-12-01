@@ -6,7 +6,7 @@
  */
 export interface User {
   /** Unique identifier for the user */
-  userId: number;
+  userId: string;
 
   /** Email address of the user, used for login and notifications */
   email: string;
@@ -16,4 +16,7 @@ export interface User {
 
   /** Total number of games the user has lost */
   loseNumber: number;
+
+  /** Number of games saved by the user */
+  game_count: number;
 }
