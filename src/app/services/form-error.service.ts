@@ -94,7 +94,6 @@ export class FormError {
   ): void {
     const password = passwordControl.value;
     const confirm = confirmControl.value;
-    console.log('meghívva');
     if (password && confirm && password !== confirm) {
       this.addErrorToControl(confirmControl, 'passwordMismatch');
     }

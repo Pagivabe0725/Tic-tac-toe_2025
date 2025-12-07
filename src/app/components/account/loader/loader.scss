@@ -15,7 +15,7 @@
     position: relative;
   }
 
-  & > :nth-child(1) {
+  &  > :nth-child(1) {
     position: relative;
     border-bottom: 2px solid light-dark(var(--p-70), var(--p-50));
     height: 5%;

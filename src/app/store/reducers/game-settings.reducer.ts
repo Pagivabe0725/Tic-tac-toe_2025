@@ -19,7 +19,7 @@ const INITIAL_STATE: GameSettings = {
   size:
     parseFromStorage<number>(`${STORAGE_PREFIX}size`, 'sessionStorage') ?? 3,
   opponent:
-    parseFromStorage<'player' | 'computer'>(
+    parseFromStorage<GameSettings['opponent']>(
       `${STORAGE_PREFIX}opponent`,
       'sessionStorage'
     ) ?? 'player',
@@ -47,6 +47,7 @@ export const gameSettingsReducer = createReducer(
   INITIAL_STATE,
   on(modifyGameSettings, (state, action) => {
     const { type, ...properties } = action;
+    
     return {
       ...state,
       ...properties,

@@ -1,9 +1,10 @@
-import { FormFieldModel } from "../types/dialog-form-field-model.type";
-import { ErrorKeys } from "../types/error-messages.type";
+import { DialogButton } from '../types/dialog-button.type';
+import { FormFieldModel } from '../types/dialog-form-field-model.type';
+import { ErrorKeys } from '../types/error-messages.type';
 
 /**
  * Defines the structure of a single form field in a dialog.
- * 
+ *
  * @property field - Unique identifier of the field in the UI.
  * @property title - Human-readable label displayed in the form.
  * @property type - The type of input element (text, select, email, etc.).
@@ -16,14 +17,14 @@ import { ErrorKeys } from "../types/error-messages.type";
  * (e.g., 'invalidEmail' → markAsInvalidEmail).
  */
 export interface FormField {
-  field: string;
+  key: string;
   title: string;
   type: 'select' | 'text' | 'email' | 'range' | 'color' | 'password';
   model: FormFieldModel;
   options?: string[] | number[];
-  baseValue?:string | number;
+  baseValue?: string | number;
   min?: number;
   max?: number;
   errorKeys?: ErrorKeys[];
-  valueType: 'string' | 'number'
+  valueType: 'string' | 'number';
 }

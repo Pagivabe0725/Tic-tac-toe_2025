@@ -1,0 +1,13 @@
+
+
+@for (button of buttons(); track $index) {
+    @let actualButton = button ;
+    @if (actualButton!.condition) {
+        <button
+        appHeaderButton
+        (click)="actualButton!.action()"
+        [attr.aria-label]="actualButton!.ariaLabel"
+        [iconPath]="actualButton!.iconPath"
+        ></button>
+    }
+}

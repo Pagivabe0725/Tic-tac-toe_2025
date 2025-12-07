@@ -43,12 +43,14 @@ export class Loader {
    * @param id - The ID of the game to delete.
    */
   async delete(id: string): Promise<void> {
-    const result = await this.#dialogHandler.openCustomDialog(
-      'message',
-      'Delete game',
-      'Do you want to delete this game?',
-      true
-    );
+    const result = await this.#dialogHandler.open('message', {
+      title: 'Delete game',
+      content: 'Do you want to delete this game?',
+      buttons: [
+        { name: 'Delete', button: 'accept' },
+        { name: 'Back', button: 'reject' },
+      ],
+    });
     if (result) this.deleteEvent.emit(id);
   }
 
@@ -59,12 +61,14 @@ export class Loader {
    */
   async loadGame(id: string): Promise<void> {
     console.log(id);
-    const result = await this.#dialogHandler.openCustomDialog(
-      'message',
-      'Loading game',
-      'Do you want to load this game?',
-      true
-    );
+    const result = await this.#dialogHandler.open('message', {
+      title: 'Loading game',
+      content: 'Do you want to load this game?',
+      buttons: [
+        { name: 'Load', button: 'accept' },
+        { name: 'Back', button: 'reject' },
+      ],
+    });
     if (result) this.loadeEvent.emit(id);
   }
 }

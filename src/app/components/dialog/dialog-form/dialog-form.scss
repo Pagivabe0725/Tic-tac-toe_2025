@@ -1,0 +1,25 @@
+:host {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.own-error-span {
+  width: 85%;
+  font-weight: 100;
+  color: red;
+  transition: all ease-in 0.3s;
+}
+
+.own-error-fieldset {
+  border: 2px outset red;
+  legend {
+    color: red;
+    font-style: italic;
+  }
+  input {
+    color: red;
+    border: 2px solid red;
+    font-style: italic;
+  }
+}

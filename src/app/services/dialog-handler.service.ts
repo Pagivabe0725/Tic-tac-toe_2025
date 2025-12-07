@@ -1,180 +1,120 @@
-import {
-  effect,
-  Injectable,
-  Signal,
-  signal,
-  WritableSignal,
-} from '@angular/core';
-import { firstValueFrom, Subject, take } from 'rxjs';
+import { Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { DialogContent } from '../utils/types/dialog-content.type';
-
+import { firstValueFrom, Observable, Subject, take } from 'rxjs';
+import { DialogStructure } from '../utils/interfaces/dialog-structure.interface';
 
 /**
  * @service DialogHandler
  *
- * Centralized service responsible for managing modal dialogs in the application.
- *
- * This service provides:
- * - Reactive signal tracking the currently active dialog content
- * - A Subject-based mechanism for passing data to and from dialogs
- * - Methods for opening, closing, and emitting dialog results asynchronously
- *
- * Designed to integrate seamlessly with Angular Signals and RxJS.
+ * Central service to manage modal dialogs.
+ * Provides reactive signals and Subjects for dialog data flow and triggers.
  */
 @Injectable({
   providedIn: 'root',
 })
 export class DialogHandler {
-  /** Reactive signal storing the currently active dialog content. `undefined` if no dialog is open. */
-  #activeContent: WritableSignal<DialogContent> = signal(undefined);
+  /** Signal for the currently active dialog content. */
+  #actualContent: WritableSignal<DialogContent> = signal(undefined);
 
-  /**
-   * Internal Subject instance for passing values between
-   * dialog openers and listeners. Created per open dialog.
-   */
-  #dataSubject: Subject<any> | null = null;
+  /** Subject to emit dialog results. */
+  #dataSubject?: Subject<any | null> = undefined;
 
-  /** Optional title to display in the dialog. */
-  #title?: string;
+  /** Optional dialog metadata (title, buttons, etc.). */
+  #dialogData?: DialogStructure;
 
-  /** Optional message or body content to display in the dialog. */
-  #message?: string;
+  /** Subject to emit trigger events like 'form', 'reset', or 'change'. */
+  #emitTrigger?: Subject<string> = undefined;
 
-  /** Flag indicating if the dialog presents a choice (e.g., yes/no buttons). */
-  #choosable?: boolean;
-
-  /**
-   * Stores the last active dialog content.
-   *
-   * Since the dialog service’s `actualContent` value changes dynamically
-   * and resets to `undefined` when the dialog closes, this property
-   * preserves the most recent dialog type even after the dialog has
-   * disappeared. This is useful whenever post-dialog logic requires
-   * knowledge of what was previously opened.
-   */
+  /** Stores the last active dialog content. */
   #lastContent: DialogContent = undefined;
 
-  /** Returns a read-only signal representing the currently active dialog. */
-  get activeContent(): Signal<DialogContent> {
-    return this.#activeContent.asReadonly();
+  /** Readonly signal of current dialog content. */
+  get actualContent(): Signal<DialogContent> {
+    return this.#actualContent;
   }
 
-  /** Updates the currently active dialog content. */
-  set activeContent(content: DialogContent) {
-    this.#activeContent.set(content);
+  /** Update the current dialog content. */
+  set actualContent(content: DialogContent) {
+    this.#actualContent.set(content);
   }
 
-  /** Returns the dialog's title if set. */
-  get title(): string | undefined {
-    return this.#title;
-  }
-
-  /** Returns the dialog's message/body content if set. */
-  get message(): string | undefined {
-    return this.#message;
-  }
-
-  /** Returns whether the current dialog is choosable (requires user confirmation). */
-  get choosable(): boolean | undefined {
-    return this.#choosable;
-  }
-
+  /** Get last active dialog content. */
   get lastContent(): DialogContent {
     return this.#lastContent;
   }
 
-  /**
-   * Tracks the last non-empty `activeContent()` value.
-   * This ensures the previously used active content remains available,
-   * for example when displaying messages.
-   */
-  constructor() {
-    effect(() => {
-      const actualContent = this.activeContent();
-      if (actualContent) {
-        this.#lastContent = actualContent;
-      }
-    });
+  /** Set last active dialog content. */
+  set lastContent(content: DialogContent) {
+    this.#lastContent = content;
+  }
+
+  /** Get current dialog metadata. */
+  get dialogData(): DialogStructure | undefined {
+    return this.#dialogData;
   }
 
   /**
-   * Opens a dialog and waits for a single emitted result.
-   *
-   * @param content - The dialog content identifier to display.
-   * @returns A promise resolving to the value emitted by the dialog.
+   * Emits data to the current dialog and closes it.
+   * @param data Dialog result to emit.
    */
-  public async openDialog(content: DialogContent): Promise<boolean> {
-    this.#choosable = true;
-    this.#activeContent.set(content);
+  emitData<T>(data: T): void {
+    this.#dataSubject?.next(data);
+    this.close();
+  }
+
+  /**
+   * Returns an Observable to listen for dialog triggers (e.g., 'form', 'reset').
+   */
+  waitForTrigger(): Observable<string> {
+    if (this.#emitTrigger === undefined) {
+      this.#emitTrigger = new Subject<string>();
+    }
+    return this.#emitTrigger.asObservable();
+  }
+
+  /**
+   * Triggers an event to all subscribers of waitForTrigger().
+   * @param value Trigger name.
+   */
+  trigger(value: string): void {
+    this.#emitTrigger?.next(value);
+  }
+
+  /**
+   * Opens a dialog with optional metadata and waits for a result.
+   * @param content Dialog type/content.
+   * @param datas Optional dialog metadata.
+   */
+  async open<T>(
+    content: DialogContent,
+    datas?: DialogStructure
+  ): Promise<T | null> {
+    if (this.#dataSubject) {
+      this.#dataSubject.next(null);
+    }
+    this.#dialogData = datas;
+    this.#actualContent.set(content);
     this.#dataSubject = new Subject<any>();
+    this.lastContent = content;
 
     const result = await firstValueFrom(
       this.#dataSubject.asObservable().pipe(take(1))
     );
-
-    this.close();
     return result;
   }
 
   /**
-   * Opens a custom dialog with title, message, and optional choice buttons.
-   *
-   * @param content - Type of the dialog ('message' or 'error').
-   * @param message - The message text to display.
-   * @param title - The dialog title.
-   * @param choosable - Whether the dialog requires user confirmation.
-   * @returns A promise resolving to the value emitted by the dialog.
+   * Closes the current dialog.
+   * - Emits null to complete the data flow.
+   * - Completes and clears subjects.
+   * - Resets current content and triggers.
    */
-  public async openCustomDialog(
-    content: 'message' | 'error',
-    message: string,
-    title: string,
-    choosable: boolean
-  ): Promise<boolean> {
-    this.#activeContent.set(content);
-    this.#dataSubject = new Subject<any>();
-
-    this.#message = message;
-    this.#choosable = choosable;
-    this.#title = title;
-
-    const result = await firstValueFrom(
-      this.#dataSubject.asObservable().pipe(take(1))
-    );
-
-    this.close();
-
-    console.log(result);
-    return result;
-  }
-
-  /**
-   * Closes the currently active dialog.
-   *
-   * - Emits `undefined` to complete the data flow.
-   * - Completes and clears the {@link Subject}.
-   * - Resets the `activeContent` signal to `undefined`.
-   */
-  close = () => {
-    this.#dataSubject?.next(undefined);
+  close(): void {
+    this.#dataSubject?.next(null);
     this.#dataSubject?.complete();
-    this.#dataSubject = null;
-    this.#activeContent.set(undefined);
-    this.#choosable = undefined;
-  };
-
-  /**
-   * Emits a value to the currently open dialog.
-   *
-   * Used by dialog components to send data back
-   * to the logic that opened them.
-   *
-   * @param value - The value to send through the Subject.
-   */
-  dailogEmitter(value: any) {
-    this.#dataSubject?.next(value);
-    this.#message = undefined;
-    this.#choosable = undefined;
-    this.#title = undefined;
+    this.#emitTrigger?.subscribe();
+    this.#emitTrigger = undefined;
+    this.#dataSubject = undefined;
+    this.#actualContent.set(undefined);
   }
 }

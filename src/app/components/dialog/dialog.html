@@ -1,48 +1,57 @@
 <div id="own-dialog-background" role="presentation">
-
-  <div #dialogContainer id="own-dialog-div" role="dialog" aria-modal="true" aria-labelledby="dialog-title" aria-describedby="dialog-content">
-
+  <div
+    #dialogContainer
+    id="own-dialog-div"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="dialog-title"
+    aria-describedby="dialog-content"
+  >
     <header id="own-title-div">
-      <span>{{title()}}</span>
-       <button id="own-dialog-close-button" (click)="closeDialog()" aria-label="dialog close button.">
-      <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" >
-        <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/>
-      </svg>
+      <span>{{getTitle()}}</span>
+      <button
+        id="own-dialog-close-button"
+        (click)="closeDialog()"
+        aria-label="dialog close button."
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          height="24px"
+          viewBox="0 -960 960 960"
+          width="24px"
+        >
+          <path
+            d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"
+          />
+        </svg>
       </button>
     </header>
 
     <section id="own-content-div">
-      @if (dialogContent () && !['message', 'error'].includes(dialogContent()!)) {
-        <app-dialog-form
-          [rejectChanges]="rejectEmitter"
-          [callback]="callback"
-          (disableCallback)="callback=undefined"
-        >
-        </app-dialog-form>  
-      } 
-      @else {{{message}}}
+      @if (dialogContent () && !['message', 'error'].includes(dialogContent()!))
+      {
+      <app-dialog-form> </app-dialog-form>
+      } @else {{{dialogData?.content}}}
     </section>
 
     <section id="own-action-div">
-      @if (dialogContent() && ['login', 'registration'].includes(dialogContent()!)) {
-        <button  class="own-basic-button"  (click)="acceptButton()">
-          {{dialogContent()==='login' ? 'Login' : 'Registration'}}
-        </button>
-        <button  class="own-basic-button"  (click)="toggleAuthMode()">
-          {{dialogContent()==='login' ? 'Registration' : 'Login'}}
-        </button>
-      }
-      @else {
-        @if (!chooeable) {
-           <button class="own-basic-button" (click)="emitData(undefined)">Ok</button>
+      
+      @let actualButtons = buttons() ?? dialogData?.buttons  ;
+      @for (button of actualButtons; track $index) {
+        
+        @switch (button.button) {
+          @case ('trigger') {
+            <button class="own-basic-button" (click)="sendTrigger(button.triggerValue!)">{{button.name}}</button>
+          }
+          @case ('accept') {
+            <button class="own-basic-button" (click)="instantEmit(true)">{{button.name}}</button>
+          }
+          @case ('reject') {
+            <button class="own-basic-button" (click)="instantEmit('CLOSE_EVENT')">{{button.name}}</button>
+          }
         }
-        @else {
-          <button class="own-basic-button" (click)="acceptButton()">yes</button>
-          <button class="own-basic-button" (click)="rejectButton()">No</button>
-        }
       }
+
     </section>
-
   </div>
-
 </div>

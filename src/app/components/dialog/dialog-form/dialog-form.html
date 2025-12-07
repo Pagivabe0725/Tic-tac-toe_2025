@@ -1,13 +1,12 @@
 
-@if (getActualObject()) {
+@if (actualObjectSignal()) {
+
   <form #form="ngForm">
-    @let key = getActualObject()! ;
 
-    @for (actualTemplate of templates.get(key) ; track $index) {
+    @for (actualTemplate of actualStructure(); track $index) {
       
-        @let control = form.form.get(actualTemplate.field) ;
+        @let control = form.form.get(actualTemplate.key) ;
 
-       
         <fieldset [class]="control && formErrorHandler.hasErrors(control) ? 'own-error-fieldset' : ''">
 
             <legend >{{actualTemplate.title+':'}}</legend>
@@ -18,10 +17,9 @@
               @let error = control && formErrorHandler.getPrimaryError(control);
               <input 
                 [type]="actualTemplate.type" 
-                [name]="actualTemplate.field"  
-                [ngModel]="getterSetter(actualTemplate.model).get()()" 
-                (ngModelChange)="getterSetter(actualTemplate.model).set(helperFunctions.convertType($event, actualTemplate.valueType))"
-                (blur)="setErrorsOnOneField(actualTemplate.field)"
+                [name]="actualTemplate.key"  
+                [ngModel]="getFieldByModel(actualTemplate.model)()" 
+                (ngModelChange)="getFieldByModel(actualTemplate.model).set(helperFunctions.convertType($event, actualTemplate.valueType))"
                 (focus)="control ? formErrorHandler.clearErrors(control!): ''"
                 [attr.aria-invalid]="error ? 'true' : null">
                 
@@ -33,9 +31,9 @@
 
             @else if (actualTemplate.type==='select') {
 
-              <select [name]="actualTemplate.field"
-                [ngModel]="getterSetter(actualTemplate.model).get()()" 
-                (ngModelChange)="getterSetter(actualTemplate.model).set(helperFunctions.convertType($event, actualTemplate.valueType))">
+              <select [name]="actualTemplate.key"
+                [ngModel]="getFieldByModel(actualTemplate.model)()" 
+                (ngModelChange)="getFieldByModel(actualTemplate.model).set(helperFunctions.convertType($event, actualTemplate.valueType))">
                   @for (option of actualTemplate.options; track $index) {
                     <option [value]="option">{{option}}</option>
                   }
@@ -48,11 +46,11 @@
               <input 
                 [type]="actualTemplate.type" 
                 aria-label="difficulty"
-                [name]="actualTemplate.field"  
+                [name]="actualTemplate.key"  
                 [min]="actualTemplate.min"
                 [max]="actualTemplate.max"
-                [ngModel]="getterSetter(actualTemplate.model).get()()" 
-                (ngModelChange)="getterSetter(actualTemplate.model).set(helperFunctions.convertType($event, actualTemplate.valueType))">
+                [ngModel]="getFieldByModel(actualTemplate.model)()" 
+                (ngModelChange)="getFieldByModel(actualTemplate.model).set(helperFunctions.convertType($event, actualTemplate.valueType))">
 
             }
 

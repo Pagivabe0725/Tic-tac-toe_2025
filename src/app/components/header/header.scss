@@ -5,7 +5,6 @@
     var(--gradient-a-component)
   );
   width: 100%;
-
   height: clamp(70px, 8vh, 200px);
   border-radius: 1000px;
   box-sizing: border-box;
@@ -37,59 +36,30 @@ div {
   padding-right: 10px;
 }
 
-#own-header-action-div {
-  width: 50%;
-  height: 80%;
+#own-app-ephasize-div {
   background-color: var(--theme-background);
-  border-radius: 1000px;
-  box-sizing: border-box;
-  padding: 1vw;
+  height: 80%;
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: center;
+  width: 40%;
+  border-radius: 1000px;
 }
 
 @media (max-width: 1400px) {
-  #own-header-action-div {
+  #own-app-ephasize-div {
     width: 70%;
   }
 }
 @media (max-width: 1000px) {
-  #own-header-action-div {
-    width: 100%;
+  #own-app-ephasize-div {
+    width: 95%;
+    justify-content: space-between;
+    padding: 0 1px;
   }
 }
 @media (max-width: 600px) {
-  #own-second-container-div  {
-    display: none;
-  }
-  #own-first-container-div {
-    padding-right: 30px;
-  }
-}
-
-.own-header-material-icons {
-  padding: 5px;
-  display: flex;
-  cursor: pointer;
-  border: 2px outset var(--p-30);
-  border-radius: 1000px;
-  background-image: linear-gradient(
-    var(--gradient-p-component),
-    var(--gradient-a-component)
-  );
-  user-select: none;
-  transition: all ease-in-out 0.4s;
-
-  svg {
-    width: max(24px, 2vw);
-    height: max(24px, 2vw);
-    fill: var(--p-110);
-  }
-
-  &:hover {
-    scale: 1.1;
-  }
-  &:active {
-    scale: 0.8;
+  #own-app-ephasize-div {
+    width: 100%;
   }
 }

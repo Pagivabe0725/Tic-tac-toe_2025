@@ -1,0 +1,36 @@
+:host {
+  background-color: var(--theme-background);
+  width: 50% !important;
+  height: 80% !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 1000px;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1200px) {
+  :host {
+    width: 70% !important ;
+  }
+}
+
+@media (max-width: 1000px) {
+  :host {
+    width: 80% !important ;
+    height: 85% !important ;
+  }
+}
+
+@media (max-width: 800px) {
+  :host {
+    width: 100% !important ;
+  }
+}
+
+@media (max-width: 600px) {
+  :host {
+    display: none !important ;
+  }
+}

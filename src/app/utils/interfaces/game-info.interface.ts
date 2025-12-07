@@ -32,7 +32,7 @@ export interface GameInfo {
    * The currently active player's markup.
    * Determines whose turn it is: 'x' or 'o'.
    */
-  actualMarkup?: 'x' | 'o';
+  actualMarkup?: 'x' | 'o' ;
 
   /**
    * Sequential index of the current move.

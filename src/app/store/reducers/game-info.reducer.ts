@@ -3,6 +3,8 @@ import { STORAGE_PREFIX } from '../../utils/constants/sessionstorage-prefix.cons
 import { parseFromStorage } from '../../utils/functions/parser.function';
 import { GameInfo } from '../../utils/interfaces/game-info.interface';
 import { modifyGameInfo } from '../actions/game-info-modify.action';
+import { reserGameInfo } from '../actions/game-info-reset.action';
+import { storageCleaner } from '../../utils/functions/storage-cleaner.function';
 
 /**
  * Initial state for the GameInfo feature.
@@ -74,26 +76,67 @@ const INITIAL_STATE: GameInfo = {
     'sessionStorage'
   ) ?? { player_X: 0, player_O: 0 },
 
-  winner: parseFromStorage<GameInfo['winner']>( `${STORAGE_PREFIX}winner`,'sessionStorage') ?? null
+  winner:
+    parseFromStorage<GameInfo['winner']>(
+      `${STORAGE_PREFIX}winner`,
+      'sessionStorage'
+    ) ?? null,
 };
 
 /**
  * Reducer for the GameInfo feature.
- * Updates the state based on the `modifyGameInfo` action.
- * Merges incoming properties with the current state.
+ * Manages all state updates related to the dynamic, in-game information
+ * such as the board, turns, winner, timers, and last move.
  */
 export const gameInfoReducer = createReducer(
   INITIAL_STATE,
 
   /**
    * Handles the `modifyGameInfo` action.
-   * Spreads the existing state and overrides properties provided in the action.
+   * This action can partially update any number of fields in the GameInfo state.
+   *
+   * The reducer extracts every field from the action except the mandatory `type`,
+   * and merges them with the existing state.
+   * This makes the action "generic" and capable of updating multiple fields at once.
    */
   on(modifyGameInfo, (state, action) => {
     const { type, ...properties } = action;
     return {
       ...state,
-      ...properties,
+      ...properties, // overrides only the provided properties
+    };
+  }),
+
+  /**
+   * Resets all in-game, mutable fields to their initial state.
+   * Only gameplay-related properties are cleared; persistent settings are untouched.
+   */
+  on(reserGameInfo, (state) => {
+    // Remove gameplay-related values from sessionStorage
+    // to prevent old data from reloading after a reset.
+    storageCleaner(
+      'sessionStorage',
+      true,
+      'actualBoard',
+      'actualStep',
+      'actualMarkup',
+      'lastMove',
+      'playerSpentTime',
+      'results',
+      'started',
+      'winner'
+    );
+
+    // Return the cleared game state (fresh, pre-game state)
+    return {
+      ...state,
+      actualBoard: undefined,
+      actualMarkup: 'o' as const,
+      actualStep: 0,
+      started: false,
+      winner: undefined,
+      playerSpentTime: { player_X: 0, player_O: 0 },
+      lastMove: undefined,
     };
   })
 );
