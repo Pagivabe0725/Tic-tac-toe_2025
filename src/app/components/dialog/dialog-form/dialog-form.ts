@@ -50,7 +50,7 @@ import { FormField } from '../../../utils/interfaces/form-field-template.interfa
   standalone: true,
   imports: [FormsModule],
   templateUrl: './dialog-form.html',
-  styleUrl: './dialog-form.scss'
+  styleUrl: './dialog-form.scss',
 })
 export class DialogForm {
   /** DialogHandler: manages dialog state and triggers */
@@ -112,8 +112,14 @@ export class DialogForm {
   /** WritableSignal for email input field */
   protected email: WritableSignal<string> = signal('');
 
+  /** WritableSignal for new email input field */
+  protected newEmail: WritableSignal<string> = signal('');
+
   /** WritableSignal for password input field */
   protected password: WritableSignal<string> = signal('');
+
+  /** WritableSignal for new password input field */
+  protected newPassword: WritableSignal<string> = signal('');
 
   /** WritableSignal for password confirmation field */
   protected rePassword: WritableSignal<string> = signal('');
@@ -210,11 +216,20 @@ export class DialogForm {
       }
     }
 
-    /** Additional registration-specific validation */
+    /** Additional registration specific validation */
     if (this.dialog.actualContent() === 'registration') {
       const password = this.ngForm()!.form.get('password');
       const confirmPassword = this.ngForm()!.form.get('rePassword');
       this.formErrorHandler.markAsPasswordMismatch(password!, confirmPassword!);
+    }
+    /** Additional password changing specific validation */
+    if (this.dialog.actualContent() === 'password_change') {
+      const newPassword = this.ngForm()!.form.get('newPassword');
+      const confirmPassword = this.ngForm()!.form.get('rePassword');
+      this.formErrorHandler.markAsPasswordMismatch(
+        newPassword!,
+        confirmPassword!
+      );
     }
   }
 

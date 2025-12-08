@@ -1,4 +1,3 @@
-
 /**
  * Defines all form validation error messages used throughout the application.
  *
@@ -54,4 +53,12 @@ export const ERROR_MESSAGES = new Map([
   ['passwordMismatch', 'The passwords do not match.'],
   ['shortPassword', 'The password must be at least 6 characters long.'],
   ['longPassword', 'The password cannot exceed 20 characters.'],
+  [
+    'notCurrentUserEmail',
+    'The provided email does not match the currently logged in user’s email.',
+  ],
+  [
+    'notCurrentUserPassword',
+    "The provided password does not match the current user's password.",
+  ],
 ] as const);

@@ -58,7 +58,9 @@ export class FormTemplate {
           // Only show 'computer' if user is logged in
           options: this.#auth.user() ? ['computer', 'player'] : ['player'],
           baseValue:
-            (this.#auth.user() && this.#store.selectSignal(selectGameOpponent)()) ?? 'player',
+            (this.#auth.user() &&
+              this.#store.selectSignal(selectGameOpponent)()) ??
+            'player',
           valueType: 'string',
         },
         {
@@ -75,8 +77,8 @@ export class FormTemplate {
 
       /** Buttons for the form */
       buttons: [
-        { button: 'trigger', name: 'accept', triggerValue: 'form' },
-        { button: 'reject', name: 'reject' },
+        { button: 'trigger', name: 'Accept', triggerValue: 'form' },
+        { button: 'reject', name: 'Reject' },
       ],
 
       /** Title for the dialog */
@@ -102,8 +104,8 @@ export class FormTemplate {
     ],
 
     buttons: [
-      { button: 'accept', name: 'save' },
-      { button: 'reject', name: 'cancel' },
+      { button: 'accept', name: 'Save' },
+      { button: 'reject', name: 'Cancel' },
     ],
     title: 'Save game',
   };
@@ -164,10 +166,10 @@ export class FormTemplate {
     ],
 
     buttons: [
-      { button: 'trigger', name: 'login', triggerValue: 'form' },
+      { button: 'trigger', name: 'Login', triggerValue: 'form' },
       {
         button: 'trigger',
-        name: 'registration',
+        name: 'Registration',
         triggerValue: 'change:registration',
       },
       { button: 'reject', name: 'cancel' },
@@ -209,29 +211,112 @@ export class FormTemplate {
     ],
 
     buttons: [
-      { button: 'trigger', name: 'register', triggerValue: 'form' },
-      { button: 'trigger', name: 'login', triggerValue: 'change:login' },
-      { button: 'reject', name: 'cancel' },
+      { button: 'trigger', name: 'Register', triggerValue: 'form' },
+      { button: 'trigger', name: 'Login', triggerValue: 'change:login' },
+      { button: 'reject', name: 'Cancel' },
     ],
     title: 'Registration',
   };
 
+  /** Email change form structure */
+  readonly #emailChange: {
+    structure: FormField[];
+    buttons: DialogStructure['buttons'];
+    title: string;
+  } = {
+    title: 'Change email',
+    structure: [
+      {
+        key: 'email',
+        title: 'Old email',
+        type: 'email',
+        model: 'email',
+        errorKeys: ['required', 'invalidEmail', 'notCurrentUserEmail'],
+        valueType: 'string',
+      },
+      {
+        key: 'newEmail',
+        title: 'New email',
+        type: 'email',
+        model: 'newEmail',
+        errorKeys: ['required', 'invalidEmail', 'emailInUse'],
+        valueType: 'string',
+      },
+    ],
+    buttons: [
+      { button: 'trigger', name: 'Change', triggerValue: 'form' },
+      { button: 'reject', name: 'Back' },
+    ],
+  };
+
+  /** Password change form structure */
+  readonly #passwordChange: {
+    structure: FormField[];
+    buttons: DialogStructure['buttons'];
+    title: string;
+  } = {
+    title: 'Change password',
+    structure: [
+      {
+        key: 'password',
+        title: 'Old password',
+        type: 'password',
+        model: 'password',
+        errorKeys: ['required', 'shortPassword', 'notCurrentUserPassword'],
+        valueType: 'string',
+      },
+      {
+        key: 'newPassword',
+        title: 'New password',
+        type: 'password',
+        model: 'newPassword',
+        errorKeys: ['required', 'shortPassword'],
+        valueType: 'string',
+      },
+      {
+        key: 'rePassword',
+        title: 'New password again',
+        type: 'password',
+        model: 'rePassword',
+        errorKeys: ['required', 'shortPassword'],
+        valueType: 'string',
+      },
+    ],
+    buttons: [
+      { button: 'trigger', name: 'Change', triggerValue: 'form' },
+      { button: 'reject', name: 'Back' },
+    ],
+  };
+
   /** Map linking form field keys to their structures, buttons and title */
-  #formFieldMap = computed(() => new Map<
-    FieldKey,
-    { structure: FormField[]; buttons: DialogStructure['buttons']; title: string }
-  >([
-    ['game_setting', this.#gameSettingsStructure()],
-    ['save', this.#saveStructure],
-    ['setting', this.#settingStructure],
-    ['login', this.#loginStructure],
-    ['registration', this.#registrationStructure],
-  ]));
+  #formFieldMap = computed(
+    () =>
+      new Map<
+        FieldKey,
+        {
+          structure: FormField[];
+          buttons: DialogStructure['buttons'];
+          title: string;
+        }
+      >([
+        ['game_setting', this.#gameSettingsStructure()],
+        ['save', this.#saveStructure],
+        ['setting', this.#settingStructure],
+        ['login', this.#loginStructure],
+        ['registration', this.#registrationStructure],
+        ['email_change', this.#emailChange],
+        ['password_change', this.#passwordChange],
+      ])
+  );
 
   /** Returns the current field map */
   get formFieldMap(): Map<
     FieldKey,
-    { structure: FormField[]; buttons: DialogStructure['buttons']; title: string }
+    {
+      structure: FormField[];
+      buttons: DialogStructure['buttons'];
+      title: string;
+    }
   > {
     return this.#formFieldMap();
   }

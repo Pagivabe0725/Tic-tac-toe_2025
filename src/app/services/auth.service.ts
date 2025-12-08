@@ -68,7 +68,7 @@ export class Auth {
       null,
       {
         initialDelay: 50,
-        maxRetries: 3
+        maxRetries: 3,
       }
     );
     return result?.user ?? undefined;
@@ -158,14 +158,49 @@ export class Auth {
     );
   }
 
+  /**
+   * Retrieves a user by their unique identifier and updates
+   * the local user signal with the fetched user data.
+   *
+   * This method sends a request to the backend to fetch a user using
+   * the provided userId, then stores the result in the internal
+   * writable signal for reactive state updates.
+   *
+   * @param userId - The unique identifier of the user to retrieve.
+   */
   async setUserById(userId: string): Promise<void> {
-    console.log(userId)
     const user = await this.#httpHandler.request<User>(
       'post',
       'users/get-user-by-identifier',
       { userId }
     );
-    console.log('setUser: ', user)
-    this.#user.set(user);
+    if (user) this.#user.set(user);
+  }
+
+  /**
+   * Validates whether the given password matches the currently
+   * logged-in user's stored password.
+   *
+   * If no user is available in the local signal, the method
+   * returns `undefined` to indicate that the validation
+   * could not be performed.
+   *
+   * Sends the userId and password to the backend, which performs
+   * the secure comparison on the server side.
+   *
+   * @param password - The password to validate.
+   * @returns A boolean indicating whether the password matches,
+   *          or `undefined` if no user is currently loaded.
+   */
+  async isCurrentUserPassword(password: string): Promise<boolean | undefined> {
+    if (!this.user()) return undefined;
+    const result = await this.#httpHandler.request<{ isEqual: boolean }>(
+      'post',
+      'users/check-password',
+      { userId: this.user()!.userId, password },
+      { maxRetries: 3, initialDelay: 100 }
+    );
+
+    return result?.isEqual;
   }
 }

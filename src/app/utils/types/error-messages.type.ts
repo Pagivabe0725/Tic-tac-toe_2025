@@ -1,4 +1,4 @@
-import { ERROR_MESSAGES } from "../interfaces/error-message.interface";
+import { ERROR_MESSAGES } from "../constants/error-message.constant";
 
 /**
  * Represents the valid error keys (e.g., "required", "invalidEmail").

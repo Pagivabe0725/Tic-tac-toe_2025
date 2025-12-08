@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { AbstractControl } from '@angular/forms';
 import { Auth } from './auth.service';
 import { ErrorKeys, ErrorValues } from '../utils/types/error-messages.type';
-import { ERROR_MESSAGES } from '../utils/interfaces/error-message.interface';
+import { ERROR_MESSAGES } from '../utils/constants/error-message.constant';
 
 /**
  * A service for managing and applying form validation errors.
@@ -104,7 +104,7 @@ export class FormError {
    */
   async markAsEmailInUse(control: AbstractControl): Promise<void> {
     const value = control.value;
-    if ( value && (await this.#auth.isUsedEmail(value))) {
+    if (value && (await this.#auth.isUsedEmail(value))) {
       this.addErrorToControl(control, 'emailInUse');
     }
   }
@@ -123,6 +123,44 @@ export class FormError {
     const value = control.value;
     if (value && !(await this.#auth.isUsedEmail(value))) {
       this.addErrorToControl(control, 'emailDoesNotExist');
+    }
+  }
+
+  /**
+   * Validates whether the entered email matches the currently logged-in user's email.
+   *
+   * If the control has a value and it does not match the authenticated user's
+   * email address, a `notCurrentUserEmail` validation error is added to the control.
+   *
+   * This is typically used when verifying user identity before sensitive actions
+   * such as email change or account deletion.
+   *
+   * @param control - The form control whose value is being validated.
+   */
+  markAsNotCurrentUserEmail(control: AbstractControl): void {
+    const value = control.value;
+    if (value && value !== this.#auth.user()?.email) {
+      this.addErrorToControl(control, 'notCurrentUserEmail');
+    }
+  }
+
+  /**
+   * Asynchronously validates whether the entered password matches the
+   * currently logged-in user's password.
+   *
+   * If the control has a value and it does not match the authenticated user's
+   * password, a `notCurrentUserPassword` validation error is added to the control.
+   *
+   * This is typically used when verifying user identity before sensitive actions
+   * such as password change or account deletion.
+   *
+   * @param control - The form control whose value is being validated.
+   */
+  async markAsNotCurrentUserPassword(control: AbstractControl): Promise<void> {
+    console.log('TEST');
+    const value = control.value;
+    if (value && !(await this.#auth.isCurrentUserPassword(value))) {
+      this.addErrorToControl(control, 'notCurrentUserPassword');
     }
   }
 
