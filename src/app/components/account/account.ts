@@ -2,7 +2,6 @@ import {
   Component,
   effect,
   inject,
-  OnDestroy,
   OnInit,
   Signal,
   signal,
@@ -11,40 +10,41 @@ import {
 import { Store } from '@ngrx/store';
 import { modifyGameInfo } from '../../store/actions/game-info-modify.action';
 import { Auth } from '../../services/auth.service';
-import { ActivatedRoute, Router } from '@angular/router';
 import { AccountHeader } from './account-header/account-header';
-import { Loader } from './loader/loader';
-
+import { GameHandler } from './game-handler/game-handler';
 import { SavedGame } from '../../utils/interfaces/saved-game.interface';
 import { Http } from '../../services/http.service';
-import { modifyGameSettings } from '../../store/actions/game-settings-modify.action';
-import { Subscription } from 'rxjs';
 import { User } from '../../utils/interfaces/user.interface';
-import { Functions } from '../../services/functions.service';
 import { savedGameStatus } from '../../utils/types/game-status.type';
 import { Operations } from './operations/operations';
 import { order } from '../../utils/types/order.type';
+import { RouterService } from '../../services/router.service';
 
 @Component({
   selector: 'app-account',
-  imports: [AccountHeader, Loader, Operations],
+  imports: [AccountHeader, GameHandler, Operations],
   templateUrl: './account.html',
   styleUrl: './account.scss',
 })
-export class Account implements OnInit, OnDestroy {
+export class Account implements OnInit {
+  /** NgRx store instance for dispatching and selecting application state */
   #store: Store = inject(Store);
+
+  /** Auth service to get current user and authentication state */
   #auth: Auth = inject(Auth);
+
+  /** Http service for making HTTP/GraphQL requests to the backend */
   #http: Http = inject(Http);
-  #router: Router = inject(Router);
-  #activatedRoute: ActivatedRoute = inject(ActivatedRoute);
-  #helperFunctions: Functions = inject(Functions);
-  #paramSub?: Subscription;
+
+  /** RouterService for programmatic navigation and reactive query param tracking */
+  #routerHandler: RouterService = inject(RouterService);
 
   /** Signal holding the current logged-in user */
   protected user!: Signal<User>;
 
   /** Signal holding the saved games for the current page */
-  protected savedGames: WritableSignal<SavedGame[] | undefined> = signal(undefined);
+  protected savedGames: WritableSignal<SavedGame[] | undefined> =
+    signal(undefined);
 
   /** Current page number in pagination */
   protected page: WritableSignal<number> = signal(1);
@@ -61,33 +61,40 @@ export class Account implements OnInit, OnDestroy {
   constructor() {
     /** Redirects to main page if no user is logged in */
     effect(() => {
-      if (!this.#auth.user()) this.#router.navigateByUrl('/tic-tac-toe');
+      if (!this.#auth.user()) this.#routerHandler.navigateTo(['tic-tac-toe']);
+    });
+
+    /**
+     * Reactive effect that monitors query parameters from the URL
+     * and updates the page, filter, and order signals accordingly.
+     * Also triggers a reload of saved games whenever any relevant
+     * query parameter changes.
+     */
+    effect(() => {
+      const params = this.#routerHandler.queryParams();
+      if(params){
+        // Update the current page based on query params
+        this.page.set(Number(params['page']) || 1);
+
+        // Update the active game status filter from query params
+        this.filter.set(params['filter'] ?? null);
+
+        // Update the ordering option from query params
+        this.order.set(params['order'] ?? 'time-desc');
+
+        // Reload games whenever page, filter, or order changes
+        this.loadSavedGames();
+      }
     });
   }
 
-  /** Initializes the component, sets user signal and subscribes to query params */
+  /** Initializes the component, sets user signal and dispatches initial store actions */
   async ngOnInit(): Promise<void> {
+    // Reset any modified game info in the store
     this.#store.dispatch(modifyGameInfo({ winner: undefined }));
+
+    // Set the current user signal from Auth service
     this.user = this.#auth.user as Signal<User>;
-    this.initializeParamSub();
-  }
-
-  /** Cleanup on component destroy */
-  ngOnDestroy(): void {
-    this.#paramSub?.unsubscribe();
-  }
-
-  /**
-   * Subscribes to query parameters (page, filter, order) and reloads saved games
-   */
-  initializeParamSub(): void {
-    this.#paramSub?.unsubscribe();
-    this.#paramSub = this.#activatedRoute.queryParams.subscribe(params => {
-      this.page.set(Number(params['page']) || 1);
-      this.filter.set(params['filter'] ?? null);
-      this.order.set(params['order'] ?? 'time-desc');
-      this.loadSavedGames();
-    });
   }
 
   /**
@@ -128,6 +135,7 @@ export class Account implements OnInit, OnDestroy {
       variables: {
         userId,
         page,
+        // Map our order signal into GraphQL compatible format
         order: order.includes('asc') ? 'asc' : 'desc',
         orderField: order.includes('time') ? 'updatedAt' : 'name',
         status,
@@ -136,9 +144,14 @@ export class Account implements OnInit, OnDestroy {
   }
 
   /**
-   * Loads saved games for the current user based on page, filter, and order
+   * Loads saved games for the current user based on page, filter, and order.
+   *
+   * - Builds the GraphQL request body
+   * - Sends HTTP POST request to the backend
+   * - Updates `savedGames` and `pageCount` signals based on response
+   * - Handles missing or empty results gracefully
    */
-  private async loadSavedGames() {
+  protected async loadSavedGames() {
     const body = this.createGamesQueryBody(
       this.#auth.user()!.userId,
       this.page(),
@@ -146,6 +159,7 @@ export class Account implements OnInit, OnDestroy {
       this.filter()
     );
 
+    // Send GraphQL request with retry mechanism
     const result = await this.#http.request<SavedGame[]>(
       'post',
       'graphql/game',
@@ -153,79 +167,19 @@ export class Account implements OnInit, OnDestroy {
       { maxRetries: 3, initialDelay: 100 }
     );
 
+    // Extract data from response
     const gamesData = (result as any)?.data?.games;
+
     if (!gamesData) {
+      // No games returned: reset pageCount and savedGames
       this.pageCount.set(0);
       return this.savedGames.set(undefined);
     }
 
+    // Update savedGames signal with fetched games
     this.savedGames.set(gamesData.games);
+
+    // Calculate total pages based on count (assuming 10 games per page)
     this.pageCount.set(Math.ceil(gamesData.count / 10));
-  }
-
-  /**
-   * Calculates the number of moves already made on a game board
-   * @param board - 2D array representing the game board
-   * @returns Number of non-empty cells (moves)
-   */
-  private calculateActualStep(board: string[][]) {
-    return board.reduce(
-      (acc, row) => acc + row.reduce((rowAcc, cell) => rowAcc + (cell !== '' ? 1 : 0), 0),
-      0
-    );
-  }
-
-  /**
-   * Deletes a saved game by ID
-   * @param id - The ID of the game to delete
-   */
-  protected async deleteGame(id: string) {
-    const body = {
-      query: `
-        mutation deleteGame($gameId: ID!, $userId: ID!) {
-          deleteGame(gameId: $gameId, userId: $userId) { gameId }
-        }
-      `,
-      variables: {
-        gameId: id,
-        userId: this.#auth.user()!.userId,
-      },
-    };
-
-    const result = await this.#http.request<{ deleteGame: { gameId: string } }>(
-      'post',
-      'graphql/game',
-      body,
-      { maxRetries: 3, initialDelay: 100 }
-    );
-
-    if ((result as any)?.data?.deleteGame?.gameId) {
-      this.savedGames.set(this.savedGames()?.filter(g => g.gameId !== id));
-    }
-  }
-
-  /**
-   * Loads a saved game into the current game state
-   * @param id - The ID of the game to load
-   */
-  protected loadGame(id: string) {
-    const chosenGame = this.savedGames()?.find(game => game.gameId === id);
-    if (!chosenGame) return;
-
-    this.#store.dispatch(modifyGameSettings({
-      size: chosenGame.size,
-      opponent: chosenGame.opponent,
-      hardness: this.#helperFunctions.difficultyToNumber(chosenGame.difficulty),
-    }));
-
-    const actualStep = this.calculateActualStep(chosenGame.board);
-    this.#store.dispatch(modifyGameInfo({
-      actualBoard: chosenGame.board,
-      actualStep,
-      actualMarkup: actualStep % 2 === 0 ? 'o' : 'x',
-      lastMove: chosenGame.lastMove,
-    }));
-
-    this.#router.navigateByUrl('/tic-tac-toe');
   }
 }

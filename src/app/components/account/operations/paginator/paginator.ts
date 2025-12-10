@@ -7,7 +7,8 @@ import {
   output,
   OutputEmitterRef,
 } from '@angular/core';
-import { Router } from '@angular/router';
+import { Params, QueryParamsHandling, Router } from '@angular/router';
+import { RouterService } from '../../../../services/router.service';
 
 @Component({
   selector: 'div[appPaginator]',
@@ -16,26 +17,49 @@ import { Router } from '@angular/router';
   styleUrl: './paginator.scss',
 })
 export class Paginator {
-  /** Router instance used to update the page through query parameters. */
-  #router: Router = inject(Router);
+  /**
+   * Emits navigation-related parameter changes to the parent component.
+   *
+   * Triggered exclusively when the current page is changed
+   * by user interaction through this component.
+   *
+   * The emitted object can contain:
+   * - path: Target route segments
+   * - queryParams: Updated query parameters
+   * - queryParamsHandling: Strategy for query parameter merging
+   */
+  changeParamsEvent: OutputEmitterRef<{
+    path: string[];
+    queryParams?: Params;
+    queryParamsHandling?: QueryParamsHandling;
+  }> = output();
 
   /**
-   * The currently active page.
-   * Provided by the parent component.
+   * The currently active page number.
+   *
+   * This value is provided by the parent component
+   * through a required signal-based input.
    */
   page: InputSignal<number> = input.required();
 
   /**
-   * Total number of pages available.
-   * Determines valid pagination boundaries.
+   * Total number of available pages.
+   *
+   * Used to determine valid upper bounds for pagination
+   * and to prevent navigation to non-existing pages.
    */
   pageCount: InputSignal<number> = input.required();
 
   /**
-   * Attempts to update the current page.
-   * The update happens only if the given value is within valid bounds.
+   * Validates and attempts to update the current page.
    *
-   * @param value - The target page number.
+   * Ensures the new page number is:
+   * - greater than or equal to 1
+   * - less than or equal to the maximum page count
+   *
+   * Only valid values trigger an actual page change.
+   *
+   * @param value - The target page number selected by the user.
    */
   setPage(value: number) {
     if (value >= 1 && value <= this.pageCount()) {
@@ -44,13 +68,16 @@ export class Paginator {
   }
 
   /**
-   * Navigates to the specified page by updating the `page`
-   * query parameter, while keeping existing parameters intact.
+   * Emits a navigation event that updates the `page` query parameter.
    *
-   * @param value - The page number to navigate to.
+   * Uses `merge` query params handling to preserve
+   * any existing, unrelated query parameters.
+   *
+   * @param value - The validated page number to navigate to.
    */
   changePage(value: number) {
-    this.#router.navigate([], {
+    this.changeParamsEvent.emit({
+      path: ['account'],
       queryParams: { page: value },
       queryParamsHandling: 'merge',
     });

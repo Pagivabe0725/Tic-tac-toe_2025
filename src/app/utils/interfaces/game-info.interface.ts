@@ -32,7 +32,7 @@ export interface GameInfo {
    * The currently active player's markup.
    * Determines whose turn it is: 'x' or 'o'.
    */
-  actualMarkup?: 'x' | 'o' ;
+  actualMarkup?: 'x' | 'o';
 
   /**
    * Sequential index of the current move.
@@ -63,7 +63,7 @@ export interface GameInfo {
 
   /**
    * Tracks cumulative thinking/decision time for each player in the current game.
-   * Units can be seconds, milliseconds, or as defined by the app's timing logic.
+   * Units can be seconds, milliseconds, or as def  ined by the app's timing logic.
    *
    *  - `player_X`: Total time spent by Player X
    *  - `player_O`: Total time spent by Player O
@@ -78,4 +78,12 @@ export interface GameInfo {
    * Can be 'x', 'o', 'draw', or `null` if the game is ongoing.
    */
   winner?: 'x' | 'o' | 'draw' | null;
+
+  /**
+   * Name of the loaded game session. When a game is loaded from
+   * storage or from a saved session, this property contains its name.
+   * If `undefined`, the current game has not been loaded from a
+   * named session.
+   */
+  loadedGameName?: string;
 }

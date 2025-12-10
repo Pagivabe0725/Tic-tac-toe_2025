@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { Loader } from './loader';
+import { Loader } from './game-handler';
 
 describe('Loader', () => {
   let component: Loader;

@@ -76,7 +76,6 @@ export class RouterService {
       /** Update the queryParams signal whenever query params change. */
       .subscribe((params) => {
         this.#queryParams.set(params);
-        console.log('Query Params:', this.#queryParams());
       });
 
     /** Unsubscribe from router events when the service is destroyed. */
@@ -92,12 +91,12 @@ export class RouterService {
    * @param queryParamsHandling Optional queryParamsHandling mode.
    */
   navigateTo(
-    path: string,
+    path: string[],
     queryParams?: Params,
     queryParamsHandling?: QueryParamsHandling
   ): void {
-    this.#router.navigate([path], {
-      ...(queryParams ? { queryParams } : {}),
+    this.#router.navigate(path, {
+      ...(queryParams ? { queryParams:{...queryParams} } : {}),
       ...(queryParamsHandling ? { queryParamsHandling } : {}),
     });
   }

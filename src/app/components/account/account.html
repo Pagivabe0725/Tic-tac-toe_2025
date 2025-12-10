@@ -13,9 +13,8 @@
   ></section>
 
   <section
-    appLoader
+    appGameHandler
     [savedGames]="savedGames()"
-    (deleteEvent)="deleteGame($event)"
-    (loadeEvent)="loadGame($event)"
+    (deletedGameEvent)="loadSavedGames()"
   ></section>
 </div>

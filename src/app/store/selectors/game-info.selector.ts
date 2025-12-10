@@ -113,3 +113,17 @@ export const selectGameWinner = createSelector(
   selectGameInfo,
   (state) => state.winner
 );
+
+/**
+ * @selector selectLoadedGameName
+ * Returns the name of a loaded/saved game session, if any.
+ *
+ * This value is set when a saved game is loaded.
+ * It will be `undefined` when the current game was not loaded.
+ */
+export const selectLoadedGameName = createSelector(
+  selectGameInfo,
+  (state) => state.loadedGameName
+);
+
+

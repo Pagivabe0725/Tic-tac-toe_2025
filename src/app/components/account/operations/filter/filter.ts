@@ -9,7 +9,8 @@ import {
 import { SAVED_GAME_STATUSES } from '../../../../utils/constants/saved-game-status.constant';
 import { savedGameStatus } from '../../../../utils/types/game-status.type';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { RouterService } from '../../../../services/router.service';
+import { Params, QueryParamsHandling } from '@angular/router';
 
 @Component({
   selector: 'div[appFilter]',
@@ -29,27 +30,48 @@ import { Router } from '@angular/router';
   styleUrl: './filter.scss',
 })
 export class Filter {
-  /** Router instance used to update the `filter` query parameter. */
-  #router: Router = inject(Router);
+
+  /**
+   * Event emitter used to notify the parent component about changes
+   * in routing-related parameters caused by filter updates.
+   *
+   * Emits an object containing:
+   * - path: The target route segments
+   * - queryParams: Updated query parameters
+   * - queryParamsHandling: Strategy for merging query params
+   */
+  changeParamsEvent: OutputEmitterRef<{
+    path: string[];
+    queryParams?: Params;
+    queryParamsHandling?: QueryParamsHandling;
+  }> = output();
 
   /**
    * The currently active saved-game status filter.
-   * Provided by the parent component.
+   * Provided by the parent component through a signal-based input.
    */
   filter: InputSignal<savedGameStatus | null> = input.required();
 
   /**
-   * List of allowed filter options.
-   * Includes a `null` value representing "no filter".
+   * List of selectable filter values.
+   *
+   * - Contains all valid `savedGameStatus` values.
+   * - Explicitly includes `null` to represent the "no filter" state.
    */
   protected options = [null, ...SAVED_GAME_STATUSES];
 
   /**
    * Validates and applies the selected filter value.
-   * Converts string input into the appropriate `savedGameStatus` type.
    *
-   * @param value - The raw filter value from the UI.
-   * @throws Error if the value is not a valid status.
+   * Handles the string-based values coming from the `<select>` element
+   * and converts them into the appropriate strongly-typed
+   * `savedGameStatus | null` value before delegating to `changeFilter`.
+   *
+   * @param value - The raw filter value from the UI element.
+   *
+   * @throws Error
+   * Thrown when the value does not match any known `savedGameStatus`
+   * and is not the special `null` marker.
    */
   setFilter(value: string): void {
     if (value === 'null') {
@@ -62,13 +84,17 @@ export class Filter {
   }
 
   /**
-   * Updates the filter by modifying query parameters.
-   * Resets pagination to page 1 whenever a new filter is applied.
+   * Emits a route update event based on the selected filter.
    *
-   * @param value - The new filter value (`null` means "no filter").
+   * - Resets the `page` query parameter to `1` whenever the filter changes.
+   * - Uses `merge` query params handling to preserve unrelated parameters.
+   *
+   * @param value - The validated filter value or `null` for no filter.
    */
   changeFilter(value: savedGameStatus | null) {
-    this.#router.navigate([], {
+    console.log('SOMETHING')
+    this.changeParamsEvent.emit({
+      path: ['account'],
       queryParams: { filter: value, page: 1 },
       queryParamsHandling: 'merge',
     });

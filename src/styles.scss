@@ -92,6 +92,7 @@ form {
       accent-color: var(--p-10);
     }
     input[type="text"],
+    input[type="email"],
     input[type="password"] {
       width: 90%;
       font-size: max(15px, 1.4vw);
@@ -122,7 +123,7 @@ form {
       -webkit-appearance: none;
       -moz-appearance: none;
       appearance: none;
-      //border: none;
+      border: none;
 
       border-radius: 1000px;
 

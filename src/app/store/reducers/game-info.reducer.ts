@@ -5,6 +5,7 @@ import { GameInfo } from '../../utils/interfaces/game-info.interface';
 import { modifyGameInfo } from '../actions/game-info-modify.action';
 import { reserGameInfo } from '../actions/game-info-reset.action';
 import { storageCleaner } from '../../utils/functions/storage-cleaner.function';
+import { resetGameInfoResults } from '../actions/game-info-results-reset.action';
 
 /**
  * Initial state for the GameInfo feature.
@@ -71,16 +72,33 @@ const INITIAL_STATE: GameInfo = {
     'sessionStorage'
   ),
 
+  /**
+   * Stores the total time spent by each player.
+   * Restored from sessionStorage if available, otherwise defaults to 0.
+   */
   playerSpentTime: parseFromStorage<GameInfo['playerSpentTime']>(
     `${STORAGE_PREFIX}playerSpentTime`,
     'sessionStorage'
   ) ?? { player_X: 0, player_O: 0 },
 
+  /**
+   * Stores the winner of the current game ('x', 'o', or null if no winner).
+   * Restored from sessionStorage if available.
+   */
   winner:
     parseFromStorage<GameInfo['winner']>(
       `${STORAGE_PREFIX}winner`,
       'sessionStorage'
     ) ?? null,
+
+  /**
+   * Name of the loaded/saved game.
+   * Used when restoring a previously saved game from storage.
+   */
+  loadedGameName: parseFromStorage<GameInfo['loadedGameName']>(
+    `${STORAGE_PREFIX}loadedGameName`,
+    'sessionStorage'
+  ),
 };
 
 /**
@@ -124,7 +142,8 @@ export const gameInfoReducer = createReducer(
       'playerSpentTime',
       'results',
       'started',
-      'winner'
+      'winner',
+      'loadedGameName'
     );
 
     // Return the cleared game state (fresh, pre-game state)
@@ -137,6 +156,30 @@ export const gameInfoReducer = createReducer(
       winner: undefined,
       playerSpentTime: { player_X: 0, player_O: 0 },
       lastMove: undefined,
+    };
+  }),
+
+  /**
+   * Resets only the game result statistics.
+   * Clears stored win/lose/draw counters both from the state and from sessionStorage.
+   *
+   * This action does NOT affect the current game board, steps, or winner state,
+   * only the historical results data.
+   */
+  on(resetGameInfoResults, (state) => {
+    // Clean related values from sessionStorage to prevent stale data after reset
+    storageCleaner('sessionStorage', true, 'playerSpentTime');
+
+    // Return state with reset results but keep all other game state intact
+    return {
+      ...state,
+      results: {
+        player_O_Lose: 0,
+        player_X_Lose: 0,
+        draw: 0,
+        player_X_Win: 0,
+        player_O_Win: 0,
+      },
     };
   })
 );

@@ -2,12 +2,12 @@
 
 <div>
   <div id="own-loader-wrapper-div">
-    @if (savedGames?.length) {
-      @for (game of savedGames; track $index) {
+    @if (savedGames()?.length) {
+      @for (game of savedGames(); track $index) {
 
       <app-game-element 
         [gameDatas]="game"
-        (deleteEvent)="delete($event)"
+        (deleteEvent)="deleteGame($event)"
         (loadeEvent)="loadGame($event)"
         />
       }

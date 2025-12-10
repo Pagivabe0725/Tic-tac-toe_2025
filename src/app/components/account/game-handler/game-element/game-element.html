@@ -1,7 +1,7 @@
 <div>
   <div class="own-game-element-title-div">
     <span>Name:</span>
-    <span>{{gameDatas().name}}</span>
+    <span #name_span contenteditable (blur)="changeName(name_span.innerText)">{{gameDatas().name}}</span>
   </div>
   <div class="own-game-element-title-div">
     <span>Size:</span>

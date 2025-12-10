@@ -104,7 +104,7 @@ export class FormTemplate {
     ],
 
     buttons: [
-      { button: 'accept', name: 'Save' },
+      { button: "trigger", name: 'Save', triggerValue:'form' },
       { button: 'reject', name: 'Cancel' },
     ],
     title: 'Save game',
@@ -150,7 +150,7 @@ export class FormTemplate {
       {
         key: 'email',
         title: 'Email Address',
-        type: 'text',
+        type: 'email',
         model: 'email',
         errorKeys: ['required', 'invalidEmail', 'emailDoesNotExist'],
         valueType: 'string',
@@ -187,7 +187,7 @@ export class FormTemplate {
       {
         key: 'email',
         title: 'Email Address',
-        type: 'text',
+        type: 'email',
         model: 'email',
         errorKeys: ['required', 'invalidEmail', 'emailInUse'],
         valueType: 'string',
