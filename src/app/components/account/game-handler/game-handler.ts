@@ -2,7 +2,6 @@ import {
   Component,
   inject,
   input,
-  Input,
   InputSignal,
   output,
   OutputEmitterRef,
@@ -15,9 +14,9 @@ import { Store } from '@ngrx/store';
 import { Functions } from '../../../services/functions.service';
 import { modifyGameSettings } from '../../../store/actions/game-settings-modify.action';
 import { modifyGameInfo } from '../../../store/actions/game-info-modify.action';
-import { Router } from '@angular/router';
 import { Auth } from '../../../services/auth.service';
 import { RouterService } from '../../../services/router.service';
+import { SnackBarHandler } from '../../../services/snack-bar-handler.service';
 
 @Component({
   selector: 'section[appGameHandler]',
@@ -47,6 +46,9 @@ export class GameHandler {
   /** Dialog handler service for showing confirmation/modals */
   #dialogHandler: DialogHandler = inject(DialogHandler);
 
+  /** Snackbar service for showing feedback messages */
+  #snackbar: SnackBarHandler = inject(SnackBarHandler);
+
   /** Output signal to notify parent component about deleted game ID */
   deletedGameEvent: OutputEmitterRef<string> = output();
 
@@ -67,7 +69,7 @@ export class GameHandler {
    * Loads a saved game into the current game state
    * @param id - The ID of the game to load
    */
-  protected async loadGame(id: string) {
+  protected async loadGame(id: string): Promise<void> {
     const chosenGame = this.savedGames()?.find((game) => game.gameId === id);
     const dialogResult = await this.#dialogHandler.open<true | 'CLOSE_EVENT'>(
       'message',
@@ -98,7 +100,7 @@ export class GameHandler {
       modifyGameInfo({
         actualBoard: chosenGame.board,
         actualStep,
-        actualMarkup: actualStep % 2 === 0 ? 'o' : 'x',
+        actualMarkup: this.#helperFunctions.markupByStep(actualStep),
         lastMove: chosenGame.lastMove,
         loadedGameName: chosenGame.name,
       })
@@ -111,7 +113,7 @@ export class GameHandler {
    * Deletes a saved game by ID
    * @param id - The ID of the game to delete
    */
-  protected async deleteGame(id: string) {
+  protected async deleteGame(id: string): Promise<void> {
     const chosenGame = this.savedGames()?.find((game) => game.gameId === id);
     const dialogResult = await this.#dialogHandler.open<true | 'CLOSE_EVENT'>(
       'message',
@@ -138,12 +140,16 @@ export class GameHandler {
         },
       };
 
-      const result = await this.#http.request<{
-        deleteGame: { gameId: string };
-      }>('post', 'graphql/game', body, { maxRetries: 3, initialDelay: 100 });
+      try {
+        const result = await this.#http.request<{
+          deleteGame: { gameId: string };
+        }>('post', 'graphql/game', body, { maxRetries: 3, initialDelay: 100 });
 
-      if ((result as any)?.data?.deleteGame?.gameId) {
-        this.deletedGameEvent.emit(id);
+        if ((result as any)?.data?.deleteGame?.gameId) {
+          this.deletedGameEvent.emit(id);
+        }
+      } catch (error) {
+        this.#snackbar.addElement('Failed to delete game', true);
       }
     }
   }

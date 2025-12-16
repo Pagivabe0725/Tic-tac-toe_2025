@@ -17,7 +17,7 @@ export class DialogHandler {
   #actualContent: WritableSignal<DialogContent> = signal(undefined);
 
   /** Subject to emit dialog results. */
-  #dataSubject?: Subject<any | null> = undefined;
+  private dataSubject?: Subject<any | null> = undefined;
 
   /** Optional dialog metadata (title, buttons, etc.). */
   #dialogData?: DialogStructure;
@@ -58,7 +58,7 @@ export class DialogHandler {
    * @param data Dialog result to emit.
    */
   emitData<T>(data: T): void {
-    this.#dataSubject?.next(data);
+    this.dataSubject?.next(data);
     this.close();
   }
 
@@ -89,16 +89,16 @@ export class DialogHandler {
     content: DialogContent,
     datas?: DialogStructure
   ): Promise<T | null> {
-    if (this.#dataSubject) {
-      this.#dataSubject.next(null);
+    if (this.dataSubject) {
+      this.dataSubject.next(null);
     }
     this.#dialogData = datas;
     this.#actualContent.set(content);
-    this.#dataSubject = new Subject<any>();
+    this.dataSubject = new Subject<any>();
     this.lastContent = content;
 
     const result = await firstValueFrom(
-      this.#dataSubject.asObservable().pipe(take(1))
+      this.dataSubject.asObservable().pipe(take(1))
     );
     return result;
   }
@@ -110,11 +110,11 @@ export class DialogHandler {
    * - Resets current content and triggers.
    */
   close(): void {
-    this.#dataSubject?.next(null);
-    this.#dataSubject?.complete();
+    this.dataSubject?.next(null);
+    this.dataSubject?.complete();
     this.#emitTrigger?.subscribe();
     this.#emitTrigger = undefined;
-    this.#dataSubject = undefined;
+    this.dataSubject = undefined;
     this.#actualContent.set(undefined);
   }
 }

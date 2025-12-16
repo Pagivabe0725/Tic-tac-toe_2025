@@ -9,4 +9,4 @@ import { ORDERS } from '../constants/order.constant';
  * Equivalent to a union of:
  * 'alpha-asc' | 'alpha-desc' | 'time-asc' | 'time-desc'
  */
-export type order = (typeof ORDERS)[number];
+export type GameOrder = (typeof ORDERS)[number];

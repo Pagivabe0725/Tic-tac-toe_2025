@@ -1,6 +1,7 @@
 <button
   [class]="order() === 'alpha-desc' ? 'active-order-button' : ''"
   (click)="changeOrder('alpha-desc')"
+  name="alpha-desc"
 >
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
     <path
@@ -12,6 +13,7 @@
 <button
   [class]="order() === 'alpha-asc' ? 'active-order-button' : ''"
   (click)="changeOrder('alpha-asc')"
+  name="alpha-asc"
 >
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
     <path
@@ -23,6 +25,7 @@
 <button
   [class]="order() === 'time-desc' ? 'active-order-button' : ''"
   (click)="changeOrder('time-desc')"
+  name="time-desc"
 >
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
     <path
@@ -34,6 +37,7 @@
 <button
   [class]="order() === 'time-asc' ? 'active-order-button' : ''"
   (click)="changeOrder('time-asc')"
+   name="time-asc"
 >
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
     <path

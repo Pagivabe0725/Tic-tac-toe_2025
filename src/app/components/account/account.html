@@ -1,3 +1,4 @@
+@if (user()) {
 <div id="own-account-container-div">
   <section 
   appAccountHeader 
@@ -14,7 +15,10 @@
 
   <section
     appGameHandler
+    id="own-game-handler-section"
     [savedGames]="savedGames()"
     (deletedGameEvent)="loadSavedGames()"
   ></section>
 </div>
+
+}

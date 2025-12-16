@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+/* import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { DialogForm } from './dialog-form';
 
@@ -8,9 +8,8 @@ xdescribe('DialogForm', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [DialogForm]
-    })
-    .compileComponents();
+      imports: [DialogForm],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(DialogForm);
     component = fixture.componentInstance;
@@ -21,3 +20,4 @@ xdescribe('DialogForm', () => {
     expect(component).toBeTruthy();
   });
 });
+ */

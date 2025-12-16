@@ -1,14 +1,23 @@
 import {
   Component,
-  inject,
   input,
   InputSignal,
-  OnInit,
   output,
   OutputEmitterRef,
 } from '@angular/core';
 import { Params, QueryParamsHandling, Router } from '@angular/router';
 import { RouterService } from '../../../../services/router.service';
+
+/**
+ * @fileoverview
+ * Unit tests focusing on the behavioral correctness of the Paginator component.
+ *
+ * The tests verify:
+ * - Validation of page boundary conditions
+ * - Correct emission of pagination-related navigation parameters
+ * - Proper interaction between user-triggered page changes and emitted events
+ */
+
 
 @Component({
   selector: 'div[appPaginator]',
@@ -61,7 +70,7 @@ export class Paginator {
    *
    * @param value - The target page number selected by the user.
    */
-  setPage(value: number) {
+  protected setPage(value: number) {
     if (value >= 1 && value <= this.pageCount()) {
       this.changePage(value);
     }
@@ -75,7 +84,7 @@ export class Paginator {
    *
    * @param value - The validated page number to navigate to.
    */
-  changePage(value: number) {
+  private changePage(value: number) {
     this.changeParamsEvent.emit({
       path: ['account'],
       queryParams: { page: value },

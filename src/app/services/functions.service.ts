@@ -160,4 +160,18 @@ export class Functions {
         return value;
     }
   }
+
+  /**
+   * Determines the markup ('o' or 'x') based on the actual step number.
+   *
+   * Logic:
+   *  - If step is even → returns 'o'
+   *  - If step is odd → returns 'x'
+   *
+   * @param {number} step - The current step number in the game.
+   * @returns {'o' | 'x'} - The markup character representing the next player.
+   */
+  markupByStep(step: number): 'o' | 'x' {
+    return step % 2 === 0 ? 'o' : 'x';
+  }
 }

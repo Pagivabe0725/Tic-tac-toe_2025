@@ -17,7 +17,7 @@ import { Http } from '../../services/http.service';
 import { User } from '../../utils/interfaces/user.interface';
 import { savedGameStatus } from '../../utils/types/game-status.type';
 import { Operations } from './operations/operations';
-import { order } from '../../utils/types/order.type';
+import { GameOrder } from '../../utils/types/order.type';
 import { RouterService } from '../../services/router.service';
 
 @Component({
@@ -40,12 +40,11 @@ export class Account implements OnInit {
   #routerHandler: RouterService = inject(RouterService);
 
   /** Signal holding the current logged-in user */
-  protected user!: Signal<User>;
+  protected user!: Signal<User | undefined>;
 
   /** Signal holding the saved games for the current page */
   protected savedGames: WritableSignal<SavedGame[] | undefined> =
     signal(undefined);
-
   /** Current page number in pagination */
   protected page: WritableSignal<number> = signal(1);
 
@@ -56,7 +55,7 @@ export class Account implements OnInit {
   protected filter: WritableSignal<savedGameStatus | null> = signal(null);
 
   /** Sorting order (e.g., time-desc, name-asc) */
-  protected order: WritableSignal<order> = signal('time-desc');
+  protected order: WritableSignal<GameOrder> = signal('time-desc');
 
   constructor() {
     /** Redirects to main page if no user is logged in */
@@ -72,7 +71,7 @@ export class Account implements OnInit {
      */
     effect(() => {
       const params = this.#routerHandler.queryParams();
-      if(params){
+      if (params) {
         // Update the current page based on query params
         this.page.set(Number(params['page']) || 1);
 
@@ -98,6 +97,67 @@ export class Account implements OnInit {
   }
 
   /**
+   * Splits a GameOrder value into a backend-friendly
+   * sorting configuration object.
+   *
+   * The method:
+   * - maps the order prefix to a database field
+   * - extracts the sorting direction (`asc` | `desc`)
+   * - falls back to safe default values for invalid inputs
+   *
+   * Default behavior:
+   * - Missing or invalid order format → `{ field: 'updatedAt', order: 'desc' }`
+   * - Unknown field prefix           → `field = 'updatedAt'`
+   * - Invalid sort direction         → `order = 'desc'`
+   *
+   * Examples:
+   * - 'time-asc'     → { field: 'updatedAt', order: 'asc' }
+   * - 'alpha-desc'   → { field: 'name', order: 'desc' }
+   * - 'time-foo'     → { field: 'updatedAt', order: 'desc' }
+   * - 'invalid'      → { field: 'updatedAt', order: 'desc' }
+   *
+   * @param order - The incoming GameOrder value (e.g. 'time-asc')
+   * @returns An object containing the resolved field name and sort direction
+   */
+
+  private splitOrder(order: GameOrder): {
+    field: string;
+    order: 'asc' | 'desc';
+  } {
+    // Initialize result object
+    const result = {} as { field: string; order: 'asc' | 'desc' };
+
+    if (!order.includes('-')) {
+      return { field: 'updatedAt', order: 'desc' };
+    }
+
+    // Determine the sorting field based on the order prefix
+    switch (order.split('-')[0]) {
+      case 'time':
+        result.field = 'updatedAt';
+        break;
+
+      case 'alpha':
+        result.field = 'name';
+        break;
+
+      // Fallback to updatedAt for unexpected values
+      default:
+        result.field = 'updatedAt';
+    }
+
+    // Extract sorting direction from the order value
+
+    if (['asc', 'desc'].includes(order.split('-')[1])) {
+      result.order = order.split('-')[1] as 'asc' | 'desc';
+    } else {
+      result.order = 'desc';
+    }
+
+    return result;
+  }
+
+  /**
    * Creates the GraphQL query body for fetching saved games
    * @param userId - The current user's ID
    * @param page - Current page number
@@ -108,9 +168,10 @@ export class Account implements OnInit {
   private createGamesQueryBody(
     userId: string,
     page: number,
-    order: order,
+    order: GameOrder,
     status: savedGameStatus | null
-  ) {
+  ): object {
+    const orderElements = this.splitOrder(order);
     return {
       query: `
         query games($userId: ID!, $page: Int!, $order: Order, $orderField: OrderField!, $status: GameStatus) {
@@ -136,8 +197,8 @@ export class Account implements OnInit {
         userId,
         page,
         // Map our order signal into GraphQL compatible format
-        order: order.includes('asc') ? 'asc' : 'desc',
-        orderField: order.includes('time') ? 'updatedAt' : 'name',
+        order: orderElements.order,
+        orderField: orderElements.field,
         status,
       },
     };
@@ -151,7 +212,9 @@ export class Account implements OnInit {
    * - Updates `savedGames` and `pageCount` signals based on response
    * - Handles missing or empty results gracefully
    */
-  protected async loadSavedGames() {
+  protected async loadSavedGames(): Promise<void> {
+    if (!this.user()) return;
+
     const body = this.createGamesQueryBody(
       this.#auth.user()!.userId,
       this.page(),

@@ -11,11 +11,11 @@ import { savedGameStatus } from '../../../../utils/types/game-status.type';
 import { FormsModule } from '@angular/forms';
 import { RouterService } from '../../../../services/router.service';
 import { Params, QueryParamsHandling } from '@angular/router';
+import { SnackBarHandler } from '../../../../services/snack-bar-handler.service';
 
 @Component({
   selector: 'div[appFilter]',
   imports: [FormsModule],
-  // templateUrl: './filter.html',
   template: `
     <select
       #filter_select
@@ -30,6 +30,14 @@ import { Params, QueryParamsHandling } from '@angular/router';
   styleUrl: './filter.scss',
 })
 export class Filter {
+  /**
+   * Emits an error message to the parent component.
+   *
+   * The parent component is responsible for handling this message,
+   * typically by displaying it in a snackbar notification.
+   *
+   */
+  errorEvent: OutputEmitterRef<string> = output();
 
   /**
    * Event emitter used to notify the parent component about changes
@@ -61,25 +69,43 @@ export class Filter {
   protected options = [null, ...SAVED_GAME_STATUSES];
 
   /**
-   * Validates and applies the selected filter value.
+   * Validates and normalizes an incoming filter value.
    *
-   * Handles the string-based values coming from the `<select>` element
-   * and converts them into the appropriate strongly-typed
-   * `savedGameStatus | null` value before delegating to `changeFilter`.
+   * - Returns `null` if the value represents a null filter.
+   * - Returns the value if it is a valid `savedGameStatus`.
+   * - Throws an error if the value is invalid.
    *
-   * @param value - The raw filter value from the UI element.
-   *
-   * @throws Error
-   * Thrown when the value does not match any known `savedGameStatus`
-   * and is not the special `null` marker.
+   * @param value Incoming filter value as string.
+   * @returns A valid `savedGameStatus` or `null`.
+   * @throws Error If the value is not a valid filter option.
    */
-  setFilter(value: string): void {
+  private checkFilter(value: string): savedGameStatus | null {
     if (value === 'null') {
-      this.changeFilter(null);
+      return null;
     } else if (SAVED_GAME_STATUSES.includes(value as savedGameStatus)) {
-      this.changeFilter(value as savedGameStatus);
+      return value as savedGameStatus;
     } else {
       throw new Error(`Invalid status value : ${value}`);
+    }
+  }
+
+  /**
+   * Applies a new filter value after validation.
+   *
+   * Uses `checkFilter` to validate the incoming value and updates
+   * the filter state if valid. In case of failure, logs the error
+   * and shows a snackbar notification.
+   *
+   * @param value Incoming filter value as string.
+   */
+  protected setFilter(value: string): void {
+    try {
+      const newValue = this.checkFilter(value);
+
+      this.changeFilter(newValue);
+    } catch (error) {
+      console.error(error);
+      this.errorEvent.emit('Filter action failed')
     }
   }
 
@@ -91,8 +117,7 @@ export class Filter {
    *
    * @param value - The validated filter value or `null` for no filter.
    */
-  changeFilter(value: savedGameStatus | null) {
-    console.log('SOMETHING')
+  private changeFilter(value: savedGameStatus | null):void {
     this.changeParamsEvent.emit({
       path: ['account'],
       queryParams: { filter: value, page: 1 },

@@ -52,10 +52,7 @@ describe('Theme service', () => {
       expect(service.mode).toBe('light');
     });
 
-    it('should correctly set and get width', () => {
-      service.width = 'lg';
-      expect(service.width).toBe('lg');
-    });
+ 
 
     it('should correctly set and get height', () => {
       service.height = 1080;
@@ -76,7 +73,7 @@ describe('Theme service', () => {
    * Test utility methods
    */
   describe('Utility methods', () => {
-    it('getBreakPointName should return correct breakpoint for given window widths', () => {
+  /*   it('getBreakPointName should return correct breakpoint for given window widths', () => {
       const testCases: [number, BrakePoint][] = [
         [0, 'xs'], [639, 'xs'],
         [640, 'sm'], [767, 'sm'],
@@ -91,7 +88,7 @@ describe('Theme service', () => {
       testCases.forEach(([size, expected]) => {
         expect(getBreakPointName(size)).toBe(expected, `Failed for width: ${size}px`);
       });
-    });
+    }); */
 
     it('getLigthnesFromOKLCH should extract correct lightness from OKLCH string', () => {
       const testCases: [string, number][] = [

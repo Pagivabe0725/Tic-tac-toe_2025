@@ -12,9 +12,10 @@ import { savedGameStatus } from '../../../utils/types/game-status.type';
 import { Filter } from './filter/filter';
 import { Paginator } from './paginator/paginator';
 import { Order } from './order/order';
-import { order } from '../../../utils/types/order.type';
+import { GameOrder } from '../../../utils/types/order.type';
 import { RouterService } from '../../../services/router.service';
 import { Params, QueryParamsHandling } from '@angular/router';
+import { SnackBarHandler } from '../../../services/snack-bar-handler.service';
 
 @Component({
   selector: 'section[appOperations]',
@@ -24,6 +25,7 @@ import { Params, QueryParamsHandling } from '@angular/router';
       appFilter
       [filter]="filter()"
       (changeParamsEvent)="navigate($event)"
+      (errorEvent)="handleErrors($event)"
     ></div>
 
     <div
@@ -37,12 +39,17 @@ import { Params, QueryParamsHandling } from '@angular/router';
       appOrder
       [order]="order()"
       (changeParamsEvent)="navigate($event)"
+      (errorEvent)="handleErrors($event)"
     ></div>
   `,
   styleUrl: './operations.scss',
 })
 export class Operations {
+  /** Manages navigation and provides reactive access to current route and query parameters */
   #router: RouterService = inject(RouterService);
+
+  /** Snackbar service for showing feedback messages */
+  #snackbar: SnackBarHandler = inject(SnackBarHandler);
 
   /**
    * Current page number used for pagination.
@@ -66,9 +73,9 @@ export class Operations {
    * Sorting order for the game list
    * (e.g., 'time-asc', 'time-desc', 'name-asc', 'name-desc').
    */
-  order: InputSignal<order> = input.required();
+  order: InputSignal<GameOrder> = input.required();
 
-   /**
+  /**
    * Handles navigation requests emitted by child components (Filter, Paginator, Order).
    *
    * Triggered whenever the user:
@@ -89,9 +96,6 @@ export class Operations {
     queryParams?: Params;
     queryParamsHandling?: QueryParamsHandling;
   }) {
-    console.log('NAVIGATE');
-    console.log(value);
-
     // Delegate navigation to the centralized RouterService
     this.#router.navigateTo(
       value.path,
@@ -100,4 +104,20 @@ export class Operations {
     );
   }
 
+  /**
+   * Handles error messages propagated from child components.
+   *
+   * This method is responsible for:
+   *  - Logging the error message to the console for debugging purposes
+   *  - Displaying the error message to the user via a snackbar notification
+   *
+   * The incoming error message originates from child components
+   * and represents a user-facing error state that requires feedback.
+   *
+   * @param errorMessage - The error message emitted by a child component.
+   */
+  protected handleErrors(errorMessage: string): void {
+    console.error(errorMessage);
+    this.#snackbar.addElement(errorMessage, true);
+  }
 }

@@ -7,7 +7,7 @@ import { provideZonelessChangeDetection } from '@angular/core';
  * Unit tests for the {@link DialogHandler} service.
  *
  * This suite verifies:
- * - Getter/setter synchronization for the `activeContent` signal
+ * - Getter/setter synchronization for the `actualContent` signal
  * - Correct behavior of public methods: `openDialog`, `close`, and `dailogEmitter`
  * - Proper reactive flow and cleanup after dialog closure
  */
@@ -28,29 +28,29 @@ describe('DialogHandler service', () => {
   /**
    * @section Getter and Setter Tests
    *
-   * Validates that the getter and setter for `activeContent`
+   * Validates that the getter and setter for `actualContent`
    * properly synchronize the internal signal state.
    */
   describe('Getter and Setter', () => {
     /**
-     * Ensures that the `activeContent` getter returns
+     * Ensures that the `actualContent` getter returns
      * the correct currently active dialog content.
      */
-    it('activeContent getter should return the current value', () => {
-      service.activeContent = 'login';
-      expect(service.activeContent()).toBe('login');
+    it('actualContent getter should return the current value', () => {
+      service.actualContent = 'login';
+      expect(service.actualContent()).toBe('login');
     });
 
     /**
-     * Ensures that setting `activeContent` directly updates
+     * Ensures that setting `actualContent` directly updates
      * the underlying reactive signal and can be reset to undefined.
      */
-    it('activeContent setter should update the value', () => {
-      service.activeContent = 'registration';
-      expect(service.activeContent()).toBe('registration');
+    it('actualContent setter should update the value', () => {
+      service.actualContent = 'registration';
+      expect(service.actualContent()).toBe('registration');
 
-      service.activeContent = undefined;
-      expect(service.activeContent()).toBeUndefined();
+      service.actualContent = undefined;
+      expect(service.actualContent()).toBeUndefined();
     });
   });
 
@@ -64,36 +64,36 @@ describe('DialogHandler service', () => {
     /**
      * Tests the {@link DialogHandler#openDialog} method.
      * Verifies that:
-     * - `activeContent` is updated immediately when opened
+     * - `actualContent` is updated immediately when opened
      * - Emitted values resolve the promise
      * - The dialog closes automatically after resolving
      */
-    it('openDialog should set activeContent and resolve with emitted value', async () => {
-      const promise = service.openDialog('save');
+    it('openDialog should set actualContent and resolve with emitted value', async () => {
+      const promise = service.open('save', undefined);
 
       // Initially, the content should be set
-      expect(service.activeContent()).toBe('save');
+      expect(service.actualContent()).toBe('save');
 
       // Emit a value to complete the dialog
-      service.dailogEmitter('success');
+      service.emitData('success');
 
       const result = await promise;
       expect(result).toBe('success');
-      expect(service.activeContent()).toBeUndefined(); // closed automatically
+      expect(service.actualContent()).toBeUndefined(); // closed automatically
     });
 
     /**
      * Tests the {@link DialogHandler#close} method.
      * Ensures that calling `close()`:
-     * - Clears the `activeContent` signal
+     * - Clears the `actualContent` signal
      * - Completes the internal Subject (ending the dialog session)
      */
-    it('close should reset activeContent and complete the dataSubject', async () => {
-      service.activeContent = 'info';
+    it('close should reset actualContent and complete the dataSubject', async () => {
+      service.actualContent = 'message';
 
       service.close();
 
-      expect(service.activeContent()).toBeUndefined();
+      expect(service.actualContent()).toBeUndefined();
     });
 
     /**
@@ -103,12 +103,12 @@ describe('DialogHandler service', () => {
      * - The dialog is properly closed afterward
      */
     it('dailogEmitter should push value to the open dialog', async () => {
-      const promise = service.openDialog('setting');
-      service.dailogEmitter('ok');
+      const promise = service.open('setting');
+      service.emitData('ok');
 
       const result = await promise;
       expect(result).toBe('ok');
-      expect(service.activeContent()).toBeUndefined();
+      expect(service.actualContent()).toBeUndefined();
     });
   });
 });

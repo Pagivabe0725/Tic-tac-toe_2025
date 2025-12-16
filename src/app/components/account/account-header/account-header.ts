@@ -48,10 +48,10 @@ export class AccountHeader {
    * - Updates the Auth service's user signal on success.
    * - Shows a snackbar notification indicating success or failure.
    */
-  async changeEmail(): Promise<void> {
+  protected async changeEmail(): Promise<void> {
     const dialogResult = await this.#dialogHandler.open<
       { email: string; newEmail: string } | 'CLOSE_EVENT'
-    >('email_change', undefined);
+    >('email_change');
 
     if (dialogResult && dialogResult !== 'CLOSE_EVENT') {
       const body = {
@@ -98,11 +98,11 @@ export class AccountHeader {
    * - Sends a GraphQL mutation to update the password on the backend.
    * - Shows a snackbar notification indicating success or failure.
    */
-  async changePassword(): Promise<void> {
+  protected async changePassword(): Promise<void> {
     const dialogResult = await this.#dialogHandler.open<
       | { password: string; newPassword: string; rePassword: string }
       | 'CLOSE_EVENT'
-    >('password_change', undefined);
+    >('password_change');
 
     if (dialogResult && dialogResult !== 'CLOSE_EVENT') {
       const body = {
@@ -139,11 +139,11 @@ export class AccountHeader {
           this.#snackbar.addElement('Password changed', false);
         } else {
           /** Show error notification if mutation did not succeed */
-          this.#snackbar.addElement('Password changed', true);
+          this.#snackbar.addElement('Password changing failed', true);
         }
       } catch (error) {
         /** Show error notification if request fails */
-        this.#snackbar.addElement('Password changed', true);
+        this.#snackbar.addElement('Password changing failed', true);
       }
     }
   }

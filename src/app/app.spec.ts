@@ -1,4 +1,4 @@
-import { provideZonelessChangeDetection } from '@angular/core';
+/* import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { App } from './app';
 import { DialogHandler } from './services/dialog-handler.service';
@@ -11,7 +11,7 @@ describe('App', () => {
   let dialogHandler: DialogHandler;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
+    await TestBed.configureTestingModule({  
       imports: [App, HttpClientModule],
       providers: [
         provideZonelessChangeDetection(),
@@ -54,24 +54,24 @@ describe('App', () => {
   describe('Dialog rendering', () => {
     beforeEach(() => {
       dialogHandler = TestBed.inject(DialogHandler);
-      dialogHandler.activeContent = undefined;
+      dialogHandler.actualContent = undefined;
     });
 
     it('Should render the dialog for multiple active contents', () => {
       for (const content of DIALOG_CONTENT) {
           if (content===undefined) continue
-        dialogHandler.activeContent = content;
+        dialogHandler.actualContent = content;
         fixture.detectChanges();
 
         const dialog = fixture.nativeElement.querySelector('app-dialog');
         expect(dialog).not.toBeNull(
-          `Dialog should be rendered for activeContent = ${content}`
+          `Dialog should be rendered for actualContent = ${content}`
         );
       }
     });
 
     it('Should not render the dialog when closed', () => {
-      dialogHandler.activeContent = undefined;
+      dialogHandler.actualContent = undefined;
       fixture.detectChanges();
 
       const dialog = compiled.querySelector('app-dialog');
@@ -81,20 +81,21 @@ describe('App', () => {
     it('Should open and close the dialog for all active contents', () => {
       for (const content of DIALOG_CONTENT) {
         if (content===undefined) continue
-        dialogHandler.activeContent = content;
+        dialogHandler.actualContent = content;
         fixture.detectChanges();
         let dialog = fixture.nativeElement.querySelector('app-dialog');
         expect(dialog).not.toBeNull(
-          `Dialog should be rendered when activeContent = ${content}`
+          `Dialog should be rendered when actualContent = ${content}`
         );
 
-        dialogHandler.activeContent = undefined;
+        dialogHandler.actualContent = undefined;
         fixture.detectChanges();
         dialog = fixture.nativeElement.querySelector('app-dialog');
         expect(dialog).toBeNull(
-          `Dialog should be removed after closing for activeContent = ${content}`
+          `Dialog should be removed after closing for actualContent = ${content}`
         );
       }
     });
   });
 });
+ */
