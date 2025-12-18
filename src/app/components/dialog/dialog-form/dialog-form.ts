@@ -6,10 +6,6 @@ import {
   effect,
   inject,
   Injector,
-  input,
-  InputSignal,
-  output,
-  OutputEmitterRef,
   runInInjectionContext,
   signal,
   Signal,
@@ -145,9 +141,10 @@ export class DialogForm {
   constructor() {
     /** Effect: updates input keys whenever dialog content changes */
     effect(() => {
-      this.#inputkeys = this.#formTemplate.formFieldMap
-        .get(this.dialog.actualContent()!)!
-        .structure.map((field) => field.key);
+      const content = this.dialog.actualContent();
+      this.#inputkeys = this.#formTemplate
+        .getStructureByFieldKey(content as FieldKey)!
+        .map((field) => field.key);
     });
 
     /** Effect: synchronize theme signals with Theme service */
@@ -180,7 +177,7 @@ export class DialogForm {
   }
 
   /** Returns the signal for a given form field model */
-  protected getFieldByModel(fieldName: FormFieldModel) {
+  protected getFieldByModel(fieldName: FormFieldModel):any {
     return (this as any)[fieldName];
   }
 
@@ -198,14 +195,15 @@ export class DialogForm {
   }
 
   /** Validates all controls and marks errors */
-  async checkcontrols(): Promise<void> {
+ private  async checkcontrols(): Promise<void> {
     for (const key of this.#inputkeys!) {
       const control = this.ngForm()?.form.get(key);
       let errors: ErrorKeys[] = [];
+
       if (control) {
-        errors = this.#formTemplate.formFieldMap
-          .get(this.actualObjectSignal()!)!
-          .structure.flatMap((field) => {
+        errors = this.#formTemplate
+          .getStructureByFieldKey(this.actualObjectSignal()!)!
+          .flatMap((field) => {
             if (field.key === key && field.errorKeys?.length) {
               return field.errorKeys;
             } else {
@@ -234,7 +232,7 @@ export class DialogForm {
   }
 
   /** Sends form values if valid */
-  async sendResults(): Promise<void> {
+  private async sendResults(): Promise<void> {
     await this.checkcontrols();
     if (this.ngForm()!.form.valid) {
       const result = this.getFormResult();
@@ -243,8 +241,7 @@ export class DialogForm {
   }
 
   /** Resets all signals to previous values */
-  async resetProperties() {
-    console.log(this.#inputkeys);
+  private async resetProperties() {
     for (const key of this.#inputkeys!) {
       const reference = this as any;
       (reference[key] as WritableSignal<unknown>).set(

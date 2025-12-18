@@ -73,7 +73,6 @@ export class Dialog implements AfterViewInit {
   ngAfterViewInit() {
     const dialogElelement = this.dialog();
     if (dialogElelement) {
-      console.log(dialogElelement);
       this.focusTrap = this.#focusTrapFactory.create(
         dialogElelement.nativeElement
       );
@@ -95,16 +94,15 @@ export class Dialog implements AfterViewInit {
   /** Closes the dialog and emits a close event */
   protected closeDialog(): void {
     this.#dialogHandler.emitData('CLOSE_EVENT');
-    console.log('Dialog closed');
   }
 
   /** Sends a trigger event to the DialogHandler */
-  sendTrigger(value: string): void {
+  protected sendTrigger(value: string): void {
     this.#dialogHandler.trigger(value);
   }
 
   /** Immediately emits a value to the DialogHandler */
-  instantEmit(value: boolean | 'CLOSE_EVENT'): void {
+  protected instantEmit(value: boolean | 'CLOSE_EVENT'): void {
     this.#dialogHandler.emitData(value);
   }
 }

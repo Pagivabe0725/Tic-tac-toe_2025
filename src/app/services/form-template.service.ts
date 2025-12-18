@@ -134,8 +134,8 @@ export class FormTemplate {
     ],
 
     buttons: [
-      { button: 'accept', name: 'apply', triggerValue: 'form' },
-      { button: 'trigger', name: 'cancel', triggerValue: 'reset' },
+      { button: 'accept', name: 'Apply', triggerValue: 'form' },
+      { button: 'trigger', name: 'Cancel', triggerValue: 'reset' },
     ],
     title: 'Settings',
   };
@@ -172,7 +172,7 @@ export class FormTemplate {
         name: 'Registration',
         triggerValue: 'change:registration',
       },
-      { button: 'reject', name: 'cancel' },
+      { button: 'reject', name: 'Cancel' },
     ],
     title: 'Login',
   };
