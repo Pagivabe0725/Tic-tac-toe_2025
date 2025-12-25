@@ -426,10 +426,9 @@ describe('DialogForm', () => {
         spyOn(authService, 'isCurrentUserPassword').and.callFake(
           (password: string) => {
             if (password === originalPassword) {
-              console.log('Match');
               return Promise.resolve(true);
             }
-            console.log('do not Match');
+
             return Promise.resolve(false);
           }
         );
@@ -499,7 +498,6 @@ describe('DialogForm', () => {
         const template = templateService.getStructureByFieldKey('email_change');
         for (const formField of template) {
           const control = component['ngForm']()?.form.get(formField.model);
-          console.log(control);
 
           expect(control?.valid)
             .withContext(

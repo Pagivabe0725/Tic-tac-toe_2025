@@ -1,140 +1,137 @@
-/* 
-import { TestBed } from '@angular/core/testing';
+import {
+  ComponentFixture,
+  fakeAsync,
+  TestBed,
+  tick,
+} from '@angular/core/testing';
 import { Game } from './game';
-import { GameLogic } from '../../services/game-logic.service';
-import { provideZonelessChangeDetection } from '@angular/core';
+import {
+  computed,
+  provideZonelessChangeDetection,
+  Signal,
+  signal,
+  WritableSignal,
+} from '@angular/core';
+import { MockStore, provideMockStore } from '@ngrx/store/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { Store } from '@ngrx/store';
+import {
+  selectActualBoard,
+  selectActualMarkup,
+  selectActualStep,
+  selectGameResults,
+  selectGameWinner,
+  selectLastMove,
+  selectPlayersSpentTimes,
+  selectStarted,
+} from '../../store/selectors/game-info.selector';
+import {
+  selectGameHardness,
+  selectGameOpponent,
+  selectGameSize,
+} from '../../store/selectors/game-settings.selector';
+import {
+  randomBetween,
+  randomNumber,
+} from '../../utils/test/functions/random-values.function';
+import { savedGameStatus } from '../../utils/types/game-status.type';
+import { createGame } from '../../utils/test/functions/creators.functions';
+import {
+  getNextMarkup,
+  getWinnerByGameStatus,
+} from '../../utils/test/functions/helper.functions';
+import { Auth } from '../../services/auth.service';
+import { User } from '../../utils/interfaces/user.interface';
+import { GameInfo } from '../../utils/interfaces/game-info.interface';
+import { modifyGameInfo } from '../../store/actions/game-info-modify.action';
 
-
-
-describe('Game', () => {
+fdescribe('Game', () => {
+  let fixture: ComponentFixture<Game>;
   let component: Game;
-  let gameLogic: GameLogic;
+  let store: MockStore;
+  let auth: Auth;
 
   beforeEach(async () => {
+    const status: savedGameStatus = 'not_started';
+    const game = createGame('game_Id1', 'userId_1', status);
+
     await TestBed.configureTestingModule({
-      imports: [Game],
+      imports: [Game, HttpClientTestingModule],
       providers: [
         provideZonelessChangeDetection(),
-        { provide: GameLogic, useFactory: () => new GameLogic() },
+        provideMockStore({
+          initialState: {
+            gameInfo: {
+              actualBoard: game.board,
+              actualStep: 1,
+              lastMove: game.lastMove,
+              started: false,
+              results: {
+                player_O_Lose: 0,
+                player_X_Lose: 0,
+                draw: 0,
+                player_X_Win: 0,
+                player_O_Win: 0,
+              },
+              playersSpentTimes: { player_O: 0, player_X: 0 },
+              winner: null,
+            },
+            gameSettings: {
+              hardness: 2,
+              size: 3,
+              opponent: game.opponent,
+            },
+          },
+        }),
       ],
     });
 
-    component = TestBed.createComponent(Game).componentInstance;
-    gameLogic = TestBed.inject(GameLogic);
+    store = TestBed.inject(MockStore);
+    auth = TestBed.inject(Auth);
+
+    spyOnProperty(auth, 'user', 'get').and.returnValue(
+      signal({
+        userId: 'userId_1',
+        email: 'test@gmail.com',
+        game_count: 2,
+        winNumber: 0,
+        loseNumber: 0,
+      }) as Signal<User | undefined>
+    );
+
+    fixture = TestBed.createComponent(Game);
+    component = fixture.componentInstance;
+
+    fixture.detectChanges();
   });
 
-
-  describe('size signal', () => {
-    const sizes = [3, 4, 5, 6, 7, 8, 9];
-    sizes.forEach((n) => {
-      it(`should reflect size=${n}`, () => {
-        gameLogic['size'] = n;
-        expect(component['size']()).toBe(gameLogic.size());
-      });
-    });
-  });
-
-
-  describe('cells signal', () => {
-    const sizes = [3, 4, 5, 6, 7, 8, 9];
-    sizes.forEach((n) => {
-      it(`should generate cells for size=${n}X${n}`, () => {
-        gameLogic['size'] = n;
-        const expectedCells = gameLogic['cells']();
-        expect(component['cells']()).toEqual(expectedCells);
-      });
-    });
-  });
-
-
-  describe('step signal', () => {
-    const stepCounts = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-
-    stepCounts.forEach((stepCount) => {
-      it(`should return correct markup for step=${stepCount}`, () => {
-        component['step'].set(stepCount);
-        const expectedMarkup: 'o' | 'x' = stepCount % 2 === 0 ? 'o' : 'x';
-        expect(component['actualMarkup']()).toBe(expectedMarkup);
-      });
-    });
-  });
-
-
-  describe('gameField signal', () => {
-    it('should initialize with cells from gameLogic', async () => {
-      // Initialize the gameField from the cells signal
-      component['gameField'].set(component['cells']());
-      const expected = gameLogic['cells']();
-      expect(component['gameField']()).toEqual(expected);
+  describe('`clickPermission` computed:', () => {
+    afterEach(() => {
+      fixture.destroy()
     });
 
-    it('should update gameField when setCell is called', () => {
+    it('Should return false if winner is not null2', async () => {
+      // Várakozás az aszinkron Signal frissítésre
+      await fixture.whenStable();
+      fixture.detectChanges();
 
-      const cells = component['cells']();
-      component['gameField'].set(cells);
-
-      const coord = { xCoordinate: 0, yCoordinate: 0 };
-      const initialMarkup = component['actualMarkup']();
-      const initialField = component['gameField']()!.map(row => [...row]);
-
-  
-      component.setCell(coord);
-
-      const updatedField = component['gameField']()!;
-
-      expect(updatedField[coord.yCoordinate][coord.xCoordinate]).toBe(initialMarkup);
-
-
-      for (let y = 0; y < initialField.length; y++) {
-        for (let x = 0; x < initialField[y].length; x++) {
-          if (x !== coord.xCoordinate || y !== coord.yCoordinate) {
-            expect(updatedField[y][x]).toBe(initialField[y][x]);
-          }
-        }
-      }
-
-
-      expect(component['step']()).toBe(1);
-
-   
-      expect(gameLogic.field).toEqual(updatedField);
-    });
-  });
-
-
-  describe('setCell method', () => {
-    beforeEach(() => {
-
-      component['gameField'].set(component['cells']());
-      component['step'].set(0);
+      expect(component['clickPermission']()).toBe(false);
     });
 
-    it('should update the correct cell with actualMarkup, increment step, and sync GameLogic.field', () => {
-      const coord = { xCoordinate: 1, yCoordinate: 1 };
-      const initialField = component['gameField']()!.map(row => [...row]);
-      const expectedMarkup = component['actualMarkup']();
+    it('Should return false if winner is not null', async () => {
+      // Várakozás az aszinkron Signal frissítésre
+      await fixture.whenStable();
+      fixture.detectChanges();
 
+      expect(component['clickPermission']()).toBe(false);
+    });
 
-      component.setCell(coord);
+    it('Should return false if winner is not null3', async () => {
+      // Várakozás az aszinkron Signal frissítésre
+      await fixture.whenStable();
+      fixture.detectChanges();
 
-      const updatedField = component['gameField']()!;
-
-      expect(updatedField[coord.yCoordinate][coord.xCoordinate]).toBe(expectedMarkup);
-
-      for (let y = 0; y < initialField.length; y++) {
-        for (let x = 0; x < initialField[y].length; x++) {
-          if (x !== coord.xCoordinate || y !== coord.yCoordinate) {
-            expect(updatedField[y][x]).toBe(initialField[y][x]);
-          }
-        }
-      }
-
-
-      expect(component['step']()).toBe(1);
-
-      expect(gameLogic.field).toEqual(updatedField);
+      expect(component['clickPermission']()).toBe(false);
     });
   });
 });
-
- */

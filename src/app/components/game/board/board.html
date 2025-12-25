@@ -7,9 +7,9 @@
             appGameFieldCell
             [ariaLabel]="getAriaLabelText({xCoordinate:x, yCoordinate:y})"
             [attr.aria-pressed]="gameField()![x][y] ? true : false"
-            [markup]="gameField()![x][y]"
-            [xCoordinate]="x"
-            [yCoordinate]="y"
+            [markup]="formatFieldContent(gameField()![x][y])"
+            [row]="x"
+            [column]="y"
             [clickPermission]="clickPermission()"
             [lastMove]="lastMove()"
             (setPosition)="setCell($event)"

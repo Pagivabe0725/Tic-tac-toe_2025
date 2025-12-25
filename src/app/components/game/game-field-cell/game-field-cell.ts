@@ -13,6 +13,7 @@ import { Theme } from '../../../services/theme.service';
 import { LastMove } from '../../../utils/types/last-move.type';
 import { Store } from '@ngrx/store';
 import { modifyGameInfo } from '../../../store/actions/game-info-modify.action';
+import { GameInfo } from '../../../utils/interfaces/game-info.interface';
 
 /**
  * GameFieldCell component represents a single cell within the game board grid.
@@ -44,16 +45,16 @@ export class GameFieldCell {
    *  - 'o' for O player,
    *  - undefined for empty.
    */
-  markup: InputSignal<string | undefined> = input.required();
+  markup: InputSignal<GameInfo['actualMarkup']> = input.required();
 
   /** Last move performed in the game. */
   lastMove: InputSignal<LastMove | undefined> = input.required();
 
   /** Y-coordinate of this cell in the board grid. Required input. */
-  @Input({ required: true }) yCoordinate!: number;
+  @Input({ required: true }) column!: number;
 
   /** X-coordinate of this cell in the board grid. Required input. */
-  @Input({ required: true }) xCoordinate!: number;
+  @Input({ required: true }) row!: number;
 
   /** Determines whether clicking this cell is currently allowed. */
   clickPermission: InputSignal<boolean> = input.required();
@@ -63,8 +64,8 @@ export class GameFieldCell {
    * Emits an object with the cell coordinates: `{ xCoordinate, yCoordinate }`.
    */
   @Output() setPosition = new EventEmitter<{
-    yCoordinate: number;
-    xCoordinate: number;
+    column: number;
+    row: number;
   }>();
 
   /**
@@ -91,7 +92,7 @@ export class GameFieldCell {
   @HostBinding('class')
   get emphasize(): string | null {
     const move = this.lastMove();
-    return move?.row === this.xCoordinate && move?.column === this.yCoordinate
+    return move?.row === this.row && move?.column === this.column
       ? 'own-animated-border'
       : null;
   }
@@ -107,7 +108,7 @@ export class GameFieldCell {
     if (!this.markup() && this.clickPermission()) {
       this.#store.dispatch(
         modifyGameInfo({
-          lastMove: { row: this.xCoordinate, column: this.yCoordinate },
+          lastMove: { row: this.row, column: this.column },
         })
       );
 

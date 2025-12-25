@@ -20,6 +20,8 @@ import {
   selectActualMarkup,
 } from '../../../store/selectors/game-info.selector';
 import { modifyGameInfo } from '../../../store/actions/game-info-modify.action';
+import { GameSettings } from '../../../utils/interfaces/game-settings.interface';
+import { GameInfo } from '../../../utils/interfaces/game-info.interface';
 
 /**
  * Board component responsible for rendering the interactive game grid,
@@ -47,7 +49,7 @@ export class Board implements OnInit {
   #storedBoard = this.#store.selectSignal(selectActualBoard);
 
   /** Size of the board (NxN). Required input. */
-  size: InputSignal<number> = input.required();
+  size: InputSignal<GameSettings['size']> = input.required();
 
   /** Whether clicking cells is currently allowed. */
   clickPermission: InputSignal<boolean> = input.required();
@@ -56,7 +58,7 @@ export class Board implements OnInit {
   lastMove: InputSignal<LastMove | undefined> = input.required();
 
   /** Used to detect changes in lastMove. */
-  #previousLastMove: LastMove | undefined;
+  private previousLastMove: LastMove | undefined;
 
   /** Current step number from parent or store. */
   step: InputSignal<number> = input.required();
@@ -84,19 +86,35 @@ export class Board implements OnInit {
   }
 
   /**
+   * Normalizes a raw cell content string to a valid `GameInfo['actualMarkup']` value.
+   *
+   * This method performs a type assertion to treat the incoming string as a
+   * game markup ('x' or 'o'). It assumes that the caller guarantees the validity
+   * of the provided content.
+   *
+   * Used to keep template logic simple and type-safe when rendering board cells.
+   *
+   * @param content Raw cell content value.
+   * @returns The content cast as a game markup.
+   */
+  protected formatFieldContent(content: string): GameInfo['actualMarkup'] {
+    return content as GameInfo['actualMarkup'];
+  }
+
+  /**
    * Applies CSS grid layout properties dynamically based on board size.
    */
   @HostBinding('style')
   get gridTemplate(): Partial<CSSStyleDeclaration> {
     return {
-      gridTemplateRows: `repeat(${this.size()}, 91fr)`,
+      gridTemplateRows: `repeat(${this.size()}, 1fr)`,
       gridTemplateColumns: `repeat(${this.size()}, 1fr)`,
     };
   }
 
   /** Stores the initial lastMove when the component initializes. */
   ngOnInit(): void {
-    this.#previousLastMove = this.lastMove();
+    this.previousLastMove = this.lastMove();
   }
 
   constructor() {
@@ -132,10 +150,10 @@ export class Board implements OnInit {
      */
     effect(() => {
       const lastMove = this.lastMove();
-      if (lastMove && lastMove !== this.#previousLastMove) {
+      if (lastMove && lastMove !== this.previousLastMove) {
         this.setCell({
-          xCoordinate: lastMove.row,
-          yCoordinate: lastMove.column,
+          row: lastMove.row,
+          column: lastMove.column,
         });
       }
     });
@@ -151,8 +169,14 @@ export class Board implements OnInit {
   protected getAriaLabelText(coordinates: CellCoordinate): string {
     const content =
       this.gameField()![coordinates.xCoordinate][coordinates.yCoordinate];
-    const contentName = !content ? 'empty' : content === 'x' ? 'ex' : 'circle';
-    return `${contentName} at row ${coordinates.xCoordinate + 1}, column ${coordinates.yCoordinate + 1}.`;
+    const contentName = !content
+      ? 'empty'
+      : content === 'x'
+      ? 'cross'
+      : 'circle';
+    return `${contentName} at row ${coordinates.xCoordinate + 1}, column ${
+      coordinates.yCoordinate + 1
+    }.`;
   }
 
   /**
@@ -166,16 +190,15 @@ export class Board implements OnInit {
    *
    * @param coordinates Cell position where the symbol should be placed.
    */
-  setCell(coordinates: CellCoordinate): void {
+  protected setCell(coordinates: { row: number; column: number }): void {
     this.#gameField.update((prev) => {
-      if (!prev) return prev;
-      const newField = prev.map((row) => [...row]);
-      newField[coordinates.xCoordinate][coordinates.yCoordinate] =
+      const newField = prev!.map((row) => [...row]);
+      newField[coordinates.row][coordinates.column] =
         this.#store.selectSignal(selectActualMarkup)()!;
       return newField;
     });
 
     this.#store.dispatch(modifyGameInfo({ actualStep: this.step() + 1 }));
-    this.#previousLastMove = this.lastMove();
+    this.previousLastMove = this.lastMove();
   }
 }
