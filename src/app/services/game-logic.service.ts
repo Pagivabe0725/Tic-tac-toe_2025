@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { Functions } from './functions.service';
 import { Http } from './http.service';
-import { aiMove } from '../utils/interfaces/ai-move.interface';
+import { AiMove } from '../utils/interfaces/ai-move.interface';
 import { LastMove } from '../utils/types/last-move.type';
 
 /**
@@ -37,8 +37,8 @@ export class GameLogic {
     markup: 'x' | 'o',
     hardness: number,
     lastMove: LastMove
-  ): Promise<aiMove | undefined> {
-    return await this.#httpHandler.request<aiMove>(
+  ): Promise<AiMove | undefined> {
+    return await this.#httpHandler.request<AiMove>(
       'post',
       'game/ai-move',
       {

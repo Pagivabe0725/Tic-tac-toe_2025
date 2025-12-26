@@ -18,18 +18,28 @@ import { randomBetween } from '../../../utils/test/functions/random-values.funct
 import { Theme } from '../../../services/theme.service';
 import { modifyGameInfo } from '../../../store/actions/game-info-modify.action';
 
-xdescribe('GameDisplayPart', () => {
-  // Component instance under test
+describe('GameDisplayPart', () => {
+  /**
+   * Component instance under test.
+   */
   let component: GameDisplayPart;
 
-  // Angular test fixture used to access the component instance,
-  // trigger change detection, and interact with the rendered DOM
+  /**
+   * Angular test fixture used to access the component instance,
+   * trigger change detection, and interact with the rendered DOM.
+   */
   let fixture: ComponentFixture<GameDisplayPart>;
 
-  // Mocked game state object used as input and store data source
+  /**
+   * Mocked game state object used as input and store data source
+   * for testing component behavior.
+   */
   let gameInfo: GameInfo = createGameInfo();
 
-  // Injected NgRx Store instance, spied on in tests to verify dispatched actions
+  /**
+   * Injected NgRx Store instance, spied on in tests to verify
+   * that actions are correctly dispatched in response to component events.
+   */
   let store: Store;
 
   beforeEach(async () => {
@@ -75,7 +85,7 @@ xdescribe('GameDisplayPart', () => {
       gameInfo.playerSpentTime
     ) as unknown as InputSignal<GameInfo['playerSpentTime']>;
 
-    component['markup'] = 'o'
+    component.markup = 'o';
 
     fixture.detectChanges();
   });
@@ -103,18 +113,22 @@ xdescribe('GameDisplayPart', () => {
         'x',
       ];
 
-      /**
-       * Expected result values when player 'X' is active.
-       */
+      // Cast the component's results signal to a WritableSignal so it can be updated in tests
+      const resultSignal = component.results as unknown as WritableSignal<
+        GameInfo['results']
+      >;
+
+      // Update the results signal with the current gameInfo results, simulating a state change
+      resultSignal.set({ ...gameInfo.results });
+
+      //Expected result values when player 'X' is active.
       const player_X_results = [
         gameInfo.results?.player_X_Win,
         gameInfo.results?.player_X_Lose,
         gameInfo.results?.draw,
       ];
 
-      /**
-       * Expected result values when player 'O' is active.
-       */
+      //Expected result values when player 'O' is active.
       const player_O_results = [
         gameInfo.results?.player_O_Win,
         gameInfo.results?.player_O_Lose,
@@ -122,21 +136,17 @@ xdescribe('GameDisplayPart', () => {
       ];
 
       for (const player of players) {
-        /**
+        /*
          * Explicitly set the markup signal when testing player 'X'.
          * Player 'O' is assumed to be the default state.
          */
         if (player === 'x') {
-          const markupSignal = component['markup'] as unknown as WritableSignal<
-            NonNullable<GameInfo['actualMarkup']>
-          >;
-
-          markupSignal.set('x');
+          component.markup = 'x';
           component.ngOnInit();
           fixture.detectChanges();
         }
 
-        /**
+        /*
          * Collect only the result-related <span> elements.
          * Every second span is filtered out based on the HTML structure.
          */
@@ -145,16 +155,12 @@ xdescribe('GameDisplayPart', () => {
           .filter((_, index) => index % 2 !== 0)
           .map((span) => (span.nativeElement as HTMLSpanElement).innerText);
 
-        /**
-         * Validate the number of rendered result spans.
-         */
+        //Validate the number of rendered result spans.
         expect(resultSpans.length)
           .withContext(`Invalid span number: ${resultSpans.length}`)
           .toBe((player === 'o' ? player_O_results : player_X_results).length);
 
-        /**
-         * Validate the textual content of each result span.
-         */
+        // Validate the textual content of each result span.
         for (
           let i = 0;
           i < (player === 'o' ? player_O_results : player_X_results).length;
@@ -183,10 +189,6 @@ xdescribe('GameDisplayPart', () => {
         'x',
       ];
 
-      // Cast the signals to WritableSignal for test control
-      const markupSignal = component['markup'] as unknown as WritableSignal<
-        Exclude<GameInfo['actualMarkup'], undefined>
-      >;
       const actualmarkupSignal = component[
         'actualMarkup'
       ] as unknown as WritableSignal<
@@ -195,7 +197,7 @@ xdescribe('GameDisplayPart', () => {
 
       for (const player of players) {
         // Update the signals to simulate the current player
-        markupSignal.set(player);
+        component.markup = player;
         actualmarkupSignal.set(player);
 
         // Re-run OnInit to ensure seconds are initialized properly
@@ -232,11 +234,6 @@ xdescribe('GameDisplayPart', () => {
     it('[place] HostBinding should set correct gridColumn based on width and markup', () => {
       const themeService = TestBed.inject(Theme);
 
-      // Access the internal markup signal to simulate player changes
-      const markupSignal = component['markup'] as unknown as WritableSignal<
-        'x' | 'o'
-      >;
-
       // Width breakpoints with expected gridColumn values
       const cases = [
         { width: randomBetween(1001, 2000), o: '1 / 4', x: '18 / 21' },
@@ -252,7 +249,7 @@ xdescribe('GameDisplayPart', () => {
 
       for (const player of ['o', 'x'] as const) {
         // Set active player markup
-        markupSignal.set(player);
+        component.markup = player;
 
         for (const testCase of cases) {
           // Simulate viewport width change
@@ -303,14 +300,17 @@ xdescribe('GameDisplayPart', () => {
         'x',
       ];
 
-      // Access internal markup signal to simulate player switching
-      const markupSignal = component['markup'] as unknown as WritableSignal<
-        'x' | 'o'
-      >;
-
       for (const player of players) {
         // Set current player
-        markupSignal.set(player);
+        component.markup = player;
+
+        // Cast the component's results signal to a WritableSignal so it can be updated in tests
+        const resultSignal = component.results as unknown as WritableSignal<
+          GameInfo['results']
+        >;
+
+        // Update the results signal with the current gameInfo results, simulating a state change
+        resultSignal.set({ ...gameInfo.results });
 
         // Initialize values that depend on markup
         component.ngOnInit();
@@ -321,20 +321,22 @@ xdescribe('GameDisplayPart', () => {
 
         // Resolve dynamic result keys (player_X / player_O)
         const key = `player_${player.toUpperCase()}`;
-        const results = gameInfo['results']!;
+        const results = component.results()!;
 
         // Assert win count
-        expect(component['winNumber']).toBe(
-          results[(key + '_Win') as keyof GameInfo['results']]
-        );
+        expect(component['winNumber'])
+          .withContext(`winNumber (player:${player.toUpperCase()})`)
+          .toBe(results[(key + '_Win') as keyof GameInfo['results']]);
 
         // Assert lose count
-        expect(component['loseNumber']).toBe(
-          results[(key + '_Lose') as keyof GameInfo['results']]
-        );
+        expect(component['loseNumber'])
+          .withContext(`loseNumber (player:${player.toUpperCase()})`)
+          .toBe(results[(key + '_Lose') as keyof GameInfo['results']]);
 
         // Assert draw count (shared between players)
-        expect(component['drawNumber']).toBe(results['draw']);
+        expect(component['drawNumber'])
+          .withContext(`drawNumber (player:${player.toUpperCase()})`)
+          .toBe(results['draw']);
       }
     });
 
@@ -347,10 +349,6 @@ xdescribe('GameDisplayPart', () => {
       jasmine.clock().install();
 
       try {
-        // Access component signals
-        const markupSignal = component['markup'] as unknown as WritableSignal<
-          'x' | 'o'
-        >;
         const actualMarkupSignal = component[
           'actualMarkup'
         ] as unknown as WritableSignal<'x' | 'o'>;
@@ -360,7 +358,7 @@ xdescribe('GameDisplayPart', () => {
         ] as unknown as WritableSignal<boolean>;
 
         // Set up test state: started game and active player
-        markupSignal.set('x');
+        component.markup = 'x';
         actualMarkupSignal.set('x');
         startedSignal.set(true);
         component.ngOnInit(); // initialize seconds
@@ -375,7 +373,7 @@ xdescribe('GameDisplayPart', () => {
         expect(component['seconds']()).toBe(
           spentTime +
             gameInfo['playerSpentTime']![
-              `player_${markupSignal().toUpperCase()}` as keyof GameInfo['playerSpentTime']
+              `player_${component.markup.toUpperCase()}` as keyof GameInfo['playerSpentTime']
             ]
         );
       } finally {
@@ -398,10 +396,6 @@ xdescribe('GameDisplayPart', () => {
         'o',
       ];
 
-      // Access component signals
-      const markupSignal = component['markup'] as unknown as WritableSignal<
-        'x' | 'o'
-      >;
       const actualMarkupSignal = component[
         'actualMarkup'
       ] as unknown as WritableSignal<'x' | 'o'>;
@@ -415,7 +409,7 @@ xdescribe('GameDisplayPart', () => {
       try {
         for (const player of players) {
           // Set active player and start the game
-          markupSignal.set(player);
+          component.markup = player;
           actualMarkupSignal.set(player);
           startedSignal.set(true);
           component.ngOnInit();
@@ -425,10 +419,6 @@ xdescribe('GameDisplayPart', () => {
           const spentTime = randomBetween(1, 1000);
           jasmine.clock().tick(spentTime * 1000);
           fixture.detectChanges();
-
-          // Log for debug
-          console.log(component['spentTimes']());
-          console.log(spentTime);
 
           const times: NonNullable<GameInfo['playerSpentTime']> =
             gameInfo['playerSpentTime']!;

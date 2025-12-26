@@ -1,8 +1,10 @@
+import { INITIAL_STATE, Store } from '@ngrx/store';
 import { GameInfo } from '../../interfaces/game-info.interface';
 import { SavedGame } from '../../interfaces/saved-game.interface';
 import { User } from '../../interfaces/user.interface';
 import { savedGameStatus } from '../../types/game-status.type';
 import { randomBetween, randomNumber } from './random-values.function';
+import { GameSettings } from '../../interfaces/game-settings.interface';
 
 export function createUser(fix: boolean): User {
   const randomNumber = Math.floor(Math.random() * 10);
@@ -19,7 +21,8 @@ export function createUser(fix: boolean): User {
 export function createGame(
   id: string,
   userId: string,
-  status: savedGameStatus
+  status: savedGameStatus,
+  opponent? : GameSettings['opponent']
 ): SavedGame {
   const boards: Map<
     savedGameStatus,
@@ -93,7 +96,7 @@ export function createGame(
     userId: userId,
     difficulty: 'medium',
     size: 3,
-    opponent: 'computer',
+    opponent: opponent ?? 'computer',
     updatedAt: Date.now().toString(),
     createdAt: Date.now().toString(),
   };
@@ -143,5 +146,42 @@ export function createGameInfo(): GameInfo {
 
     winner: null,
     loadedGameName: `test-session-${randomNumber(1000)}`,
+  };
+}
+
+export function createStoreInitialState(
+  game: SavedGame,
+  actualStep?: number,
+  result?: GameInfo['results'],
+  started?: GameInfo['started'],
+  spentTimes?: GameInfo['playerSpentTime']
+): object {
+  const winner = (['in_progress', 'not_started'] as savedGameStatus[]).includes(
+    game.status
+  )
+    ? null
+    : game.status;
+
+  return {
+    gameInfo: {
+      actualBoard: game.board,
+      actualStep: actualStep ?? 0,
+      lastMove: game.lastMove,
+      started,
+      results: result ?? {
+        player_O_Lose: 0,
+        player_X_Lose: 0,
+        draw: 0,
+        player_X_Win: 0,
+        player_O_Win: 0,
+      },
+      playerSpentTime: spentTimes ?? { player_O: 0, player_X: 0 }, 
+      winner,
+    },
+    gameSettings: {
+      hardness: 2,
+      size: 3,
+      opponent: game.opponent,
+    },
   };
 }

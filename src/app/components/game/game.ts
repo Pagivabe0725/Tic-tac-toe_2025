@@ -268,7 +268,7 @@ export class Game implements OnInit {
    * Performs a full winner evaluation on the current board state.
    * If a winner is detected, the store is immediately updated.
    */
-  private async winnerCheck() {
+  private async winnerCheck(): Promise<void> {
     const board = this.#store.selectSignal(selectActualBoard)();
     if (board) {
       const incomingBoard = await this.#gameLogic.hasWinner(board);
@@ -284,16 +284,16 @@ export class Game implements OnInit {
    * Updates the stored result counters based on the current winner.
    * Increments win/loss/draw statistics in the NgRx store.
    */
-  private dispatchResults() {
+  private dispatchResults(): void {
     const winner = this.#winner();
-    const results = this.#results() ?? {};
+    const results = this.#results()!;
 
     const base = {
-      player_O_Lose: results.player_O_Lose ?? 0,
-      player_X_Lose: results.player_X_Lose ?? 0,
-      player_O_Win: results.player_O_Win ?? 0,
-      player_X_Win: results.player_X_Win ?? 0,
-      draw: results.draw ?? 0,
+      player_O_Lose: results.player_O_Lose!,
+      player_X_Lose: results.player_X_Lose!,
+      player_O_Win: results.player_O_Win!,
+      player_X_Win: results.player_X_Win!,
+      draw: results.draw!,
     };
 
     const changes: Partial<typeof base> = {};
@@ -315,15 +315,14 @@ export class Game implements OnInit {
    * Persists user statistics (wins or losses) after the match ends,
    * provided the user is authenticated.
    */
- private saveResult() {
-  const user = this.#auth.user();
-  const winner = this.#winner();
+  private saveResult(): void {
+    const user = this.#auth.user();
+    const winner = this.#winner();
 
-  if (winner === 'o') {
-    this.#auth.updateUser({ winNumber: (user?.winNumber ?? 0) + 1 });
-  } else if (winner === 'x') {
-    this.#auth.updateUser({ loseNumber: (user?.loseNumber ?? 0) + 1 });
+    if (winner === 'o') {
+      this.#auth.updateUser({ winNumber: (user?.winNumber ?? 0) + 1 });
+    } else if (winner === 'x') {
+      this.#auth.updateUser({ loseNumber: (user?.loseNumber ?? 0) + 1 });
+    }
   }
-}
-
 }
