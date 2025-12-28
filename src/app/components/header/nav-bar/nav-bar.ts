@@ -24,7 +24,7 @@ import { resetGameInfoResults } from '../../../store/actions/game-info-results-r
   styleUrl: './nav-bar.scss',
 })
 export class NavBar {
-   /** Provides current theme and allows switching between light and dark modes */
+  /** Provides current theme and allows switching between light and dark modes */
   #theme: Theme = inject(Theme);
 
   /** Handles opening and managing dialog windows */
@@ -55,7 +55,6 @@ export class NavBar {
   logged: Signal<boolean> = computed(() => {
     return !!this.#auth.user();
   });
-
 
   /** Button configuration for toggling between light and dark theme */
   readonly #themeButton: Signal<DialogTriggerButton> = computed(() => {
@@ -292,14 +291,21 @@ export class NavBar {
         );
 
         if (dialogResult && dialogResult !== 'CLOSE_EVENT') {
-          const logout = await this.#auth.logout();
-          if (logout) {
-            this.#store.dispatch(modifyGameSettings({ opponent: 'player' }));
-            this.#auth.user = undefined;
-            this.#snackbarHandler.addElement('Logged out successfully', false);
-            this.#store.dispatch(resetGameInfoResults());
-            this.#store.dispatch(reserGameInfo());
-          } else {
+          try {
+            const logout = await this.#auth.logout();
+            if (logout) {
+              this.#store.dispatch(modifyGameSettings({ opponent: 'player' }));
+              this.#auth.user = undefined;
+              this.#snackbarHandler.addElement(
+                'Logged out successfully',
+                false
+              );
+              this.#store.dispatch(resetGameInfoResults());
+              this.#store.dispatch(reserGameInfo());
+            } else {
+              this.#snackbarHandler.addElement('Logout failed', true);
+            }
+          } catch (error) {
             this.#snackbarHandler.addElement('Logout failed', true);
           }
         }
@@ -319,8 +325,5 @@ export class NavBar {
     this.#logoutButton(),
   ]);
 
-  /** Indicates whether the current active theme is dark mode */
-  protected readonly isDark: Signal<boolean> = computed(
-    () => this.#theme.mode === 'dark'
-  );
+
 }

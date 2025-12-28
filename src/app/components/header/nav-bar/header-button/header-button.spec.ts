@@ -1,23 +1,49 @@
-/* import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { HeaderButton } from './header-button';
+import {
+  InputSignal,
+  provideZonelessChangeDetection,
+  signal,
+} from '@angular/core';
+import { By } from '@angular/platform-browser';
 
 describe('DialogButton', () => {
   let component: HeaderButton;
   let fixture: ComponentFixture<HeaderButton>;
+  let svgPath: string =
+    'M189-160q-60 0-102.5-43T42-307q0-9 1-18t3-18l84-336q14-54 57-87.5t98-33.5h390q55 0 98 33.5t57 87.5l84 336q2 9 3.5 18.5T919-306q0 61-43.5 103.5T771-160q-42 0-78-22t-54-60l-28-58q-5-10-15-15t-21-5H385q-11 0-21 5t-15 15l-28 58q-18 38-54 60t-78 22Zm3-80q19 0 34.5-10t23.5-27l28-57q15-31 44-48.5t63-17.5h190q34 0 63 18t45 48l28 57q8 17 23.5 27t34.5 10q28 0 48-18.5t21-46.5q0 1-2-19l-84-335q-7-27-28-44t-49-17H285q-28 0-49.5 17T208-659l-84 335q-2 6-2 18 0 28 20.5 47t49.5 19Zm348-280q17 0 28.5-11.5T580-560q0-17-11.5-28.5T540-600q-17 0-28.5 11.5T500-560q0 17 11.5 28.5T540-520Zm80-80q17 0 28.5-11.5T660-640q0-17-11.5-28.5T620-680q-17 0-28.5 11.5T580-640q0 17 11.5 28.5T620-600Zm0 160q17 0 28.5-11.5T660-480q0-17-11.5-28.5T620-520q-17 0-28.5 11.5T580-480q0 17 11.5 28.5T620-440Zm80-80q17 0 28.5-11.5T740-560q0-17-11.5-28.5T700-600q-17 0-28.5 11.5T660-560q0 17 11.5 28.5T700-520Zm-360 60q13 0 21.5-8.5T370-490v-40h40q13 0 21.5-8.5T440-560q0-13-8.5-21.5T410-590h-40v-40q0-13-8.5-21.5T340-660q-13 0-21.5 8.5T310-630v40h-40q-13 0-21.5 8.5T240-560q0 13 8.5 21.5T270-530h40v40q0 13 8.5 21.5T340-460Zm140-20Z';
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [HeaderButton],
+      providers: [provideZonelessChangeDetection()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(HeaderButton);
     component = fixture.componentInstance;
+
+    component.iconPath = signal(svgPath) as unknown as InputSignal<string>;
+
     fixture.detectChanges();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  /**
+   * Tests related to the rendered HTML structure of the component.
+   */
+  describe('HTML:', () => {
+    /**
+     * Verifies that the SVG element renders correctly with the expected path data.
+     */
+    it('should render SVG with correct path data', () => {
+      // Find the SVG element in the component template
+      const svg = fixture.debugElement.query(By.css('svg'));
+
+      // Get the 'd' attribute from the <path> element inside the SVG
+      const path = svg.query(By.css('path')).attributes['d'];
+
+      // Assert that the path matches the expected SVG path
+      expect(path).toBe(svgPath);
+    });
   });
 });
- */

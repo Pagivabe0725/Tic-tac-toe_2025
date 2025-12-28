@@ -149,6 +149,16 @@ export class Theme {
   }
 
   /**
+   * Exposes the current theme mode as a reactive signal.
+   *
+   * The signal value represents the active theme mode
+   * (e.g. 'light' or 'dark'), or `undefined` if no mode is set.
+   */
+  get modeSignal(): Signal<string | undefined> {
+    return this.#mode;
+  }
+
+  /**
    * Creates a new {@link Theme} instance, initializing signals, event listeners,
    * and persistent theme data from both computed styles and local storage.
    *
@@ -158,8 +168,8 @@ export class Theme {
    * - Sets up effects to keep CSS variables in sync with reactive signals.
    */
   constructor() {
-    this.width= this.#document.defaultView?.innerWidth
-    this.height= this.#document.defaultView?.innerHeight
+    this.width = this.#document.defaultView?.innerWidth;
+    this.height = this.#document.defaultView?.innerHeight;
     this.#document.defaultView?.addEventListener('resize', this.onResize);
 
     this.setBasicState();
@@ -194,7 +204,6 @@ export class Theme {
       }
     });
   }
-
 
   /**
    * Extracts the lightness component from an OKLCH color string.

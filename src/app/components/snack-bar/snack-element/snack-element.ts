@@ -70,7 +70,7 @@ export class SnackElement {
    * Emits a close event to the parent and clears the internal interval,
    * allowing the parent component or service to remove the snackbar.
    */
-  close(): void {
+  protected close(): void {
     clearInterval(this.#interval);
     this.closeEvent.emit(this.SnackBarObject().id);
   }

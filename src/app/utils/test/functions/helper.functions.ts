@@ -61,3 +61,12 @@ export function getWinnerByGameStatus(
       return 'o';
   }
 }
+
+export function getCallsArray(call: any): object[] {
+  const result: object[] = [];
+  call.forEach((element: any) => {
+    result.push(element['args'][0]);
+  });
+
+  return result;
+}
