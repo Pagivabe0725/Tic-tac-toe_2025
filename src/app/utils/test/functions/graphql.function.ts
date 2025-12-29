@@ -1,12 +1,17 @@
 import { User } from '../../interfaces/user.interface';
 
 /**
- * Creates a GraphQL mutation object for updating a user's email.
- * @param user - The user object containing the ID and new email.
- * @returns An object suitable to be passed to HttpService.request for a GraphQL call.
+ * Creates a GraphQL mutation payload for updating a user's email.
+ *
+ * - Produces a `query` string containing the `updatedUser` mutation.
+ * - Injects the given user's `userId` and `email` into the `variables` object.
+ *
+ * @param user - User object providing the id and the new email value.
+ * @returns GraphQL request body (query + variables) suitable for HttpService.request.
  */
 export function createUpdateUserMutation(user: User): object {
   return {
+    /** GraphQL mutation string for updating user email. */
     query: `
           mutation UpdateUser($userId: ID!, $email: String) {
             updatedUser(userId: $userId, email: $email) {
@@ -17,6 +22,7 @@ export function createUpdateUserMutation(user: User): object {
             }
           }
         `,
+    /** Variables bound to the mutation. */
     variables: {
       userId: user.userId,
       email: user.email,
@@ -25,12 +31,16 @@ export function createUpdateUserMutation(user: User): object {
 }
 
 /**
- * Creates a GraphQL mutation object for updating a user's password.
- * @param userId - The ID of the user whose password is being updated.
+ * Creates a GraphQL mutation payload for updating a user's password.
+ *
+ * - Produces a `query` string containing the `updatePassword` mutation.
+ * - Uses `rePassword` as the `confirmPassword` variable to match backend naming.
+ *
+ * @param userId - The id of the user whose password is being updated.
  * @param password - The current password.
- * @param newPassword - The new password.
- * @param rePassword - Confirmation of the new password.
- * @returns An object suitable to be passed to HttpService.request for a GraphQL call.
+ * @param newPassword - The requested new password.
+ * @param rePassword - Confirmation of the requested new password.
+ * @returns GraphQL request body (query + variables) suitable for HttpService.request.
  */
 export function createUpdatePasswordMutation(
   userId: string,
@@ -39,6 +49,7 @@ export function createUpdatePasswordMutation(
   rePassword: string
 ): object {
   return {
+    /** GraphQL mutation string for updating password. */
     query: `
           mutation updatePassword($userId: ID!, $password: String!, $newPassword: String!, $confirmPassword: String!) {
             updatePassword(
@@ -51,6 +62,7 @@ export function createUpdatePasswordMutation(
             }
           }
         `,
+    /** Variables bound to the mutation. */
     variables: {
       userId: userId,
       password: password,
