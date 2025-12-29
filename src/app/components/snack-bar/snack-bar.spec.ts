@@ -86,44 +86,40 @@ describe('SnackBar', () => {
    * - ngOnInit: ensures intervals and related actions are set up correctly.
    * - ngOnDestroy: ensures intervals are cleared to prevent memory leaks.
    */
+
   describe('Life cycle hooks:', () => {
     /**
-     * Tests related to Angular lifecycle hooks.
+     * Ensures that ngOnInit sets up the interval and calls `tick` on the snackbar service.
      */
-    describe('Life cycle hooks:', () => {
-      /**
-       * Ensures that ngOnInit sets up the interval and calls `tick` on the snackbar service.
-       */
-      it('[ngOnInit] Should call `snackbarService.tick` via interval when it is executed', async () => {
-        // Spy on the snackbar service's tick method before ngOnInit is called
-        spyOn(snackbarService, 'tick');
+    it('[ngOnInit] Should call `snackbarService.tick` via interval when it is executed', async () => {
+      // Spy on the snackbar service's tick method before ngOnInit is called
+      spyOn(snackbarService, 'tick');
 
-        // Trigger ngOnInit via change detection
-        fixture.detectChanges();
+      // Trigger ngOnInit via change detection
+      fixture.detectChanges();
 
-        // Wait 1 second to allow the interval to execute
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Wait 1 second to allow the interval to execute
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
-        // Verify that tick has been called by the interval
-        expect(snackbarService.tick).toHaveBeenCalled();
-      });
+      // Verify that tick has been called by the interval
+      expect(snackbarService.tick).toHaveBeenCalled();
+    });
 
-      /**
-       * Ensures that ngOnDestroy clears the interval set by ngOnInit.
-       */
-      it('[ngOnDestroy] should call clearInterval', () => {
-        // Spy on the global clearInterval function to track calls
-        spyOn(window, 'clearInterval');
+    /**
+     * Ensures that ngOnDestroy clears the interval set by ngOnInit.
+     */
+    it('[ngOnDestroy] should call clearInterval', () => {
+      // Spy on the global clearInterval function to track calls
+      spyOn(window, 'clearInterval');
 
-        // Trigger ngOnInit to initialize the interval
-        fixture.detectChanges();
+      // Trigger ngOnInit to initialize the interval
+      fixture.detectChanges();
 
-        // Call ngOnDestroy manually to clear the interval
-        component.ngOnDestroy();
+      // Call ngOnDestroy manually to clear the interval
+      component.ngOnDestroy();
 
-        // Verify that clearInterval was called
-        expect(clearInterval).toHaveBeenCalled();
-      });
+      // Verify that clearInterval was called
+      expect(clearInterval).toHaveBeenCalled();
     });
   });
 

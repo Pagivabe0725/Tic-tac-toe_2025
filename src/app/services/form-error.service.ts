@@ -157,7 +157,6 @@ export class FormError {
    * @param control - The form control whose value is being validated.
    */
   async markAsNotCurrentUserPassword(control: AbstractControl): Promise<void> {
-    console.log('TEST');
     const value = control.value;
     if (value && !(await this.#auth.isCurrentUserPassword(value))) {
       this.addErrorToControl(control, 'notCurrentUserPassword');

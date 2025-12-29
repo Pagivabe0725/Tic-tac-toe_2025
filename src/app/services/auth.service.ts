@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { Http } from './http.service';
 import { User } from '../utils/interfaces/user.interface';
+import { SnackBarHandler } from './snack-bar-handler.service';
 
 /**
  * @service Auth
@@ -25,6 +26,12 @@ export class Auth {
 
   /** Writable signal storing the currently logged-in user */
   #user: WritableSignal<User | undefined> = signal(undefined);
+
+  /**
+   * Service responsible for managing snackbar state and behavior
+   * (e.g. ticking, adding, and removing snackbar elements).
+   */
+  #snackbarHandler: SnackBarHandler = inject(SnackBarHandler);
 
   /**
    * Read-only access to the current user signal.
@@ -138,24 +145,32 @@ export class Auth {
   }
 
   /**
-   * Updates the local user signal by merging new properties and
-   * sends a PATCH request to persist the changes on the backend.
+   * Sends a PATCH request to update the current user on the backend and,
+   * on success, merges the provided properties into the local user signal.
    *
-   * @param {Partial<User>} newUser - The user properties to update.
-   * @returns {Promise<void>} Resolves when the server request completes.
+   * If the request fails, an error snackbar message is displayed and
+   * the local user state remains unchanged.
+   *
+   * @param {Partial<User>} newUser - Partial user properties to be merged into the current user state.
+   * @returns {Promise<void>} Resolves after the update attempt completes.
    */
-  async updateUser(newUser: Partial<User>): Promise<void> {
-    this.#user.update((previous) => {
-      if (!previous) return undefined;
-      return { ...previous, ...newUser };
-    });
 
-    await this.#httpHandler.request<User>(
+  async updateUser(newUser: Partial<User>): Promise<void> {
+    const newUserFromResponse = await this.#httpHandler.request<User>(
       'patch',
       'users/update-user',
       { ...this.#user() },
       { maxRetries: 3, initialDelay: 200 }
     );
+
+    if (newUserFromResponse) {
+      this.#user.update((previous) => {
+        if (!previous) return undefined;
+        return { ...previous, ...newUser };
+      });
+    } else {
+      this.#snackbarHandler.addElement('Failed to update user', true);
+    }
   }
 
   /**

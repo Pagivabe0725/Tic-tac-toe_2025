@@ -1,158 +1,265 @@
 import { TestBed } from '@angular/core/testing';
-import { provideZonelessChangeDetection } from '@angular/core';
-import { BrakePoint, Theme } from '../theme.service';
+import { provideZonelessChangeDetection, DOCUMENT } from '@angular/core';
+
+import { Theme } from '../theme.service';
 
 /**
- * Unit tests for the Theme service.
+ * @fileoverview
+ * Unit tests for the `Theme` service.
  *
- * Tests cover:
- * - Getter and setter behavior (primaryColor, accentColor, mode, width, height)
- * - Utility methods (getBreakPointName, getLigthnesFromOKLCH)
- * - Behavior of setBasicState with mocked CSS and localStorage values
+ * Covers:
+ * - Initialization:
+ *   - reads width/height from document.defaultView
+ *   - registers resize listener
+ *   - loads primary/accent/mode from localStorage (fallback to computed styles)
+ *   - infers mode from background lightness when scheme not saved
+ * - Getters:
+ *   - modeSignal reflects mode changes
+ * - Effects:
+ *   - syncs primary/accent/mode into CSS variables and localStorage
+ * - Resize handler:
+ *   - updates width/height signals
  */
-describe('Theme service', () => {
-  let service: Theme;
 
-  beforeEach(() => {
+describe('Theme', () => {
+  /** Flush Angular signal effects (zoneless-friendly). */
+  const flushEffects = async () => {
+    const anyTB = TestBed as any;
+
+    if (typeof anyTB.flushEffects === 'function') {
+      anyTB.flushEffects();
+      return;
+    }
+
+    // Fallback: give the scheduler a chance.
+    await new Promise((r) => setTimeout(r, 0));
+  };
+
+  /**
+   * Test helper to create the service with controlled DOM + storage + computed styles.
+   */
+  const setup = (config?: {
+    computedPrimary?: string;
+    computedAccent?: string;
+    computedBackground?: string;
+    savedPrimary?: string | null;
+    savedAccent?: string | null;
+    savedScheme?: 'light' | 'dark' | null;
+    innerWidth?: number;
+    innerHeight?: number;
+  }) => {
+    const fakeBody = document.createElement('body');
+
+    const fakeWindow = {
+      innerWidth: config?.innerWidth ?? 1000,
+      innerHeight: config?.innerHeight ?? 700,
+      addEventListener: jasmine.createSpy('addEventListener'),
+    } as any;
+
+    const fakeDocument = {
+      body: fakeBody,
+      defaultView: fakeWindow,
+    } as unknown as Document;
+
+    const computedPrimary = config?.computedPrimary ?? '#111111';
+    const computedAccent = config?.computedAccent ?? '#222222';
+    const computedBackground = config?.computedBackground ?? 'oklch(0.9 0 0)';
+
+    // Mock computed styles used in setBasicState().
+    spyOn(window, 'getComputedStyle').and.returnValue({
+      getPropertyValue: (prop: string) => {
+        if (prop === '--theme-primary') return computedPrimary;
+        if (prop === '--theme-accent') return computedAccent;
+        if (prop === 'background-color') return computedBackground;
+        return '';
+      },
+    } as any);
+
+    // Mock localStorage.
+    spyOn(localStorage, 'getItem').and.callFake((key: string) => {
+      if (key === '--theme-primary') return config?.savedPrimary ?? null;
+      if (key === '--theme-accent') return config?.savedAccent ?? null;
+      if (key === 'color-scheme') return (config?.savedScheme ?? null) as any;
+      return null;
+    });
+    const setItemSpy = spyOn(localStorage, 'setItem');
+
+    // Silence logs.
+    spyOn(console, 'log');
+
+    // Spy on CSS variable syncing.
+    const setPropertySpy = spyOn(fakeBody.style, 'setProperty').and.stub();
+
     TestBed.configureTestingModule({
       providers: [
         provideZonelessChangeDetection(),
-        // Ensure each test gets a fresh instance of Theme
-        { provide: Theme, useFactory: () => new Theme() },
+        Theme,
+        { provide: DOCUMENT, useValue: fakeDocument },
       ],
     });
-    service = TestBed.inject(Theme);
+
+    const service = TestBed.inject(Theme);
+
+    return { service, fakeWindow, setItemSpy, setPropertySpy };
+  };
+
+  afterEach(() => {
+    TestBed.resetTestingModule();
+  });
+
+  describe('Initialization:', () => {
+    /**
+     * Ensures that width/height are set from defaultView and resize listener is registered.
+     */
+    it('Should set width/height and register resize listener', () => {
+      const { service, fakeWindow } = setup({ innerWidth: 800, innerHeight: 600 });
+
+      expect(service.width()).toBe(800);
+      expect(service.height).toBe(600);
+
+      expect(fakeWindow.addEventListener).toHaveBeenCalled();
+      expect(fakeWindow.addEventListener.calls.mostRecent().args[0]).toBe('resize');
+      expect(typeof fakeWindow.addEventListener.calls.mostRecent().args[1]).toBe(
+        'function'
+      );
+    });
+
+    /**
+     * Ensures that saved theme values from localStorage override computed styles.
+     */
+    it('Should initialize theme values from localStorage when available', () => {
+      const { service } = setup({
+        computedPrimary: '#aaa',
+        computedAccent: '#bbb',
+        computedBackground: 'oklch(0.9 0 0)',
+        savedPrimary: '#p',
+        savedAccent: '#a',
+        savedScheme: 'dark',
+      });
+
+      expect(service.primaryColor).toBe('#p');
+      expect(service.accentColor).toBe('#a');
+      expect(service.mode).toBe('dark');
+    });
+
+    /**
+     * Ensures that mode is inferred as dark when background lightness < 0.8 and scheme is not saved.
+     */
+    it('Should infer dark mode from background when scheme is not saved', () => {
+      const { service } = setup({
+        savedScheme: null,
+        computedBackground: 'oklch(0.75 0.1 120)',
+      });
+
+      expect(service.mode).toBe('dark');
+    });
+
+    /**
+     * Ensures that mode is inferred as light when background lightness >= 0.8 and scheme is not saved.
+     */
+    it('Should infer light mode from background when scheme is not saved', () => {
+      const { service } = setup({
+        savedScheme: null,
+        computedBackground: 'oklch(0.85 0.1 120)',
+      });
+
+      expect(service.mode).toBe('light');
+    });
   });
 
   /**
-   * Test basic getter and setter functionality
+   * Tests for getter signals.
    */
-  describe('Getters and setters', () => {
-    let mockWindowHeight: number;
+  describe('Getters:', () => {
+    /**
+     * Ensures that `modeSignal` exposes the current mode value
+     * and reacts to mode changes.
+     */
+    it('[modeSignal] should reflect mode changes', async () => {
+      const { service } = setup({
+        computedBackground: 'oklch(0.9 0 0)', // -> light (fallback)
+        savedScheme: null,
+      });
 
-    beforeEach(() => {
-      // Randomized window height for testing dynamic height behavior
-      mockWindowHeight = Math.floor(Math.random() * (1000 - 400 + 1)) + 400;
-    });
+      await flushEffects();
 
-    it('should correctly set and get primaryColor', () => {
-      service.primaryColor = 'oklch(0.5 0.1 120)';
-      expect(service.primaryColor).toBe('oklch(0.5 0.1 120)');
-    });
+      expect(service.modeSignal()).toBe('light');
 
-    it('should correctly set and get accentColor', () => {
-      service.accentColor = 'oklch(0.6 0.12 260)';
-      expect(service.accentColor).toBe('oklch(0.6 0.12 260)');
-    });
-
-    it('should correctly set and get mode', () => {
       service.mode = 'dark';
-      expect(service.mode).toBe('dark');
-      service.mode = 'light';
-      expect(service.mode).toBe('light');
-    });
 
- 
+      await flushEffects();
 
-    it('should correctly set and get height', () => {
-      service.height = 1080;
-      expect(service.height).toBe(1080);
-    });
-
-    it('should set height equal to mocked window.innerHeight', () => {
-      Object.defineProperty(window, 'innerHeight', {
-        value: mockWindowHeight,
-        configurable: true,
-      });
-      service.height = window.innerHeight;
-      expect(service.height).toBe(mockWindowHeight);
+      expect(service.modeSignal()).toBe('dark');
     });
   });
 
-  /**
-   * Test utility methods
-   */
-  describe('Utility methods', () => {
-  /*   it('getBreakPointName should return correct breakpoint for given window widths', () => {
-      const testCases: [number, BrakePoint][] = [
-        [0, 'xs'], [639, 'xs'],
-        [640, 'sm'], [767, 'sm'],
-        [768, 'md'], [1023, 'md'],
-        [1024, 'lg'], [1279, 'lg'],
-        [1280, 'xl'], [1535, 'xl'],
-        [1536, '2xl'], [2000, '2xl'],
-      ];
-
-      const getBreakPointName = (service as any).getBreakPointName.bind(service);
-
-      testCases.forEach(([size, expected]) => {
-        expect(getBreakPointName(size)).toBe(expected, `Failed for width: ${size}px`);
+  describe('Effects:', () => {
+    /**
+     * Ensures that primary/accent/mode are synced into CSS variables and localStorage.
+     */
+    it('Should sync primary, accent and mode to CSS variables and localStorage', async () => {
+      const { service, setItemSpy, setPropertySpy } = setup({
+        computedPrimary: '#abc',
+        computedAccent: '#def',
+        computedBackground: 'oklch(0.9 0 0)', // -> light
+        savedPrimary: null,
+        savedAccent: null,
+        savedScheme: null,
       });
-    }); */
 
-    it('getLigthnesFromOKLCH should extract correct lightness from OKLCH string', () => {
-      const testCases: [string, number][] = [
-        ['oklch(0.75 0.1 120)', 0.75],
-        ['oklch(0 0.2 180)', 0],
-        ['oklch(1 0.5 250)', 1],
-        ['oklch(0.5 0 0)', 0.5],
-      ];
+      // Flush initial effects created in constructor.
+      await flushEffects();
 
-      testCases.forEach(([oklchString, expected]) => {
-        expect(service['getLigthnesFromOKLCH'](oklchString)).toBeCloseTo(expected, 5, `Failed for ${oklchString}`);
-      });
+      expect(service.primaryColor).toBe('#abc');
+      expect(service.accentColor).toBe('#def');
+      expect(service.mode).toBe('light');
+
+      expect(setPropertySpy).toHaveBeenCalledWith('--theme-primary', '#abc');
+      expect(setPropertySpy).toHaveBeenCalledWith('--theme-accent', '#def');
+      expect(setPropertySpy).toHaveBeenCalledWith('color-scheme', 'light');
+
+      expect(setItemSpy).toHaveBeenCalledWith('--theme-primary', '#abc');
+      expect(setItemSpy).toHaveBeenCalledWith('--theme-accent', '#def');
+      expect(setItemSpy).toHaveBeenCalledWith('color-scheme', 'light');
+
+      // Update signals -> effects should sync again.
+      service.primaryColor = '#111';
+      service.accentColor = '#222';
+      service.mode = 'dark';
+
+      await flushEffects();
+
+      expect(setPropertySpy).toHaveBeenCalledWith('--theme-primary', '#111');
+      expect(setPropertySpy).toHaveBeenCalledWith('--theme-accent', '#222');
+      expect(setPropertySpy).toHaveBeenCalledWith('color-scheme', 'dark');
+
+      expect(setItemSpy).toHaveBeenCalledWith('--theme-primary', '#111');
+      expect(setItemSpy).toHaveBeenCalledWith('--theme-accent', '#222');
+      expect(setItemSpy).toHaveBeenCalledWith('color-scheme', 'dark');
     });
   });
 
-  /**
-   * Test setBasicState behavior
-   */
-  describe('setBasicState method', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    let getComputedStyleSpy: jasmine.Spy;
-    let localStorageGetItemSpy: jasmine.Spy;
+  describe('Resize handler:', () => {
+    /**
+     * Ensures that the registered resize handler updates width/height from defaultView.
+     */
+    it('Should update width and height on resize', () => {
+      const { service, fakeWindow } = setup({ innerWidth: 900, innerHeight: 500 });
 
-    beforeEach(() => {
-      // Mock getComputedStyle for CSS variables
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      getComputedStyleSpy = spyOn(window, 'getComputedStyle').and.callFake((elem: any) => ({
-        getPropertyValue: (prop: string) => {
-          switch (prop) {
-            case '--theme-primary': return 'oklch(0.5 0.1 120)';
-            case '--theme-accent': return 'oklch(0.6 0.1 240)';
-            case 'background-color': return 'oklch(0.7 0.1 120)'; // used for default dark/light
-            default: return '';
-          }
-        },
-      }) as any);
+      const resizeHandler = fakeWindow.addEventListener.calls.mostRecent().args[1] as
+        | (() => void)
+        | undefined;
 
-      // Default localStorage returns null
-      localStorageGetItemSpy = spyOn(localStorage, 'getItem').and.returnValue(null);
-    });
+      expect(service.width()).toBe(900);
+      expect(service.height).toBe(500);
 
-    it('should initialize colors and mode from CSS if localStorage is empty', () => {
-      (service as any).setBasicState();
+      fakeWindow.innerWidth = 1200;
+      fakeWindow.innerHeight = 800;
 
-      expect(service.primaryColor).toBe('oklch(0.5 0.1 120)');
-      expect(service.accentColor).toBe('oklch(0.6 0.1 240)');
-      expect(service.mode).toBe('dark');
-    });
+      resizeHandler?.();
 
-    it('should override CSS values with values from localStorage', () => {
-      localStorageGetItemSpy.and.callFake((key: string) => {
-        switch (key) {
-          case '--theme-primary': return 'oklch(0.2 0.3 100)';
-          case '--theme-accent': return 'oklch(0.3 0.2 200)';
-          case 'color-scheme': return 'light';
-          default: return null;
-        }
-      });
-
-      (service as any).setBasicState();
-
-      expect(service.primaryColor).toBe('oklch(0.2 0.3 100)');
-      expect(service.accentColor).toBe('oklch(0.3 0.2 200)');
-      expect(service.mode).toBe('light');
+      expect(service.width()).toBe(1200);
+      expect(service.height).toBe(800);
     });
   });
 });
