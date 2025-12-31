@@ -81,7 +81,7 @@ describe('NavBar', () => {
   let store: Store;
 
   /** Mock authenticated user used across test cases */
-  let testUser = createUser(true);
+  const testUser = createUser(true);
 
   beforeEach(async () => {
     game = createGame('userId_1', 'gameId_1', 'not_started');

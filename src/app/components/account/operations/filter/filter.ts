@@ -1,6 +1,5 @@
 import {
   Component,
-  inject,
   input,
   InputSignal,
   output,
@@ -9,9 +8,8 @@ import {
 import { SAVED_GAME_STATUSES } from '../../../../utils/constants/saved-game-status.constant';
 import { savedGameStatus } from '../../../../utils/types/game-status.type';
 import { FormsModule } from '@angular/forms';
-import { RouterService } from '../../../../services/router.service';
 import { Params, QueryParamsHandling } from '@angular/router';
-import { SnackBarHandler } from '../../../../services/snack-bar-handler.service';
+
 
 @Component({
   selector: 'div[appFilter]',

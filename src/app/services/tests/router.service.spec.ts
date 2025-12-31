@@ -24,7 +24,7 @@ import { RouterService } from '../router.service';
  *   - forwards navigation with optional queryParams and queryParamsHandling
  */
 
-describe('RouterService', () => {
+describe('RouterService (service)', () => {
   /** Service under test. */
   let service: RouterService;
 

@@ -11,12 +11,10 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Account } from './account';
 import {
   provideZonelessChangeDetection,
-  Signal,
   signal,
   WritableSignal,
 } from '@angular/core';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
-import { Store } from '@ngrx/store';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { Http } from '../../services/http.service';
 import { Auth } from '../../services/auth.service';
@@ -249,7 +247,7 @@ describe('Account', () => {
       });
 
       it('Should default to field "updatedAt" for unrecognized order prefix', () => {
-        let order = 'invalid-desc';
+        const order = 'invalid-desc';
         /** Default behavior for invalid order string */
         expect(component['splitOrder'](order as GameOrder).field).toBe(
           'updatedAt'
@@ -257,7 +255,7 @@ describe('Account', () => {
       });
 
       it('Should return default field and order for completely invalid order string', () => {
-        let order = 'invalidOrder';
+        const order = 'invalidOrder';
         expect(component['splitOrder'](order as GameOrder)).toEqual({
           field: 'updatedAt',
           order: 'desc', // default order
@@ -265,8 +263,8 @@ describe('Account', () => {
       });
 
       it('Should default to `desc` if order direction is invalid', () => {
-        let order = 'time-esc';
-        let order2 = 'alpha-esc';
+        const order = 'time-esc';
+        const order2 = 'alpha-esc';
 
         /** Invalid order directions fallback to 'desc' */
         expect(component['splitOrder'](order as GameOrder)).toEqual({

@@ -23,7 +23,7 @@ import { BASE_URL } from '../../utils/constants/base-URL.constant';
  * - Retry tests wait for the next request with a small async polling helper.
  */
 
-describe('Http', () => {
+describe('Http (service)', () => {
   /** Service under test. */
   let service: Http;
 

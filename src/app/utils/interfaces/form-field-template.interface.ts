@@ -1,4 +1,4 @@
-import { DialogButton } from '../types/dialog-button.type';
+
 import { FormFieldModel } from '../types/dialog-form-field-model.type';
 import { ErrorKeys } from '../types/error-messages.type';
 

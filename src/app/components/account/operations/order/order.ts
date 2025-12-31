@@ -1,13 +1,12 @@
 import {
   Component,
-  inject,
   input,
   InputSignal,
   output,
   OutputEmitterRef,
 } from '@angular/core';
 import { GameOrder } from '../../../../utils/types/order.type';
-import { Params, QueryParamsHandling, Router } from '@angular/router';
+import { Params, QueryParamsHandling } from '@angular/router';
 import { ORDERS } from '../../../../utils/constants/order.constant';
 
 @Component({

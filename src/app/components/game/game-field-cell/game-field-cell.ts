@@ -10,7 +10,7 @@ import {
   Output,
 } from '@angular/core';
 import { Theme } from '../../../services/theme.service';
-import { LastMove } from '../../../utils/types/last-move.type';
+import { LastMove } from '../../../utils/interfaces/last-move.interface';
 import { Store } from '@ngrx/store';
 import { modifyGameInfo } from '../../../store/actions/game-info-modify.action';
 import { GameInfo } from '../../../utils/interfaces/game-info.interface';

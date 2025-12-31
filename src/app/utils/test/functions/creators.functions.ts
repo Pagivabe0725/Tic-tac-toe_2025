@@ -1,4 +1,4 @@
-import { INITIAL_STATE, Store } from '@ngrx/store';
+
 import { GameInfo } from '../../interfaces/game-info.interface';
 import { SavedGame } from '../../interfaces/saved-game.interface';
 import { User } from '../../interfaces/user.interface';
@@ -51,10 +51,10 @@ export function createGame(
    * Lookup table that maps each status to a representative board and last move.
    * Helps keep test data predictable and easy to reason about.
    */
-  const boards: Map<
+  const boards = new Map<
     savedGameStatus,
     { board: SavedGame['board']; lastMove: SavedGame['lastMove'] }
-  > = new Map([
+  >([
     [
       'won',
       {
@@ -149,11 +149,11 @@ export function createBoard(
   size: number
 ): NonNullable<GameInfo['actualBoard']> {
   /** Resulting board matrix. */
-  let result: string[][] = [];
+  const result: string[][] = [];
 
   for (let i = 0; i < size; i++) {
     /** Row being built. */
-    let element: string[] = [];
+    const element: string[] = [];
 
     for (let j = 0; j < size; j++) {
       element.push('');

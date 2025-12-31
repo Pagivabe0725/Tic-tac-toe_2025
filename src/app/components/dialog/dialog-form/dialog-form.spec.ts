@@ -183,7 +183,7 @@ describe('DialogForm', () => {
     it('First effect should call [getStructureByFieldKey] when the dialog content changes', async () => {
       dialogService.actualContent = undefined;
 
-      let newContent = generateRandomDialogContent();
+      const newContent = generateRandomDialogContent();
 
       const templateResult = templateService.getStructureByFieldKey(
         newContent as FieldKey

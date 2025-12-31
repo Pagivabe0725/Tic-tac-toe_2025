@@ -11,8 +11,6 @@ import {
 
 import { DialogContent } from '../../utils/types/dialog-content.type';
 import { DialogForm } from './dialog-form/dialog-form';
-import { Auth } from '../../services/auth.service';
-import { Store } from '@ngrx/store';
 import { FocusTrap, FocusTrapFactory } from '@angular/cdk/a11y';
 import { DialogHandler } from '../../services/dialog-handler.service';
 import { DialogStructure } from '../../utils/interfaces/dialog-structure.interface';

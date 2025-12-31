@@ -1,4 +1,4 @@
-import { LastMove } from '../types/last-move.type';
+import { LastMove } from './last-move.interface';
 
 /**
  * @interface GameInfo

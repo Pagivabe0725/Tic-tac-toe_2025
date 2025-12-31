@@ -145,21 +145,23 @@ export class Auth {
   }
 
   /**
-   * Sends a PATCH request to update the current user on the backend and,
-   * on success, merges the provided properties into the local user signal.
+   * Sends a PATCH request to update the current user on the backend.
    *
-   * If the request fails, an error snackbar message is displayed and
-   * the local user state remains unchanged.
+   * If the request succeeds (returns a truthy response), the local user signal is
+   * updated by merging the provided `newUser` fields into the current user state.
+   * Note: the response payload is not used for the local merge.
    *
-   * @param {Partial<User>} newUser - Partial user properties to be merged into the current user state.
-   * @returns {Promise<void>} Resolves after the update attempt completes.
+   * If the request fails (or returns a falsy value), an error snackbar message is
+   * displayed and the local user state remains unchanged.
+   *
+   * @param newUser - Partial user properties to apply to the current user state.
+   * @returns A Promise that resolves once the update attempt finishes.
    */
-
   async updateUser(newUser: Partial<User>): Promise<void> {
     const newUserFromResponse = await this.#httpHandler.request<User>(
       'patch',
       'users/update-user',
-      { ...this.#user() },
+      { ...this.#user(), ...newUser },
       { maxRetries: 3, initialDelay: 200 }
     );
 

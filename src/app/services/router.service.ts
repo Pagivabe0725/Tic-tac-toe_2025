@@ -58,7 +58,6 @@ export class RouterService {
         tap((event) => {
           const URL = event.urlAfterRedirects.split('?')[0];
           this.#currentEndpoint.set(URL.slice(1));
-          console.log('Current Endpoint:', this.#currentEndpoint());
         }),
 
         /** Find the innermost ActivatedRoute. */

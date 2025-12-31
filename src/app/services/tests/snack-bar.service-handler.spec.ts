@@ -19,7 +19,7 @@ import { SnackBarHandler } from '../snack-bar-handler.service';
  *   - removes an element by id
  */
 
-describe('SnackBarHandler', () => {
+describe('SnackBarHandler (service)', () => {
   /** Service under test. */
   let service: SnackBarHandler;
 

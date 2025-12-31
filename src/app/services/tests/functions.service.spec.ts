@@ -2,10 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
 
 import { Functions } from '../functions.service';
-import { Hardness } from '../../utils/types/hardness.type';
 import { FormField } from '../../utils/interfaces/form-field-template.interface';
 import { FieldKey } from '../../utils/types/dialog-form-field-model.type';
-import { GameSettings } from '../../utils/interfaces/game-settings.interface';
 import { SavedGame } from '../../utils/interfaces/saved-game.interface';
 
 /**
@@ -20,7 +18,7 @@ import { SavedGame } from '../../utils/interfaces/saved-game.interface';
  * - markupByStep: returns 'o' for even steps and 'x' for odd steps
  */
 
-describe('Functions', () => {
+describe('Functions (service)', () => {
   /** Service under test. */
   let service: Functions;
 

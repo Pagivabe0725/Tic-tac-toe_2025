@@ -7,7 +7,7 @@ import { provideRouter } from '@angular/router';
 
 import { ROUTES } from './app.routes';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { csrfInterceptor } from './shared/interceptors/csfr.interceptor';
+import { csrfInterceptor } from './utils/interceptors/csfr.interceptor';
 import { provideStore } from '@ngrx/store';
 import { gameSettingsReducer } from './store/reducers/game-settings.reducer';
 import { provideEffects } from '@ngrx/effects';

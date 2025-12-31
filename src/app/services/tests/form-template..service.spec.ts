@@ -52,7 +52,7 @@ class MockStore {
   }
 }
 
-describe('FormTemplate', () => {
+describe('FormTemplate (service)', () => {
   /** Service under test. */
   let service: FormTemplate;
 

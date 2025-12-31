@@ -1,12 +1,8 @@
 import {
   Component,
   inject,
-  Input,
   input,
   InputSignal,
-  output,
-  OutputEmitterRef,
-  signal,
 } from '@angular/core';
 import { savedGameStatus } from '../../../utils/types/game-status.type';
 import { Filter } from './filter/filter';

@@ -21,7 +21,7 @@ import { Theme } from '../theme.service';
  *   - updates width/height signals
  */
 
-describe('Theme', () => {
+describe('Theme (service)', () => {
   /** Flush Angular signal effects (zoneless-friendly). */
   const flushEffects = async () => {
     const anyTB = TestBed as any;

@@ -72,7 +72,6 @@ describe('FormError (service)', () => {
      * Adds the error to the control and verifies that it is set correctly.
      */
     it('Should add error to control', () => {
-      console.log(actualErrorKey);
       service.addErrorToControl(testControl, actualErrorKey);
       expect(service.getPrimaryError(testControl)).toBe(
         ERROR_MESSAGES.get(actualErrorKey)

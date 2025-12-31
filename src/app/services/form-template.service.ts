@@ -8,7 +8,6 @@ import {
   selectGameSize,
 } from '../store/selectors/game-settings.selector';
 import { FormField } from '../utils/interfaces/form-field-template.interface';
-import { DialogButton } from '../utils/types/dialog-button.type';
 import { DialogStructure } from '../utils/interfaces/dialog-structure.interface';
 import { HARNESS_VALUES } from '../utils/constants/hardness.constant';
 

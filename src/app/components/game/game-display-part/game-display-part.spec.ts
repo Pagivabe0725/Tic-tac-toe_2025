@@ -10,7 +10,7 @@ import {
 import { provideMockStore } from '@ngrx/store/testing';
 import { createGameInfo } from '../../../utils/test/functions/creators.functions';
 import { GameInfo } from '../../../utils/interfaces/game-info.interface';
-import { LastMove } from '../../../utils/types/last-move.type';
+import { LastMove } from '../../../utils/interfaces/last-move.interface'; 
 import { Store } from '@ngrx/store';
 import { selectPlayersSpentTimes } from '../../../store/selectors/game-info.selector';
 import { By } from '@angular/platform-browser';
@@ -34,7 +34,7 @@ describe('GameDisplayPart', () => {
    * Mocked game state object used as input and store data source
    * for testing component behavior.
    */
-  let gameInfo: GameInfo = createGameInfo();
+  const gameInfo: GameInfo = createGameInfo();
 
   /**
    * Injected NgRx Store instance, spied on in tests to verify

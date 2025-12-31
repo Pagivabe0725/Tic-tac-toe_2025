@@ -2,7 +2,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { Board } from './board';
 import {
-  input,
   InputSignal,
   provideZonelessChangeDetection,
   signal,
@@ -15,7 +14,7 @@ import {
 } from '../../../utils/test/functions/random-values.function';
 import { createBoard } from '../../../utils/test/functions/creators.functions';
 import { GameSettings } from '../../../utils/interfaces/game-settings.interface';
-import { LastMove } from '../../../utils/types/last-move.type';
+import { LastMove } from '../../../utils/interfaces/last-move.interface';
 import {
   selectActualBoard,
   selectActualMarkup,

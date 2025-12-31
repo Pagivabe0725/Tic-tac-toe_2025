@@ -6,7 +6,7 @@ import { Http } from '../http.service';
 import { Functions } from '../functions.service';
 
 import { AiMove } from '../../utils/interfaces/ai-move.interface';
-import { LastMove } from '../../utils/types/last-move.type';
+import { LastMove } from '../../utils/interfaces/last-move.interface'; 
 
 /**
  * @fileoverview
@@ -17,7 +17,7 @@ import { LastMove } from '../../utils/types/last-move.type';
  * - hasWinner: correct endpoint, payload, retry options
  */
 
-describe('GameLogic', () => {
+describe('GameLogic (service)', () => {
   /** Service under test. */
   let service: GameLogic;
 

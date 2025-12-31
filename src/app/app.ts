@@ -6,13 +6,7 @@ import { Dialog } from './components/dialog/dialog';
 
 import { Auth } from './services/auth.service';
 import { SnackBar } from './components/snack-bar/snack-bar';
-import { Store } from '@ngrx/store';
-import {
-  selectGameInfo,
-  selectGameWinner,
-} from './store/selectors/game-info.selector';
-import { modifyGameInfo } from './store/actions/game-info-modify.action';
-import { storageCleaner } from './utils/functions/storage-cleaner.function';
+
 import { SnackBarHandler } from './services/snack-bar-handler.service';
 import { DialogHandler } from './services/dialog-handler.service';
 

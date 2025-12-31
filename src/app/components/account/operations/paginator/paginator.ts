@@ -5,8 +5,7 @@ import {
   output,
   OutputEmitterRef,
 } from '@angular/core';
-import { Params, QueryParamsHandling, Router } from '@angular/router';
-import { RouterService } from '../../../../services/router.service';
+import { Params, QueryParamsHandling } from '@angular/router';
 
 /**
  * @fileoverview

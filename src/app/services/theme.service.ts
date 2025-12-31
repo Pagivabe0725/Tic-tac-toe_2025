@@ -1,13 +1,3 @@
-/*  
-xs   0px     Extra small (mobile)  
-sm   640px   Small screen (mobile)  
-md   768px   Medium screen (tablet)  
-lg   1024px  Large screen (desktop)  
-xl   1280px  Extra large desktop  
-2xl  1536px  Very large monitor  
-
-*/
-
 import {
   DOCUMENT,
   effect,
@@ -19,34 +9,17 @@ import {
 } from '@angular/core';
 
 /**
- * A fixed list of available responsive breakpoints.
- */
-
-export const BRAKE_POINTS = [
-  'xs',
-  'sm',
-  'md',
-  'lg',
-  'xl',
-  '2xl',
-  undefined,
-] as const;
-
-/**
- * Type representing possible responsive breakpoint names.
- */
-export type BrakePoint = (typeof BRAKE_POINTS)[number];
-
-/**
  * @service Theme
  *
  * Manages the global visual theme of the application, including:
  * - Color scheme (`light` / `dark`)
- * - Primary and accent colors
- * - Responsive screen size tracking
+ * - Primary and accent colors (synced to CSS variables + localStorage)
+ * - Viewport size tracking (width/height in pixels)
  *
- * The service uses Angular Signals to provide reactivity and automatically
- * synchronizes visual parameters with both CSS variables and `localStorage`.
+ * Note:
+ * - This service currently stores the viewport width as a **pixel value**,
+ *   not as a breakpoint label (e.g. `md`, `xl`).
+ * - Theme values are persisted in `localStorage` and applied to the document body.
  */
 @Injectable({
   providedIn: 'root',
@@ -64,85 +37,92 @@ export class Theme {
   /** Reactive signal tracking the current color scheme (`light` or `dark`). */
   #mode: WritableSignal<'light' | 'dark' | undefined> = signal(undefined);
 
-  /** Reactive signal representing the current responsive width breakpoint. */
+  /** Reactive signal storing the current viewport width (in px). */
   #width: WritableSignal<number | undefined> = signal(undefined);
 
   /** Reactive signal storing the current viewport height (in px). */
   #height: WritableSignal<number | undefined> = signal(undefined);
 
   /**
-   * Gets the current responsive breakpoint name (e.g., `'md'`, `'xl'`).
+   * Read-only access to the current viewport width in pixels.
    */
   get width(): Signal<number | undefined> {
     return this.#width;
   }
 
   /**
-   * Sets a new responsive breakpoint name.
+   * Updates the stored viewport width in pixels.
    *
-   * @param newWidth - The breakpoint identifier (one of `'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl'`).
+   * Typically set by the resize handler.
    */
   set width(newWidth: number | undefined) {
     this.#width.set(newWidth);
   }
 
   /**
-   * Gets the current viewport height in pixels.
+   * Returns the current viewport height in pixels.
    */
   get height(): number | undefined {
     return this.#height();
   }
 
   /**
-   * Sets the current viewport height.
+   * Updates the stored viewport height in pixels.
    *
-   * @param newHeight - The new viewport height in pixels.
+   * Typically set by the resize handler.
    */
   set height(newHeight: number | undefined) {
     this.#height.set(newHeight);
   }
 
   /**
-   * Gets the current color scheme (`light` or `dark`).
+   * Returns the current color scheme (`light` or `dark`).
    */
   get mode(): 'light' | 'dark' | undefined {
     return this.#mode();
   }
 
   /**
-   * Sets the current color scheme.
+   * Sets the current color scheme (`light` or `dark`).
    *
-   * @param newMode - Either `'light'` or `'dark'`.
+   * An effect will also persist the value to `localStorage`
+   * and update the `color-scheme` CSS property.
    */
   set mode(newMode: 'light' | 'dark' | undefined) {
     this.#mode.set(newMode);
   }
 
   /**
-   * Signal representing the primary color of the theme.
+   * Returns the current primary color.
+   *
+   * This value is synced to the `--theme-primary` CSS variable via an effect.
    */
   get primaryColor(): string | undefined {
     return this.#primaryColor();
   }
 
   /**
-   * Setter for the primary color.
-   * Updates the `primaryColor` signal with a new value.
+   * Sets the primary color.
+   *
+   * An effect will apply it to `--theme-primary` and persist it in `localStorage`.
    */
   set primaryColor(newColor: string | undefined) {
     this.#primaryColor.set(newColor);
   }
 
   /**
-   * Signal representing the accent color of the theme.
+   * Returns the current accent color.
+   *
+   * This value is synced to the `--theme-accent` CSS variable via an effect.
    */
   get accentColor(): string | undefined {
     return this.#accentColor();
   }
 
   /**
-   * Setter for the accent color.
-   * Updates the `accentColor` signal with a new value.
+   * Sets the accent color.
+   *
+   * An effect will apply it to `--theme-accent` and persist it in `localStorage`.
    */
   set accentColor(newColor: string | undefined) {
     this.#accentColor.set(newColor);
@@ -151,21 +131,20 @@ export class Theme {
   /**
    * Exposes the current theme mode as a reactive signal.
    *
-   * The signal value represents the active theme mode
-   * (e.g. 'light' or 'dark'), or `undefined` if no mode is set.
+   * The value is `'light' | 'dark' | undefined`.
+   * Note: the return type could be narrowed to `Signal<'light' | 'dark' | undefined>`,
+   * but is kept compatible with the existing signature.
    */
   get modeSignal(): Signal<string | undefined> {
     return this.#mode;
   }
 
   /**
-   * Creates a new {@link Theme} instance, initializing signals, event listeners,
-   * and persistent theme data from both computed styles and local storage.
-   *
-   * The constructor:
-   * - Attaches a resize listener to update responsive breakpoints.
-   * - Reads stored theme preferences (colors, mode) from `localStorage`.
-   * - Sets up effects to keep CSS variables in sync with reactive signals.
+   * Initializes the service:
+   * - Reads the initial viewport size (width/height in px)
+   * - Registers a resize listener to keep width/height up to date
+   * - Loads initial theme values from CSS variables and/or localStorage
+   * - Sets up effects to keep CSS variables and localStorage in sync with signals
    */
   constructor() {
     this.width = this.#document.defaultView?.innerWidth;
@@ -206,21 +185,24 @@ export class Theme {
   }
 
   /**
-   * Extracts the lightness component from an OKLCH color string.
-   * Example input: `"oklch(0.75 0.1 120)"`.
+   * Extracts the lightness (L) component from an OKLCH color string.
+   * Example: `"oklch(0.75 0.1 120)"` -> `0.75`
    *
-   * @param oklch - The OKLCH color string.
-   * @returns The numeric lightness value (0–1 range).
-   * @private
+   * Important:
+   * - This assumes the input is an `oklch(...)` string.
+   * - If `background-color` is returned as `rgb(...)`/`rgba(...)`, this parsing will not be valid.
+   *
+   * @param oklch - OKLCH color string
+   * @returns The numeric lightness value (0–1 range)
    */
-  private getLigthnesFromOKLCH(oklch: string) {
+  private getLigthnessFromOKLCH(oklch: string) {
     return parseFloat(oklch.substring(6, oklch.length - 1).split(' ')[0]);
   }
 
   /**
-   * Window resize handler — logs and updates the current breakpoint.
+   * Window resize handler.
    *
-   * @private
+   * Updates stored viewport size signals (width/height in pixels).
    */
   private onResize = () => {
     this.height = this.#document.defaultView?.innerHeight;
@@ -228,13 +210,15 @@ export class Theme {
   };
 
   /**
-   * Initializes the theme's internal state from the DOM and localStorage.
+   * Initializes the theme's internal state from CSS variables and localStorage.
    *
-   * - Reads CSS variables (`--theme-primary`, `--theme-accent`)
-   * - Determines the color scheme (by checking saved data or background lightness)
-   * - Updates reactive signals accordingly
+   * - Reads CSS variables (`--theme-primary`, `--theme-accent`) from the document
+   * - Loads saved values from `localStorage` (if available)
+   * - Sets the color scheme from saved value or infers it using background lightness
    *
-   * @private
+   * Notes:
+   * - Background lightness inference assumes `background-color` is in OKLCH format.
+   *   If the browser returns it in another format (e.g. rgb), the inference may be inaccurate.
    */
   private setBasicState(): void {
     const primary = getComputedStyle(this.#document.body).getPropertyValue(
@@ -257,10 +241,11 @@ export class Theme {
 
     this.#primaryColor.set(savedPrimary ?? primary);
     this.#accentColor.set(savedAccent ?? accent);
-    console.log(this.getLigthnesFromOKLCH(backgroundColorInOKLCH));
+
+    // If no saved scheme exists, infer it from the background lightness threshold.
     this.#mode.set(
       savedScheme ??
-        (this.getLigthnesFromOKLCH(backgroundColorInOKLCH) < 0.8
+        (this.getLigthnessFromOKLCH(backgroundColorInOKLCH) < 0.8
           ? 'dark'
           : 'light')
     );

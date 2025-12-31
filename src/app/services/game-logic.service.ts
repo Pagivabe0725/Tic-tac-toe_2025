@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { Functions } from './functions.service';
 import { Http } from './http.service';
 import { AiMove } from '../utils/interfaces/ai-move.interface';
-import { LastMove } from '../utils/types/last-move.type';
+import { LastMove } from '../utils/interfaces/last-move.interface';
 
 /**
  * @service GameLogic

@@ -13,7 +13,7 @@ import {
 } from '@angular/core';
 import { CellCoordinate } from '../../../utils/interfaces/celll-coordinate.interface';
 import { GameFieldCell } from '../game-field-cell/game-field-cell';
-import { LastMove } from '../../../utils/types/last-move.type';
+import { LastMove } from '../../../utils/interfaces/last-move.interface';
 import { Store } from '@ngrx/store';
 import {
   selectActualBoard,
